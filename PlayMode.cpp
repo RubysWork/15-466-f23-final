@@ -11,6 +11,7 @@
 #include <glm/gtc/type_ptr.hpp>
 
 #include <random>
+#include <string>
 
 GLuint meshes_for_lit_color_texture_program = 0;
 Load<MeshBuffer> meshes(LoadTagDefault, []() -> MeshBuffer const *
@@ -51,14 +52,27 @@ PlayMode::PlayMode() : scene(*hexapod_scene)
 			boss = &transform;
 		}
 
-		else if (transform.name == "Bullet")
+		else if (transform.name.find("Bullet") != std::string::npos)
 		{
+
+			Bullet bullet;
+			bullet.index = bullet_index;
+			bullet.transform = &transform;
+			bullet.original_pos = bullet.transform->position;
+
+			bu.index = bullet_index;
+			bu.transform = &transform;
+			bu.original_pos = bullet.transform->position;
+
+			bullets.emplace_back(bullet);
+			bullet_index++;
 		}
 	}
 
 	// get pointer to camera for convenience:
 	if (scene.cameras.size() != 1)
 		throw std::runtime_error("Expecting scene to have exactly one camera, but it has " + std::to_string(scene.cameras.size()));
+
 	camera = &scene.cameras.front();
 
 	// start music loop playing:
@@ -155,30 +169,16 @@ bool PlayMode::handle_event(SDL_Event const &evt, glm::uvec2 const &window_size)
 void PlayMode::update(float elapsed)
 {
 
-	// slowly rotates through [0,1):
-	// wobble += elapsed / 10.0f;
-	// wobble -= std::floor(wobble);
-
-	// hip->rotation = hip_base_rotation * glm::angleAxis(
-	// 										glm::radians(5.0f * std::sin(wobble * 2.0f * float(M_PI))),
-	// 										glm::vec3(0.0f, 1.0f, 0.0f));
-	// upper_leg->rotation = upper_leg_base_rotation * glm::angleAxis(
-	// 													glm::radians(7.0f * std::sin(wobble * 2.0f * 2.0f * float(M_PI))),
-	// 													glm::vec3(0.0f, 0.0f, 1.0f));
-	// lower_leg->rotation = lower_leg_base_rotation * glm::angleAxis(
-	// 													glm::radians(10.0f * std::sin(wobble * 3.0f * 2.0f * float(M_PI))),
-	// 													glm::vec3(0.0f, 0.0f, 1.0f));
-
-	// // move sound to follow leg tip position:
-	// leg_tip_loop->set_position(get_leg_tip_position(), 1.0f / 60.0f);
-
 	switch (boss_status)
 	{
 	case Melee:
 
 		break;
 	case Shoot:
-
+		bullet_current_time += bullet_speed * elapsed;
+		(*(bullets.begin() + 2)).transform->position = bullet_current_Pos((*bullets.begin()).transform->position, player->position, bullet_current_time);
+		// bu.transform->position = bullet_current_Pos(bu.transform->position, player->position, bullet_current_time);
+		//   std::cout << (*bullets.begin()).transform->position.x << std::endl;
 		break;
 	default:
 
@@ -278,3 +278,9 @@ void PlayMode::draw(glm::uvec2 const &drawable_size)
 // 	// the vertex position here was read from the model in blender:
 // 	return lower_leg->make_local_to_world() * glm::vec4(-1.26137f, -11.861f, 0.0f, 1.0f);
 // }
+glm::vec3 PlayMode::bullet_current_Pos(glm::vec3 origin_Pos, glm::vec3 final_Pos, float time)
+{
+	glm::vec3 dir = glm::normalize(final_Pos - origin_Pos);
+	glm::vec3 current_Pos = glm::vec3(0, 0, 1) + dir * (1 + time);
+	return current_Pos;
+}

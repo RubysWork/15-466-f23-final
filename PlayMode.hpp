@@ -18,6 +18,7 @@ struct PlayMode : Mode
 	virtual bool handle_event(SDL_Event const &, glm::uvec2 const &window_size) override;
 	virtual void update(float elapsed) override;
 	virtual void draw(glm::uvec2 const &drawable_size) override;
+	glm::vec3 bullet_current_Pos(glm::vec3 origin_Pos, glm::vec3 final_Pos, float time);
 
 	//----- game state -----
 
@@ -41,11 +42,17 @@ struct PlayMode : Mode
 	{
 		int index = 0;
 		Scene::Transform *transform = nullptr;
-		glm::vec3 shoot_orient = glm::vec3(0, 0, 0);
+
+		glm::vec3 original_pos = glm::vec3(0, 0, 0);
+		glm::vec3 final_pos = glm::vec3(0, 0, 0);
 	} Bullet;
 
-	std::list<Bullet> bullets;
+	Bullet bu;
+	std::vector<Bullet> bullets;
 	int bullet_index = 0;
+	int bullet_count = 3;
+	float bullet_speed = 0.1f;
+	float bullet_current_time = 0;
 
 	enum BattleStatus
 	{
@@ -54,7 +61,7 @@ struct PlayMode : Mode
 	};
 
 	BattleStatus boss_status = Shoot;
-	int bullet_count = 3;
+
 	///
 
 	// music coming from the tip of the leg (as a demonstration):
