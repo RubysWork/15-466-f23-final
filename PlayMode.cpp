@@ -44,6 +44,7 @@ PlayMode::PlayMode() : scene(*hexapod_scene)
 		if (transform.name == "Player")
 		{
 			player = &transform;
+			start_point = player->position;
 		}
 
 		else if (transform.name == "Boss")
@@ -82,49 +83,61 @@ bool PlayMode::handle_event(SDL_Event const &evt, glm::uvec2 const &window_size)
 		}
 		else if (evt.key.keysym.sym == SDLK_a)
 		{
-			left.downs += 1;
-			left.pressed = true;
+			keya.downs += 1;
+			keya.pressed = true;
 			return true;
 		}
 		else if (evt.key.keysym.sym == SDLK_d)
 		{
-			right.downs += 1;
-			right.pressed = true;
+			keyd.downs += 1;
+			keyd.pressed = true;
 			return true;
 		}
 		else if (evt.key.keysym.sym == SDLK_w)
 		{
-			up.downs += 1;
-			up.pressed = true;
+			keyw.downs += 1;
+			keyw.pressed = true;
 			return true;
 		}
 		else if (evt.key.keysym.sym == SDLK_s)
 		{
-			down.downs += 1;
-			down.pressed = true;
+			keys.downs += 1;
+			keys.pressed = true;
 			return true;
 		}
+		else if (evt.key.keysym.sym == SDLK_SPACE)
+		{
+			space.downs += 1;
+			space.pressed = true;
+			return true;
+		}
+
 	}
 	else if (evt.type == SDL_KEYUP)
 	{
 		if (evt.key.keysym.sym == SDLK_a)
 		{
-			left.pressed = false;
+			keya.pressed = false;
 			return true;
 		}
 		else if (evt.key.keysym.sym == SDLK_d)
 		{
-			right.pressed = false;
+			keyd.pressed = false;
 			return true;
 		}
 		else if (evt.key.keysym.sym == SDLK_w)
 		{
-			up.pressed = false;
+			keyw.pressed = false;
 			return true;
 		}
 		else if (evt.key.keysym.sym == SDLK_s)
 		{
-			down.pressed = false;
+			keys.pressed = false;
+			return true;
+		}
+		else if (evt.key.keysym.sym == SDLK_SPACE)
+		{
+			space.pressed = false;
 			return true;
 		}
 	}
@@ -187,30 +200,70 @@ void PlayMode::update(float elapsed)
 
 	// move camera:
 	{
-
 		// combine inputs into a move:
-		constexpr float PlayerSpeed = 30.0f;
-		glm::vec2 move = glm::vec2(0.0f);
-		if (left.pressed && !right.pressed)
-			move.x = -1.0f;
-		if (!left.pressed && right.pressed)
-			move.x = 1.0f;
-		if (down.pressed && !up.pressed)
-			move.y = -1.0f;
-		if (!down.pressed && up.pressed)
-			move.y = 1.0f;
+		constexpr float PlayerSpeed = 2.0f;
+		// move left and right
+		float move = 0.0f;
+		if (keya.pressed && !keyd.pressed)
+			move = -1.0f;
+		if (!keya.pressed && keyd.pressed)
+			move = 1.0f;
+		
+		if (space.pressed) {
+		   if (!first_jump) {
+			jump_signal = false;
+			first_jump = true;
+			jump_velocity = 3.0f;
+		   }
+		   else if (first_jump && !second_jump && jump_signal) {
+			jump_signal = false;
+			second_jump = true;
+			jump_velocity = 3.0f;
+		   }
+		   else {
+			// do nothing
+		   }
+		}
+
+		if (!space.pressed) {
+			jump_signal = true;
+		}
+
+		float gravity = -4.0f;
+
+		// if (down.pressed && !up.pressed)
+		// 	move.y = -1.0f;
+		// if (!down.pressed && up.pressed)
+		// 	move.y = 1.0f;
 
 		// make it so that moving diagonally doesn't go faster:
-		if (move != glm::vec2(0.0f))
-			move = glm::normalize(move) * PlayerSpeed * elapsed;
+		float vert_move = move * PlayerSpeed * elapsed;
+
+		jump_velocity += gravity * elapsed;
+		float hori_move = jump_velocity * elapsed;
+
+		//std::cout << first_jump << ", " << second_jump << ", " << jump_interval << "\n";
+		//std::cout << jump_velocity << "\n";
 
 		glm::mat4x3 frame = camera->transform->make_local_to_parent();
 		glm::vec3 frame_right = frame[0];
-		// glm::vec3 up = frame[1];
-		glm::vec3 frame_forward = -frame[2];
+		glm::vec3 frame_up = frame[1];
+		// glm::vec3 frame_forward = -frame[2];
 
+		if (player->position.z == start_point.z) {
+			first_jump = false;
+			second_jump = false;
+			jump_velocity = 0;
+			jump_signal = false;
+		}
+
+		glm::vec3 expected_position = player->position + vert_move * frame_right + hori_move * frame_up;
+		if (expected_position.z < start_point.z) {
+			expected_position.z = start_point.z;
+		}
 		// camera->transform->position += move.x * frame_right + move.y * frame_forward;
-		player->position += move.x * frame_right + move.y * frame_forward;
+		// player->position += move.x * frame_right + move.y * frame_forward + move.z * frame_up;
+		player->position = expected_position;
 	}
 
 	{ // update listener to camera position:
@@ -221,10 +274,11 @@ void PlayMode::update(float elapsed)
 	}
 
 	// reset button press counters:
-	left.downs = 0;
-	right.downs = 0;
-	up.downs = 0;
-	down.downs = 0;
+	keya.downs = 0;
+	keyd.downs = 0;
+	keyw.downs = 0;
+	keys.downs = 0;
+	space.downs = 0;
 }
 
 void PlayMode::draw(glm::uvec2 const &drawable_size)

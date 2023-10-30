@@ -26,13 +26,21 @@ struct PlayMode : Mode
 	{
 		uint8_t downs = 0;
 		uint8_t pressed = 0;
-	} left, right, down, up;
+	} keya, keyd, keys, keyw, space;
 
 	// local copy of the game scene (so code can change it during gameplay):
 	Scene scene;
 
 	// glm::vec3 get_leg_tip_position();
 	Scene::Transform *player = nullptr;
+
+	glm::vec3 start_point;
+
+	bool first_jump;
+	bool second_jump;
+	
+	float jump_velocity = 0.0f;
+	bool jump_signal = false;
 
 	/// boss
 	Scene::Transform *boss = nullptr;

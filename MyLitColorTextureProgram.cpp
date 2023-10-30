@@ -46,7 +46,7 @@ Load<MyLitColorTextureProgram> my_lit_color_texture_program(LoadTagEarly, []() -
 //	std::vector< glm::u8vec4 > tex_data(1, glm::u8vec4(0xff));
 	std::vector< glm::u8vec4 > tex_data;
 	glm::uvec2 size;
-	load_png("Player.png", &size, &tex_data, OriginLocation::LowerLeftOrigin);
+	load_png("player.png", &size, &tex_data, OriginLocation::LowerLeftOrigin);
 	//load_png("black.jpg", &size, &tex_data, OriginLocation::LowerLeftOrigin);
 	//stbi_set_flip_vertically_on_load(true);
 	//int width, height, nrChannels;
