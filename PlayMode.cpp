@@ -284,9 +284,8 @@ void PlayMode::update(float elapsed)
 		
 		// camera->transform->position += move.x * frame_right + move.y * frame_forward;
 		// player->position += move.x * frame_right + move.y * frame_forward + move.z * frame_up;
-		player->position = expected_position;
 		camera->transform->position += expected_position - player->position;
-		
+		player->position = expected_position;
 	}
 
 	{ // update listener to camera position:
