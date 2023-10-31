@@ -39,11 +39,16 @@ Load<Sound::Sample> dusty_floor_sample(LoadTagDefault, []() -> Sound::Sample con
 
 PlayMode::PlayMode() : scene(*hexapod_scene)
 {
-	Platform newPlatform;
-	newPlatform.pos = glm::vec3{-1.2f, 0, 2.0f};
-	newPlatform.height = 1.0f;
-	newPlatform.width = 1.5f;
-	platforms.emplace_back(newPlatform);
+	Platform newPlatform1;
+	newPlatform1.pos = glm::vec3{-1.2f, 0, 2.0f};
+	newPlatform1.height = 1.0f;
+	newPlatform1.width = 1.5f;
+	platforms.emplace_back(newPlatform1);
+	Platform newPlatform2;
+	newPlatform2.pos = glm::vec3{2.8f, 0, 3.4f};
+	newPlatform2.height = 0.7f;
+	newPlatform2.width = 2.2f;
+	platforms.emplace_back(newPlatform2);
 	for (auto &transform : scene.transforms)
 	{
 		if (transform.name == "Player")
@@ -475,7 +480,7 @@ bool PlayMode::hit_platform()
 
 void PlayMode::land_on_platform(glm::vec3 expected_position)
 {
-	//std::cout << "\n" << player->position.x << " ," << player->position.y << " ," << player->position.z;
+	std::cout << "\n" << player->position.x << " ," << player->position.y << " ," << player->position.z;
 	for (auto platform : platforms) {
 	    //std::cout << "\n" << outer_block -> name << "position z " << world_coords(outer_block).z ;
 		//std::cout << "\n" << outer_block -> name << "scale x" << outer_block->scale.x;
