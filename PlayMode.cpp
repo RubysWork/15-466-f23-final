@@ -58,17 +58,18 @@ PlayMode::PlayMode() : scene(*hexapod_scene)
 			Bullet bullet;
 			bullet.index = bullet_index;
 			bullet.transform = &transform;
+			bullet.transform->position.y = 10;
 			bullet.original_pos = bullet.transform->position;
-
-			bu.index = bullet_index;
-			bu.transform = &transform;
-			bu.original_pos = bullet.transform->position;
 
 			bullets.emplace_back(bullet);
 			bullet_index++;
 		}
 	}
 
+	for (auto &bullet : bullets)
+	{
+		bullet.player_pos = player->position;
+	}
 	// get pointer to camera for convenience:
 	if (scene.cameras.size() != 1)
 		throw std::runtime_error("Expecting scene to have exactly one camera, but it has " + std::to_string(scene.cameras.size()));
@@ -175,10 +176,24 @@ void PlayMode::update(float elapsed)
 
 		break;
 	case Shoot:
+
 		bullet_current_time += bullet_speed * elapsed;
-		(*(bullets.begin() + 2)).transform->position = bullet_current_Pos((*bullets.begin()).transform->position, player->position, bullet_current_time);
-		// bu.transform->position = bullet_current_Pos(bu.transform->position, player->position, bullet_current_time);
-		//   std::cout << (*bullets.begin()).transform->position.x << std::endl;
+		current_bullet = *(bullets.begin() + bullet_current_index);
+		current_bullet.transform->position.y = player->position.y;
+		current_bullet.transform->position = bullet_current_Pos(boss->position, current_bullet.player_pos, bullet_current_time);
+
+		one_bullet_timer++;
+		// std::cout << one_bullet_timer << std::endl;
+		// generate new one
+		if (current_bullet.transform->position.x < player->position.x + 0.4f && current_bullet.transform->position.x > player->position.x - 0.4f && current_bullet.transform->position.z < player->position.z + 0.4f && current_bullet.transform->position.z > player->position.z - 0.4f)
+		{
+			put_away_bullet(current_bullet);
+		}
+		if (one_bullet_timer > 1000)
+		{
+			put_away_bullet(current_bullet);
+		}
+
 		break;
 	default:
 
@@ -281,6 +296,17 @@ void PlayMode::draw(glm::uvec2 const &drawable_size)
 glm::vec3 PlayMode::bullet_current_Pos(glm::vec3 origin_Pos, glm::vec3 final_Pos, float time)
 {
 	glm::vec3 dir = glm::normalize(final_Pos - origin_Pos);
-	glm::vec3 current_Pos = glm::vec3(0, 0, 1) + dir * (1 + time);
+	glm::vec3 current_Pos = origin_Pos + dir * time;
+	current_Pos.y = player->position.y;
 	return current_Pos;
+}
+
+void PlayMode::put_away_bullet(Bullet bullet)
+{
+	bullet.transform->position.y = 100;
+	one_bullet_timer = 0;
+	bullet_current_index++;
+	bullet_current_index %= 6;
+	bullet_current_time = 0;
+	(*(bullets.begin() + bullet_current_index)).player_pos = player->position;
 }

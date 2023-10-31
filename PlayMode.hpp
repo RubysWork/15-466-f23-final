@@ -45,14 +45,19 @@ struct PlayMode : Mode
 
 		glm::vec3 original_pos = glm::vec3(0, 0, 0);
 		glm::vec3 final_pos = glm::vec3(0, 0, 0);
+
+		glm::vec3 player_pos = glm::vec3(0, 0, 0);
 	} Bullet;
 
-	Bullet bu;
 	std::vector<Bullet> bullets;
+
+	Bullet current_bullet;
 	int bullet_index = 0;
+	int bullet_current_index = 0;
 	int bullet_count = 3;
-	float bullet_speed = 0.1f;
+	float bullet_speed = 0.3f;
 	float bullet_current_time = 0;
+	int one_bullet_timer = 0;
 
 	enum BattleStatus
 	{
@@ -69,4 +74,6 @@ struct PlayMode : Mode
 
 	// camera:
 	Scene::Camera *camera = nullptr;
+
+	void put_away_bullet(Bullet bullet);
 };
