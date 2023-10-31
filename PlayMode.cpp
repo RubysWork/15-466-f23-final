@@ -161,18 +161,18 @@ bool PlayMode::handle_event(SDL_Event const &evt, glm::uvec2 const &window_size)
 			return true;
 		}
 	}
-	else if (evt.type == SDL_MOUSEMOTION)
-	{
-		if (SDL_GetRelativeMouseMode() == SDL_TRUE)
-		{
-			glm::vec2 motion = glm::vec2(
-				evt.motion.xrel / float(window_size.y),
-				-evt.motion.yrel / float(window_size.y));
-			camera->transform->rotation = glm::normalize(
-				camera->transform->rotation * glm::angleAxis(-motion.x * camera->fovy, glm::vec3(0.0f, 1.0f, 0.0f)) * glm::angleAxis(motion.y * camera->fovy, glm::vec3(1.0f, 0.0f, 0.0f)));
-			return true;
-		}
-	}
+	// else if (evt.type == SDL_MOUSEMOTION)
+	// {
+	// 	if (SDL_GetRelativeMouseMode() == SDL_TRUE)
+	// 	{
+	// 		glm::vec2 motion = glm::vec2(
+	// 			evt.motion.xrel / float(window_size.y),
+	// 			-evt.motion.yrel / float(window_size.y));
+	// 		camera->transform->rotation = glm::normalize(
+	// 			camera->transform->rotation * glm::angleAxis(-motion.x * camera->fovy, glm::vec3(0.0f, 1.0f, 0.0f)) * glm::angleAxis(motion.y * camera->fovy, glm::vec3(1.0f, 0.0f, 0.0f)));
+	// 		return true;
+	// 	}
+	// }
 
 	return false;
 }
@@ -281,7 +281,7 @@ void PlayMode::update(float elapsed)
 		{
 			expected_position.z = start_point.z;
 		}
-		
+
 		// camera->transform->position += move.x * frame_right + move.y * frame_forward;
 		// player->position += move.x * frame_right + move.y * frame_forward + move.z * frame_up;
 		camera->transform->position += expected_position - player->position;
