@@ -46,9 +46,10 @@ struct PlayMode : Mode
 	float jump_velocity = 0.0f;
 	bool jump_signal = false;
 
-	/// boss
-	Scene::Transform *boss = nullptr;
+	glm::vec3 player_origin_scale;
+	bool face_right = true;
 
+	// bullet
 	typedef struct Bullet
 	{
 		int index = 0;
@@ -62,7 +63,7 @@ struct PlayMode : Mode
 
 	std::vector<Bullet> bullets;
 
-	std::list <Scene::Transform *> outerList;
+	std::list<Scene::Transform *> outerList;
 
 	Bullet current_bullet;
 	int bullet_index = 0;
@@ -72,15 +73,16 @@ struct PlayMode : Mode
 	float bullet_current_time = 0;
 	int one_bullet_timer = 0;
 
+	// boss status
 	enum BattleStatus
 	{
 		Melee,
 		Shoot
 	};
-
 	BattleStatus boss_status = Shoot;
-
-	///
+	/// boss
+	Scene::Transform *boss = nullptr;
+	// player attack once
 	bool attack = false;
 	/// bosshp
 	Scene::Transform *boss_hp = nullptr;

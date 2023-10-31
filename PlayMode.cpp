@@ -45,6 +45,7 @@ PlayMode::PlayMode() : scene(*hexapod_scene)
 		{
 			player = &transform;
 			start_point = player->position;
+			player_origin_scale = player->scale;
 		}
 
 		else if (transform.name == "Boss")
@@ -253,8 +254,8 @@ void PlayMode::update(float elapsed)
 		}
 	}
 	// player attack
-	// std::cout << "component:" << (component->make_local_to_world() * glm::vec4(component->position, 1.0f)).x << "boss:" << boss->position.x << std::endl;
-	if (keyatk.pressed && !attack && (component->make_local_to_world() * glm::vec4(component->position, 1.0f)).x < boss->position.x + 0.8f && (component->make_local_to_world() * glm::vec4(component->position, 1.0f)).x > boss->position.x && (component->make_local_to_world() * glm::vec4(component->position, 1.0f)).z < boss->position.z + 0.5f && (component->make_local_to_world() * glm::vec4(component->position, 1.0f)).z > boss->position.z)
+	std::cout << "component:" << (component->make_local_to_world() * glm::vec4(component->position, 1.0f)).x << "boss:" << boss->position.x << std::endl;
+	if (keyatk.pressed && !attack && (component->make_local_to_world() * glm::vec4(component->position, 1.0f)).z < boss->position.z + 0.5f && (component->make_local_to_world() * glm::vec4(component->position, 1.0f)).z > boss->position.z && ((face_right && (component->make_local_to_world() * glm::vec4(component->position, 1.0f)).x < boss->position.x + 0.8f && (component->make_local_to_world() * glm::vec4(component->position, 1.0f)).x > boss->position.x) || (!face_right && (component->make_local_to_world() * glm::vec4(component->position, 1.0f)).x < boss->position.x && (component->make_local_to_world() * glm::vec4(component->position, 1.0f)).x > boss->position.x - 0.8f)))
 	{
 		attack = true;
 		hit_boss();
@@ -266,9 +267,18 @@ void PlayMode::update(float elapsed)
 		// move left and right
 		float move = 0.0f;
 		if (keya.pressed && !keyd.pressed)
+		{
+			player->scale.x = -player_origin_scale.x;
+			face_right = false;
 			move = -1.0f;
+		}
+
 		if (!keya.pressed && keyd.pressed)
+		{
 			move = 1.0f;
+			player->scale.x = player_origin_scale.x;
+			face_right = true;
+		}
 
 		if (space.pressed)
 		{
@@ -316,7 +326,8 @@ void PlayMode::update(float elapsed)
 		glm::vec3 frame_up = frame[1];
 		// glm::vec3 frame_forward = -frame[2];
 
-		if (on_platform()) {
+		if (on_platform())
+		{
 			first_jump = false;
 			second_jump = false;
 			jump_velocity = 0;
@@ -388,7 +399,8 @@ void PlayMode::draw(glm::uvec2 const &drawable_size)
 	GL_ERRORS();
 }
 
-glm::vec3 world_coords(Scene::Transform* block) {
+glm::vec3 world_coords(Scene::Transform *block)
+{
 	auto world_block = block->make_local_to_world() * glm::vec4(block->position, 1.0f);
 	return world_block;
 }
@@ -433,7 +445,7 @@ void PlayMode::hit_boss()
 	}
 }
 
-bool PlayMode::on_platform() 
+bool PlayMode::on_platform()
 {
 	// for (auto outer_block : outerList) {
 	// 	if (player->position.z == world_coords(outer_block).z + 0.4f) {
@@ -444,13 +456,14 @@ bool PlayMode::on_platform()
 	return player->position.z == start_point.z;
 }
 
-void PlayMode::land_on_platform(glm::vec3 expected_position) {
+void PlayMode::land_on_platform(glm::vec3 expected_position)
+{
 	// for (auto outer_block : outerList) {
 	//     //std::cout << "\n" << outer_block -> name << "position z " << world_coords(outer_block).z ;
 	// 	//std::cout << "\n" << outer_block -> name << "scale x" << outer_block->scale.x;
 	// 	//std::cout << "\n" << player->position.x << " player pos x";
 	// 	//std::cout << "\n" << expected_position.z << "z";
-	// 	if (std::abs((expected_position - world_coords(outer_block)).x) < 2.0f && 
+	// 	if (std::abs((expected_position - world_coords(outer_block)).x) < 2.0f &&
 	// 	    (expected_position - world_coords(outer_block)).z < 0.4f &&
 	// 		(player->position - world_coords(outer_block)).z >= 0.4f) {
 
@@ -462,7 +475,8 @@ void PlayMode::land_on_platform(glm::vec3 expected_position) {
 	// // player->position += move.x * frame_right + move.y * frame_forward + move.z * frame_up;
 	// camera->transform->position += expected_position - player->position;
 	// player->position = expected_position;
-	if (expected_position.z < start_point.z) {
+	if (expected_position.z < start_point.z)
+	{
 		expected_position.z = start_point.z;
 	}
 	camera->transform->position += expected_position - player->position;
