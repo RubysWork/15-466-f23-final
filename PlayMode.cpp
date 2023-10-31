@@ -49,6 +49,12 @@ PlayMode::PlayMode() : scene(*hexapod_scene)
 	newPlatform2.height = 0.7f;
 	newPlatform2.width = 2.2f;
 	platforms.emplace_back(newPlatform2);
+	Platform newPlatform3;
+	newPlatform3.pos = glm::vec3{-2.9f, 0, 3.4f};
+	newPlatform3.height = 1.2f;
+	newPlatform3.width = 2.0f;
+	platforms.emplace_back(newPlatform3);
+
 	for (auto &transform : scene.transforms)
 	{
 		if (transform.name == "Player")
