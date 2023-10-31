@@ -39,6 +39,11 @@ Load<Sound::Sample> dusty_floor_sample(LoadTagDefault, []() -> Sound::Sample con
 
 PlayMode::PlayMode() : scene(*hexapod_scene)
 {
+	Platform newPlatform;
+	newPlatform.pos = glm::vec3{-1.2f, 0, 2.0f};
+	newPlatform.height = 1.0f;
+	newPlatform.width = 1.5f;
+	platforms.emplace_back(newPlatform);
 	for (auto &transform : scene.transforms)
 	{
 		if (transform.name == "Player")
@@ -333,6 +338,10 @@ void PlayMode::update(float elapsed)
 			jump_signal = false;
 		}
 
+		if (hit_platform()) {
+			jump_velocity = 0;
+		}
+
 		glm::vec3 expected_position = player->position + hori_move * frame_right + vert_move * frame_up;
 		land_on_platform(expected_position);
 	}
@@ -446,37 +455,76 @@ void PlayMode::hit_boss()
 
 bool PlayMode::on_platform()
 {
-	// for (auto outer_block : outerList) {
-	// 	if (player->position.z == world_coords(outer_block).z + 0.4f) {
-	// 		return true;
-	// 	}
-	// }
-	// return false;
+	for (auto platform : platforms) {
+		if (player->position.z == platform.pos.z + platform.height / 2) {
+	 		return true;
+		}
+	}
 	return player->position.z == start_point.z;
+}
+
+bool PlayMode::hit_platform()
+{
+	for (auto platform : platforms) {
+		if (player->position.z == platform.pos.z - platform.height / 2) {
+	 		return true;
+		}
+	}
+	return false;
 }
 
 void PlayMode::land_on_platform(glm::vec3 expected_position)
 {
-	// for (auto outer_block : outerList) {
-	//     //std::cout << "\n" << outer_block -> name << "position z " << world_coords(outer_block).z ;
-	// 	//std::cout << "\n" << outer_block -> name << "scale x" << outer_block->scale.x;
-	// 	//std::cout << "\n" << player->position.x << " player pos x";
-	// 	//std::cout << "\n" << expected_position.z << "z";
-	// 	if (std::abs((expected_position - world_coords(outer_block)).x) < 2.0f &&
-	// 	    (expected_position - world_coords(outer_block)).z < 0.4f &&
-	// 		(player->position - world_coords(outer_block)).z >= 0.4f) {
-
-	// 		expected_position.z = world_coords(outer_block).z + 0.4f;
-	// 		std::cout << "\n" << "\n" << "land on " << outer_block->name;
-	// 	}
-	// }
-	// // camera->transform->position += move.x * frame_right + move.y * frame_forward;
-	// // player->position += move.x * frame_right + move.y * frame_forward + move.z * frame_up;
-	// camera->transform->position += expected_position - player->position;
-	// player->position = expected_position;
+	//std::cout << "\n" << player->position.x << " ," << player->position.y << " ," << player->position.z;
+	for (auto platform : platforms) {
+	    //std::cout << "\n" << outer_block -> name << "position z " << world_coords(outer_block).z ;
+		//std::cout << "\n" << outer_block -> name << "scale x" << outer_block->scale.x;
+		//std::cout << "\n" << expected_position.z << "z";
+		if (std::abs(expected_position.x - platform.pos.x) < platform.width / 2 &&
+		    std::abs(expected_position.z - platform.pos.z) < platform.height / 2) {
+			if (std::abs(player->position.x - platform.pos.x) < platform.width / 2
+			    && expected_position.x > platform.pos.x) {
+				if (expected_position.z > platform.pos.z) {
+					if (std::abs(expected_position.z - platform.pos.z) < platform.height / 2) {
+						expected_position.z = platform.pos.z + platform.height / 2;
+					}
+				}
+				if (expected_position.z < platform.pos.z) {
+					if (std::abs(expected_position.z - platform.pos.z) < platform.height / 2) {
+						expected_position.z = platform.pos.z - platform.height / 2;
+					}
+				}
+			}
+			if (std::abs(player->position.x - platform.pos.x) < platform.width / 2
+				&& expected_position.x < platform.pos.x) {
+				if (expected_position.z > platform.pos.z) {
+					if (std::abs(expected_position.z - platform.pos.z) < platform.height / 2) {
+						expected_position.z = platform.pos.z + platform.height / 2;
+					}
+				}
+				if (expected_position.z < platform.pos.z) {
+					if (std::abs(expected_position.z - platform.pos.z) < platform.height / 2) {
+						expected_position.z = platform.pos.z - platform.height / 2;
+					}
+				}
+			}
+			if (std::abs(player->position.x - platform.pos.x) >= platform.width / 2) {
+				if (player->position.x < platform.pos.x) {
+					expected_position.x = platform.pos.x - platform.width / 2;
+				}
+				if (player->position.x > platform.pos.x) {
+					expected_position.x = platform.pos.x + platform.width / 2;
+				}
+			}
+		}
+	}
+	// camera->transform->position += move.x * frame_right + move.y * frame_forward;
+	// player->position += move.x * frame_right + move.y * frame_forward + move.z * frame_up;
+	camera->transform->position += expected_position - player->position;
+	player->position = expected_position;
 	if (expected_position.z < start_point.z)
 	{
-		expected_position.z = start_point.z;
+	   expected_position.z = start_point.z;
 	}
 	camera->transform->position += expected_position - player->position;
 	player->position = expected_position;

@@ -22,6 +22,7 @@ struct PlayMode : Mode
 	void hit_player();
 	void hit_boss();
 	bool on_platform();
+	bool hit_platform();
 	void land_on_platform(glm::vec3 expected_position);
 	//----- game state -----
 
@@ -64,6 +65,15 @@ struct PlayMode : Mode
 	std::vector<Bullet> bullets;
 
 	std::list<Scene::Transform *> outerList;
+
+	typedef struct Platform
+	{
+		glm::vec3 pos = glm::vec3(0, 0, 0);
+		float height = 0;
+		float width = 0;
+	} Platform;
+
+	std::list<Platform> platforms;
 
 	Bullet current_bullet;
 	int bullet_index = 0;
