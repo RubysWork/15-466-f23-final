@@ -64,6 +64,15 @@ PlayMode::PlayMode() : scene(*hexapod_scene)
 
 			bullet_index++;
 		}
+		else if (transform.name == "BossHp")
+		{
+			boss_hp = &transform;
+		}
+		else if (transform.name == "PlayerHp")
+		{
+
+			player_hp = &transform;
+		}
 	}
 	for (auto &bullet : bullets)
 	{
@@ -153,14 +162,14 @@ bool PlayMode::handle_event(SDL_Event const &evt, glm::uvec2 const &window_size)
 			return true;
 		}
 	}
-	else if (evt.type == SDL_MOUSEBUTTONDOWN)
-	{
-		if (SDL_GetRelativeMouseMode() == SDL_FALSE)
-		{
-			SDL_SetRelativeMouseMode(SDL_TRUE);
-			return true;
-		}
-	}
+	// else if (evt.type == SDL_MOUSEBUTTONDOWN)
+	// {
+	// 	if (SDL_GetRelativeMouseMode() == SDL_FALSE)
+	// 	{
+	// 		SDL_SetRelativeMouseMode(SDL_TRUE);
+	// 		return true;
+	// 	}
+	// }
 	// else if (evt.type == SDL_MOUSEMOTION)
 	// {
 	// 	if (SDL_GetRelativeMouseMode() == SDL_TRUE)
@@ -179,6 +188,10 @@ bool PlayMode::handle_event(SDL_Event const &evt, glm::uvec2 const &window_size)
 
 void PlayMode::update(float elapsed)
 {
+	if (player_hp->scale.x <= 0.0001f)
+	{
+		player->scale = glm::vec3(0);
+	}
 
 	switch (boss_status)
 	{
@@ -199,6 +212,7 @@ void PlayMode::update(float elapsed)
 		if (current_bullet.transform->position.x < player->position.x + 0.4f && current_bullet.transform->position.x > player->position.x - 0.4f && current_bullet.transform->position.z < player->position.z + 0.4f && current_bullet.transform->position.z > player->position.z - 0.4f)
 		{
 			put_away_bullet(current_bullet);
+			hit_player();
 		}
 		if (one_bullet_timer > 1000)
 		{
@@ -371,4 +385,13 @@ void PlayMode::put_away_bullet(Bullet bullet)
 	bullet_current_index %= 6;
 	bullet_current_time = 0;
 	(*(bullets.begin() + bullet_current_index)).player_pos = player->position;
+}
+
+void PlayMode::hit_player()
+{
+	std::cout << player_hp->scale.x << std::endl;
+	if (player_hp->scale.x > 0.0001f)
+	{
+		player_hp->scale.x -= max_player_hp * 0.2f;
+	}
 }

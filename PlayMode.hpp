@@ -19,6 +19,7 @@ struct PlayMode : Mode
 	virtual void update(float elapsed) override;
 	virtual void draw(glm::uvec2 const &drawable_size) override;
 	glm::vec3 bullet_current_Pos(glm::vec3 origin_Pos, glm::vec3 final_Pos, float time);
+	void hit_player();
 	//----- game state -----
 
 	// input tracking:
@@ -75,6 +76,12 @@ struct PlayMode : Mode
 	BattleStatus boss_status = Shoot;
 
 	///
+	/// bosshp
+	Scene::Transform *boss_hp = nullptr;
+	/// playerhp
+	Scene::Transform *player_hp = nullptr;
+	float max_player_hp = 1.0f;
+	float current_player_hp = 1.0f;
 
 	// music coming from the tip of the leg (as a demonstration):
 	std::shared_ptr<Sound::PlayingSample> leg_tip_loop;
