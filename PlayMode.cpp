@@ -258,7 +258,7 @@ void PlayMode::update(float elapsed)
 				put_away_bullet(current_bullet);
 				hit_player();
 			}
-			if (one_bullet_timer > 1000)
+			if (one_bullet_timer > 300)
 			{
 				put_away_bullet(current_bullet);
 			}

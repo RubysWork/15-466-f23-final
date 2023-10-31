@@ -79,7 +79,7 @@ struct PlayMode : Mode
 	int bullet_index = 0;
 	int bullet_current_index = 0;
 	int bullet_count = 3;
-	float bullet_speed = 0.3f;
+	float bullet_speed = 1.5f;
 	float bullet_current_time = 0;
 	int one_bullet_timer = 0;
 
