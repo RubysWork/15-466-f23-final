@@ -77,6 +77,7 @@ PlayMode::PlayMode() : scene(*hexapod_scene)
 			component = &transform;
 		}
 	}
+
 	for (auto &bullet : bullets)
 	{
 		bullet.player_pos = player->position;
@@ -302,10 +303,10 @@ void PlayMode::update(float elapsed)
 		// 	move.y = 1.0f;
 
 		// make it so that moving diagonally doesn't go faster:
-		float vert_move = move * PlayerSpeed * elapsed;
+		float hori_move = move * PlayerSpeed * elapsed;
 
 		jump_velocity += gravity * elapsed;
-		float hori_move = jump_velocity * elapsed;
+		float vert_move = jump_velocity * elapsed;
 
 		// std::cout << first_jump << ", " << second_jump << ", " << jump_interval << "\n";
 		// std::cout << jump_velocity << "\n";
@@ -315,24 +316,15 @@ void PlayMode::update(float elapsed)
 		glm::vec3 frame_up = frame[1];
 		// glm::vec3 frame_forward = -frame[2];
 
-		if (player->position.z == start_point.z)
-		{
+		if (on_platform(player)) {
 			first_jump = false;
 			second_jump = false;
 			jump_velocity = 0;
 			jump_signal = false;
 		}
 
-		glm::vec3 expected_position = player->position + vert_move * frame_right + hori_move * frame_up;
-		if (expected_position.z < start_point.z)
-		{
-			expected_position.z = start_point.z;
-		}
-
-		// camera->transform->position += move.x * frame_right + move.y * frame_forward;
-		// player->position += move.x * frame_right + move.y * frame_forward + move.z * frame_up;
-		camera->transform->position += expected_position - player->position;
-		player->position = expected_position;
+		glm::vec3 expected_position = player->position + hori_move * frame_right + vert_move * frame_up;
+		land_on_platform(expected_position, camera, player);
 	}
 
 	{ // update listener to camera position:
@@ -396,6 +388,11 @@ void PlayMode::draw(glm::uvec2 const &drawable_size)
 	GL_ERRORS();
 }
 
+glm::vec3 world_coords(Scene::Transform* block) {
+	auto world_block = block->make_local_to_world() * glm::vec4(block->position, 1.0f);
+	return world_block;
+}
+
 // glm::vec3 PlayMode::get_leg_tip_position()
 // {
 // 	// the vertex position here was read from the model in blender:
@@ -434,4 +431,40 @@ void PlayMode::hit_boss()
 	{
 		boss_hp->scale.x -= max_boss_hp * 0.1f;
 	}
+}
+
+bool PlayMode::on_platform(Scene::Transform* player) 
+{
+	// for (auto outer_block : outerList) {
+	// 	if (player->position.z == world_coords(outer_block).z + 0.4f) {
+	// 		return true;
+	// 	}
+	// }
+	// return false;
+	return player->position.z == start_point.z;
+}
+
+void PlayMode::land_on_platform(glm::vec3 expected_position, Scene::Camera* camera, Scene::Transform* player) {
+	// for (auto outer_block : outerList) {
+	//     //std::cout << "\n" << outer_block -> name << "position z " << world_coords(outer_block).z ;
+	// 	//std::cout << "\n" << outer_block -> name << "scale x" << outer_block->scale.x;
+	// 	//std::cout << "\n" << player->position.x << " player pos x";
+	// 	//std::cout << "\n" << expected_position.z << "z";
+	// 	if (std::abs((expected_position - world_coords(outer_block)).x) < 2.0f && 
+	// 	    (expected_position - world_coords(outer_block)).z < 0.4f &&
+	// 		(player->position - world_coords(outer_block)).z >= 0.4f) {
+
+	// 		expected_position.z = world_coords(outer_block).z + 0.4f;
+	// 		std::cout << "\n" << "\n" << "land on " << outer_block->name;
+	// 	}
+	// }
+	// // camera->transform->position += move.x * frame_right + move.y * frame_forward;
+	// // player->position += move.x * frame_right + move.y * frame_forward + move.z * frame_up;
+	// camera->transform->position += expected_position - player->position;
+	// player->position = expected_position;
+	if (expected_position.z < start_point.z) {
+		expected_position.z = start_point.z;
+	}
+	camera->transform->position += expected_position - player->position;
+	player->position = expected_position;
 }
