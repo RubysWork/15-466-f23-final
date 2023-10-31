@@ -70,8 +70,11 @@ PlayMode::PlayMode() : scene(*hexapod_scene)
 		}
 		else if (transform.name == "PlayerHp")
 		{
-
 			player_hp = &transform;
+		}
+		else if (transform.name == "Component")
+		{
+			component = &transform;
 		}
 	}
 	for (auto &bullet : bullets)
@@ -127,6 +130,12 @@ bool PlayMode::handle_event(SDL_Event const &evt, glm::uvec2 const &window_size)
 			keys.pressed = true;
 			return true;
 		}
+		else if (evt.key.keysym.sym == SDLK_e)
+		{
+			keyatk.downs += 1;
+			keyatk.pressed = true;
+			return true;
+		}
 		else if (evt.key.keysym.sym == SDLK_SPACE)
 		{
 			space.downs += 1;
@@ -154,6 +163,12 @@ bool PlayMode::handle_event(SDL_Event const &evt, glm::uvec2 const &window_size)
 		else if (evt.key.keysym.sym == SDLK_s)
 		{
 			keys.pressed = false;
+			return true;
+		}
+		else if (evt.key.keysym.sym == SDLK_e)
+		{
+			keyatk.pressed = false;
+			attack = false;
 			return true;
 		}
 		else if (evt.key.keysym.sym == SDLK_SPACE)
@@ -188,43 +203,61 @@ bool PlayMode::handle_event(SDL_Event const &evt, glm::uvec2 const &window_size)
 
 void PlayMode::update(float elapsed)
 {
+	// player die
 	if (player_hp->scale.x <= 0.0001f)
 	{
 		player->scale = glm::vec3(0);
 	}
 
-	switch (boss_status)
+	// boss die
+	if (boss_hp->scale.x <= 0.0001f)
 	{
-	case Melee:
-
-		break;
-	case Shoot:
-
-		bullet_current_time += bullet_speed * elapsed;
-		current_bullet = *(bullets.begin() + bullet_current_index);
-		current_bullet.transform->scale = glm::vec3(0.15f);
-		current_bullet.transform->position.y = player->position.y;
-		current_bullet.transform->position = bullet_current_Pos(boss->position, current_bullet.player_pos, bullet_current_time);
-
-		one_bullet_timer++;
-		// std::cout << one_bullet_timer << std::endl;
-		// generate new one
-		if (current_bullet.transform->position.x < player->position.x + 0.4f && current_bullet.transform->position.x > player->position.x - 0.4f && current_bullet.transform->position.z < player->position.z + 0.4f && current_bullet.transform->position.z > player->position.z - 0.4f)
-		{
-			put_away_bullet(current_bullet);
-			hit_player();
-		}
-		if (one_bullet_timer > 1000)
-		{
-			put_away_bullet(current_bullet);
-		}
-
-		break;
-	default:
-
-		break;
+		boss->scale = glm::vec3(0);
+		put_away_bullet(current_bullet);
 	}
+	else
+	{
 
+		// boss status
+		switch (boss_status)
+		{
+		case Melee:
+
+			break;
+		case Shoot:
+
+			bullet_current_time += bullet_speed * elapsed;
+			current_bullet = *(bullets.begin() + bullet_current_index);
+			current_bullet.transform->scale = glm::vec3(0.15f);
+			current_bullet.transform->position.y = player->position.y;
+			current_bullet.transform->position = bullet_current_Pos(boss->position, current_bullet.player_pos, bullet_current_time);
+
+			one_bullet_timer++;
+			// std::cout << one_bullet_timer << std::endl;
+			// generate new one
+			if (current_bullet.transform->position.x < player->position.x + 0.4f && current_bullet.transform->position.x > player->position.x - 0.4f && current_bullet.transform->position.z < player->position.z + 0.4f && current_bullet.transform->position.z > player->position.z - 0.4f)
+			{
+				put_away_bullet(current_bullet);
+				hit_player();
+			}
+			if (one_bullet_timer > 1000)
+			{
+				put_away_bullet(current_bullet);
+			}
+
+			break;
+		default:
+
+			break;
+		}
+	}
+	// player attack
+	// std::cout << "component:" << (component->make_local_to_world() * glm::vec4(component->position, 1.0f)).x << "boss:" << boss->position.x << std::endl;
+	if (keyatk.pressed && !attack && (component->make_local_to_world() * glm::vec4(component->position, 1.0f)).x < boss->position.x + 0.8f && (component->make_local_to_world() * glm::vec4(component->position, 1.0f)).x > boss->position.x && (component->make_local_to_world() * glm::vec4(component->position, 1.0f)).z < boss->position.z + 0.5f && (component->make_local_to_world() * glm::vec4(component->position, 1.0f)).z > boss->position.z)
+	{
+		attack = true;
+		hit_boss();
+	}
 	// move camera:
 	{
 		// combine inputs into a move:
@@ -389,9 +422,16 @@ void PlayMode::put_away_bullet(Bullet bullet)
 
 void PlayMode::hit_player()
 {
-	std::cout << player_hp->scale.x << std::endl;
 	if (player_hp->scale.x > 0.0001f)
 	{
 		player_hp->scale.x -= max_player_hp * 0.2f;
+	}
+}
+
+void PlayMode::hit_boss()
+{
+	if (boss_hp->scale.x > 0.0001f)
+	{
+		boss_hp->scale.x -= max_boss_hp * 0.1f;
 	}
 }
