@@ -154,7 +154,7 @@ MyLitColorTextureProgram::MyLitColorTextureProgram()
 		"	}\n"
 		"	vec4 albedo = texture(TEX, texCoord) * color;\n"
 		"	if (albedo.a < 0.25) discard; \n"
-		"	fragColor = vec4(e*albedo.rgb, albedo.a);\n"
+		"	fragColor = vec4(e*2*albedo.rgb, albedo.a);\n"
 		"}\n");
 	// As you can see above, adjacent strings in C/C++ are concatenated.
 	//  this is very useful for writing long shader programs inline.
