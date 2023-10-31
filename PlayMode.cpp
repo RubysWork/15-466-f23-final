@@ -52,9 +52,22 @@ PlayMode::PlayMode() : scene(*hexapod_scene)
 			boss = &transform;
 		}
 
-		else if (transform.name == "Bullet")
+		else if (transform.name.find("Bullet") != std::string::npos)
 		{
+			Bullet bullet;
+			bullet.index = bullet_index;
+			bullet.transform = &transform;
+			bullet.transform->scale = glm::vec3(0, 0, 0);
+			bullet.original_pos = bullet.transform->position;
+
+			bullets.emplace_back(bullet);
+
+			bullet_index++;
 		}
+	}
+	for (auto &bullet : bullets)
+	{
+		bullet.player_pos = player->position;
 	}
 
 	// get pointer to camera for convenience:
@@ -167,29 +180,30 @@ bool PlayMode::handle_event(SDL_Event const &evt, glm::uvec2 const &window_size)
 void PlayMode::update(float elapsed)
 {
 
-	// slowly rotates through [0,1):
-	// wobble += elapsed / 10.0f;
-	// wobble -= std::floor(wobble);
-
-	// hip->rotation = hip_base_rotation * glm::angleAxis(
-	// 										glm::radians(5.0f * std::sin(wobble * 2.0f * float(M_PI))),
-	// 										glm::vec3(0.0f, 1.0f, 0.0f));
-	// upper_leg->rotation = upper_leg_base_rotation * glm::angleAxis(
-	// 													glm::radians(7.0f * std::sin(wobble * 2.0f * 2.0f * float(M_PI))),
-	// 													glm::vec3(0.0f, 0.0f, 1.0f));
-	// lower_leg->rotation = lower_leg_base_rotation * glm::angleAxis(
-	// 													glm::radians(10.0f * std::sin(wobble * 3.0f * 2.0f * float(M_PI))),
-	// 													glm::vec3(0.0f, 0.0f, 1.0f));
-
-	// // move sound to follow leg tip position:
-	// leg_tip_loop->set_position(get_leg_tip_position(), 1.0f / 60.0f);
-
 	switch (boss_status)
 	{
 	case Melee:
 
 		break;
 	case Shoot:
+
+		bullet_current_time += bullet_speed * elapsed;
+		current_bullet = *(bullets.begin() + bullet_current_index);
+		current_bullet.transform->scale = glm::vec3(0.15f);
+		current_bullet.transform->position.y = player->position.y;
+		current_bullet.transform->position = bullet_current_Pos(boss->position, current_bullet.player_pos, bullet_current_time);
+
+		one_bullet_timer++;
+		// std::cout << one_bullet_timer << std::endl;
+		// generate new one
+		if (current_bullet.transform->position.x < player->position.x + 0.4f && current_bullet.transform->position.x > player->position.x - 0.4f && current_bullet.transform->position.z < player->position.z + 0.4f && current_bullet.transform->position.z > player->position.z - 0.4f)
+		{
+			put_away_bullet(current_bullet);
+		}
+		if (one_bullet_timer > 1000)
+		{
+			put_away_bullet(current_bullet);
+		}
 
 		break;
 	default:
@@ -338,3 +352,21 @@ void PlayMode::draw(glm::uvec2 const &drawable_size)
 // 	// the vertex position here was read from the model in blender:
 // 	return lower_leg->make_local_to_world() * glm::vec4(-1.26137f, -11.861f, 0.0f, 1.0f);
 // }
+glm::vec3 PlayMode::bullet_current_Pos(glm::vec3 origin_Pos, glm::vec3 final_Pos, float time)
+{
+	glm::vec3 dir = glm::normalize(final_Pos - origin_Pos);
+	glm::vec3 current_Pos = origin_Pos + dir * time;
+	current_Pos.y = player->position.y;
+	return current_Pos;
+}
+
+void PlayMode::put_away_bullet(Bullet bullet)
+{
+	bullet.transform->position.y = 100;
+	bullet.transform->scale = glm::vec3(0);
+	one_bullet_timer = 0;
+	bullet_current_index++;
+	bullet_current_index %= 6;
+	bullet_current_time = 0;
+	(*(bullets.begin() + bullet_current_index)).player_pos = player->position;
+}
