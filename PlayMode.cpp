@@ -254,7 +254,6 @@ void PlayMode::update(float elapsed)
 		}
 	}
 	// player attack
-	std::cout << "component:" << (component->make_local_to_world() * glm::vec4(component->position, 1.0f)).x << "boss:" << boss->position.x << std::endl;
 	if (keyatk.pressed && !attack && (component->make_local_to_world() * glm::vec4(component->position, 1.0f)).z < boss->position.z + 0.5f && (component->make_local_to_world() * glm::vec4(component->position, 1.0f)).z > boss->position.z && ((face_right && (component->make_local_to_world() * glm::vec4(component->position, 1.0f)).x < boss->position.x + 0.8f && (component->make_local_to_world() * glm::vec4(component->position, 1.0f)).x > boss->position.x) || (!face_right && (component->make_local_to_world() * glm::vec4(component->position, 1.0f)).x < boss->position.x && (component->make_local_to_world() * glm::vec4(component->position, 1.0f)).x > boss->position.x - 0.8f)))
 	{
 		attack = true;
