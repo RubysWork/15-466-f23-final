@@ -21,8 +21,8 @@ struct PlayMode : Mode
 	glm::vec3 bullet_current_Pos(glm::vec3 origin_Pos, glm::vec3 final_Pos, float time);
 	void hit_player();
 	void hit_boss();
-	bool on_platform(Scene::Transform* player);
-	void land_on_platform(glm::vec3 expected_position, Scene::Camera* camera, Scene::Transform* player);
+	bool on_platform();
+	void land_on_platform(glm::vec3 expected_position);
 	//----- game state -----
 
 	// input tracking:

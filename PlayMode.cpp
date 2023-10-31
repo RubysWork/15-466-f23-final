@@ -316,7 +316,7 @@ void PlayMode::update(float elapsed)
 		glm::vec3 frame_up = frame[1];
 		// glm::vec3 frame_forward = -frame[2];
 
-		if (on_platform(player)) {
+		if (on_platform()) {
 			first_jump = false;
 			second_jump = false;
 			jump_velocity = 0;
@@ -324,7 +324,7 @@ void PlayMode::update(float elapsed)
 		}
 
 		glm::vec3 expected_position = player->position + hori_move * frame_right + vert_move * frame_up;
-		land_on_platform(expected_position, camera, player);
+		land_on_platform(expected_position);
 	}
 
 	{ // update listener to camera position:
@@ -433,7 +433,7 @@ void PlayMode::hit_boss()
 	}
 }
 
-bool PlayMode::on_platform(Scene::Transform* player) 
+bool PlayMode::on_platform() 
 {
 	// for (auto outer_block : outerList) {
 	// 	if (player->position.z == world_coords(outer_block).z + 0.4f) {
@@ -444,7 +444,7 @@ bool PlayMode::on_platform(Scene::Transform* player)
 	return player->position.z == start_point.z;
 }
 
-void PlayMode::land_on_platform(glm::vec3 expected_position, Scene::Camera* camera, Scene::Transform* player) {
+void PlayMode::land_on_platform(glm::vec3 expected_position) {
 	// for (auto outer_block : outerList) {
 	//     //std::cout << "\n" << outer_block -> name << "position z " << world_coords(outer_block).z ;
 	// 	//std::cout << "\n" << outer_block -> name << "scale x" << outer_block->scale.x;
