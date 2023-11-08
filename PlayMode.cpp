@@ -1,6 +1,6 @@
 #include "PlayMode.hpp"
 
-#include "MyLitColorTextureProgram.hpp"
+#include "LitColorTextureProgram.hpp"
 
 #include "DrawLines.hpp"
 #include "Mesh.hpp"
@@ -18,22 +18,43 @@ Load<MeshBuffer> meshes(LoadTagDefault, []() -> MeshBuffer const *
 	MeshBuffer const *ret = new MeshBuffer(data_path("cube.pnct"));
 	meshes_for_lit_color_texture_program = ret->make_vao_for_program(lit_color_texture_program->program);
 	return ret; });
+Load<GLuint> scene_texture(LoadTagEarly, []() -> GLuint const *
+						   {
+
+	//make a 1-pixel white texture to bind by default:
+	GLuint *tex = new GLuint;
+	glGenTextures(1, tex);
+
+	glBindTexture(GL_TEXTURE_2D, *tex);
+	//std::vector< glm::u8vec4 > tex_data(1, glm::u8vec4(0xff));
+	//glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 1, 1, 0, GL_RGBA, GL_UNSIGNED_BYTE, tex_data.data());
+	std::vector< glm::u8vec4 > tex_data;
+	glm::uvec2 size;
+	load_png("Tileset_demo.png", &size, &tex_data, OriginLocation::LowerLeftOrigin);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, size.x, size.y, 0, GL_RGBA, GL_UNSIGNED_BYTE, tex_data.data());
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glBindTexture(GL_TEXTURE_2D, 0);
+
+	return tex; });
 
 Load<Scene> hexapod_scene(LoadTagDefault, []() -> Scene const *
 						  { return new Scene(
 								data_path("cube.scene"), [&](Scene &scene, Scene::Transform *transform, std::string const &mesh_name)
 								{
+									
 									Mesh const mesh = meshes->lookup(mesh_name);
 
 									scene.drawables.emplace_back(transform);
 									Scene::Drawable &drawable = scene.drawables.back();
 									drawable.pipeline = lit_color_texture_program_pipeline;
-									if(drawable.transform->name == "Ground99")
-										drawable.pipeline = lit_color_texture_trans_program_pipeline;
-									
 									drawable.pipeline.type = mesh.type;
 									drawable.pipeline.start = mesh.start;
 									drawable.pipeline.count = mesh.count;
+									//PlayMode::current_drawable_name = transform.name;
+									//drawable.pipeline.textures[0].texture= *scene_texture;
 
 									drawable.pipeline.vao = meshes_for_lit_color_texture_program; }); });
 
@@ -198,32 +219,15 @@ bool PlayMode::handle_event(SDL_Event const &evt, glm::uvec2 const &window_size)
 			return true;
 		}
 	}
-	// else if (evt.type == SDL_MOUSEBUTTONDOWN)
-	// {
-	// 	if (SDL_GetRelativeMouseMode() == SDL_FALSE)
-	// 	{
-	// 		SDL_SetRelativeMouseMode(SDL_TRUE);
-	// 		return true;
-	// 	}
-	// }
-	// else if (evt.type == SDL_MOUSEMOTION)
-	// {
-	// 	if (SDL_GetRelativeMouseMode() == SDL_TRUE)
-	// 	{
-	// 		glm::vec2 motion = glm::vec2(
-	// 			evt.motion.xrel / float(window_size.y),
-	// 			-evt.motion.yrel / float(window_size.y));
-	// 		camera->transform->rotation = glm::normalize(
-	// 			camera->transform->rotation * glm::angleAxis(-motion.x * camera->fovy, glm::vec3(0.0f, 1.0f, 0.0f)) * glm::angleAxis(motion.y * camera->fovy, glm::vec3(1.0f, 0.0f, 0.0f)));
-	// 		return true;
-	// 	}
-	// }
 
 	return false;
 }
 
 void PlayMode::update(float elapsed)
 {
+	// show dialogue
+	// show_dialogue();
+
 	// player die
 	if (player_hp->scale.x <= 0.0001f)
 	{
@@ -352,7 +356,8 @@ void PlayMode::update(float elapsed)
 			jump_signal = false;
 		}
 
-		if (hit_platform()) {
+		if (hit_platform())
+		{
 			jump_velocity = 0;
 		}
 
@@ -386,7 +391,6 @@ void PlayMode::draw(glm::uvec2 const &drawable_size)
 	glUniform1i(lit_color_texture_program->LIGHT_TYPE_int, 1);
 	glUniform3fv(lit_color_texture_program->LIGHT_DIRECTION_vec3, 1, glm::value_ptr(glm::vec3(0.0f, 0.0f, -1.0f)));
 	glUniform3fv(lit_color_texture_program->LIGHT_ENERGY_vec3, 1, glm::value_ptr(glm::vec3(1.0f, 1.0f, 0.95f)));
-
 	glUseProgram(0);
 
 	glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
@@ -398,26 +402,14 @@ void PlayMode::draw(glm::uvec2 const &drawable_size)
 
 	scene.draw(*camera);
 
-	{ // use DrawLines to overlay some text:
-		glDisable(GL_DEPTH_TEST);
-		float aspect = float(drawable_size.x) / float(drawable_size.y);
-		DrawLines lines(glm::mat4(
-			1.0f / aspect, 0.0f, 0.0f, 0.0f,
-			0.0f, 1.0f, 0.0f, 0.0f,
-			0.0f, 0.0f, 1.0f, 0.0f,
-			0.0f, 0.0f, 0.0f, 1.0f));
+	// {
+	// 	text.Draw(text_program, base_line, 100.0f, 480.0f, drawable_size, glm::vec3(1.0f, 1.0f, 1.0f), 0.4f);
+	// 	text.Draw(text_program, choice_lines[0], 100.0f, 250.0f, drawable_size, glm::vec3(1.0f, 1.0f, 0.3f), 0.4f);
+	// 	text.Draw(text_program, choice_lines[1], 100.0f, 210.0f, drawable_size, glm::vec3(1.0f, 1.0f, 0.3f), 0.4f);
+	// 	text.Draw(text_program, choice_lines[2], 100.0f, 170.0f, drawable_size, glm::vec3(1.0f, 1.0f, 0.3f), 0.4f);
+	// 	text.Draw(text_program, "Next - Space; Choices - 1/2/3", 250.0f, 0.0f, drawable_size, glm::vec3(0.4f, 0.4f, 0.4f), 0.4f);
+	// }
 
-		constexpr float H = 0.09f;
-		lines.draw_text("Mouse motion rotates camera; WASD moves; escape ungrabs mouse",
-						glm::vec3(-aspect + 0.1f * H, -1.0 + 0.1f * H, 0.0),
-						glm::vec3(H, 0.0f, 0.0f), glm::vec3(0.0f, H, 0.0f),
-						glm::u8vec4(0x00, 0x00, 0x00, 0x00));
-		float ofs = 2.0f / drawable_size.y;
-		lines.draw_text("Mouse motion rotates camera; WASD moves; escape ungrabs mouse",
-						glm::vec3(-aspect + 0.1f * H + ofs, -1.0 + +0.1f * H + ofs, 0.0),
-						glm::vec3(H, 0.0f, 0.0f), glm::vec3(0.0f, H, 0.0f),
-						glm::u8vec4(0xff, 0xff, 0xff, 0x00));
-	}
 	GL_ERRORS();
 }
 
@@ -469,9 +461,11 @@ void PlayMode::hit_boss()
 
 bool PlayMode::on_platform()
 {
-	for (auto platform : platforms) {
-		if (player->position.z == platform.pos.z + platform.height / 2) {
-	 		return true;
+	for (auto platform : platforms)
+	{
+		if (player->position.z == platform.pos.z + platform.height / 2)
+		{
+			return true;
 		}
 	}
 	return player->position.z == start_point.z;
@@ -479,9 +473,11 @@ bool PlayMode::on_platform()
 
 bool PlayMode::hit_platform()
 {
-	for (auto platform : platforms) {
-		if (player->position.z == platform.pos.z - platform.height / 2) {
-	 		return true;
+	for (auto platform : platforms)
+	{
+		if (player->position.z == platform.pos.z - platform.height / 2)
+		{
+			return true;
 		}
 	}
 	return false;
@@ -489,44 +485,58 @@ bool PlayMode::hit_platform()
 
 void PlayMode::land_on_platform(glm::vec3 expected_position)
 {
-	std::cout << "\n" << player->position.x << " ," << player->position.y << " ," << player->position.z;
-	for (auto platform : platforms) {
-	    //std::cout << "\n" << outer_block -> name << "position z " << world_coords(outer_block).z ;
-		//std::cout << "\n" << outer_block -> name << "scale x" << outer_block->scale.x;
-		//std::cout << "\n" << expected_position.z << "z";
+	std::cout << "\n"
+			  << player->position.x << " ," << player->position.y << " ," << player->position.z;
+	for (auto platform : platforms)
+	{
+		// std::cout << "\n" << outer_block -> name << "position z " << world_coords(outer_block).z ;
+		// std::cout << "\n" << outer_block -> name << "scale x" << outer_block->scale.x;
+		// std::cout << "\n" << expected_position.z << "z";
 		if (std::abs(expected_position.x - platform.pos.x) < platform.width / 2 &&
-		    std::abs(expected_position.z - platform.pos.z) < platform.height / 2) {
-			if (std::abs(player->position.x - platform.pos.x) < platform.width / 2
-			    && expected_position.x > platform.pos.x) {
-				if (expected_position.z > platform.pos.z) {
-					if (std::abs(expected_position.z - platform.pos.z) < platform.height / 2) {
+			std::abs(expected_position.z - platform.pos.z) < platform.height / 2)
+		{
+			if (std::abs(player->position.x - platform.pos.x) < platform.width / 2 && expected_position.x > platform.pos.x)
+			{
+				if (expected_position.z > platform.pos.z)
+				{
+					if (std::abs(expected_position.z - platform.pos.z) < platform.height / 2)
+					{
 						expected_position.z = platform.pos.z + platform.height / 2;
 					}
 				}
-				if (expected_position.z < platform.pos.z) {
-					if (std::abs(expected_position.z - platform.pos.z) < platform.height / 2) {
+				if (expected_position.z < platform.pos.z)
+				{
+					if (std::abs(expected_position.z - platform.pos.z) < platform.height / 2)
+					{
 						expected_position.z = platform.pos.z - platform.height / 2;
 					}
 				}
 			}
-			if (std::abs(player->position.x - platform.pos.x) < platform.width / 2
-				&& expected_position.x < platform.pos.x) {
-				if (expected_position.z > platform.pos.z) {
-					if (std::abs(expected_position.z - platform.pos.z) < platform.height / 2) {
+			if (std::abs(player->position.x - platform.pos.x) < platform.width / 2 && expected_position.x < platform.pos.x)
+			{
+				if (expected_position.z > platform.pos.z)
+				{
+					if (std::abs(expected_position.z - platform.pos.z) < platform.height / 2)
+					{
 						expected_position.z = platform.pos.z + platform.height / 2;
 					}
 				}
-				if (expected_position.z < platform.pos.z) {
-					if (std::abs(expected_position.z - platform.pos.z) < platform.height / 2) {
+				if (expected_position.z < platform.pos.z)
+				{
+					if (std::abs(expected_position.z - platform.pos.z) < platform.height / 2)
+					{
 						expected_position.z = platform.pos.z - platform.height / 2;
 					}
 				}
 			}
-			if (std::abs(player->position.x - platform.pos.x) >= platform.width / 2) {
-				if (player->position.x < platform.pos.x) {
+			if (std::abs(player->position.x - platform.pos.x) >= platform.width / 2)
+			{
+				if (player->position.x < platform.pos.x)
+				{
 					expected_position.x = platform.pos.x - platform.width / 2;
 				}
-				if (player->position.x > platform.pos.x) {
+				if (player->position.x > platform.pos.x)
+				{
 					expected_position.x = platform.pos.x + platform.width / 2;
 				}
 			}
@@ -538,8 +548,119 @@ void PlayMode::land_on_platform(glm::vec3 expected_position)
 	player->position = expected_position;
 	if (expected_position.z < start_point.z)
 	{
-	   expected_position.z = start_point.z;
+		expected_position.z = start_point.z;
 	}
 	camera->transform->position += expected_position - player->position;
 	player->position = expected_position;
 }
+/*
+void PlayMode::show_dialogue()
+{
+	if (line_index <= choices.choiceLibrary.size() && line_index >= 0)
+	{
+		// wait until player input, then show next text
+		if (showtext)
+		{
+			//  type:1-single line
+
+			base_line = choices.GetChoice(line_index).baseChoice.context;
+			if (choices.GetChoice(line_index).dataPath.length() > 1)
+			{
+				Sound::stop_all_samples();
+				voiceover = Sound::play_3D(*choices.GetChoice(line_index).voice, 1.0f, glm::vec3(0, 0, 0), 10.0f);
+			}
+
+			if (choices.GetChoice(line_index).type == 1)
+			{
+				for (auto &line : choice_lines)
+				{
+					line = "";
+				}
+			}
+			// 2-choose
+			if (choices.GetChoice(line_index).type == 2)
+			{
+				// show all choice
+				for (int i = 0; i < 3; i++)
+				{
+					if (i < choices.GetChoice(line_index).choiceCount)
+					{
+						if (choices.GetChoice(line_index).choiceCount > i)
+							choice_lines[i] = std::to_string(i + 1) + ": " + choices.GetChoice(line_index).potentialChoice[i].context;
+					}
+					else
+					{
+						choice_lines[i] = "";
+					}
+				}
+			}
+
+			// reset player input
+			showtext = false;
+			space_downcount = 0;
+			choice1_downcount = 0;
+			choice2_downcount = 0;
+			choice3_downcount = 0;
+		}
+
+		// detect player input
+		if (space.released && space_downcount == 0)
+		{
+			if (choices.GetChoice(line_index).type == 1)
+			{
+				if (choices.GetChoice(line_index).baseChoice.choiceNext > 0)
+				{
+					space_downcount++;
+					// std::cout << "next is:" << choices.GetChoice(line_index).baseChoice.choiceNext << std::endl;
+					line_index = choices.GetChoice(line_index).baseChoice.choiceNext;
+
+					showtext = true;
+				}
+				else
+				{
+					std::cout << "no next line!!" << std::endl;
+				}
+			}
+			space.released = false;
+		}
+
+		if (choices.GetChoice(line_index).type == 2)
+		{
+			int choiceNum = -1;
+			if (choice1.released && choice1_downcount == 0)
+			{
+				choice1_downcount++;
+				choiceNum = 0;
+				choice1.released = false;
+			}
+			if (choice2.released && choice2_downcount == 0 && choices.GetChoice(line_index).choiceCount > 1)
+			{
+				choice2_downcount++;
+				choiceNum = 1;
+				choice2.released = false;
+			}
+
+			if (choice3.released && choice3_downcount == 0 && choices.GetChoice(line_index).choiceCount > 2)
+			{
+				choice3_downcount++;
+				choiceNum = 2;
+				choice3.released = false;
+			}
+
+			// show next line
+			if (choiceNum >= 0)
+			{
+				if (choices.GetChoice(line_index).potentialChoice[choiceNum].choiceNext > 0)
+				{
+					line_index = choices.GetChoice(line_index).potentialChoice[choiceNum].choiceNext;
+					showtext = true;
+				}
+				else
+				{
+					// std::cout << "no choose content!!" << std::endl;
+				}
+			}
+		}
+	}
+}
+*/
