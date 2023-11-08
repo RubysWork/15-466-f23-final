@@ -16,7 +16,7 @@ GLuint meshes_for_lit_color_texture_program = 0;
 Load<MeshBuffer> meshes(LoadTagDefault, []() -> MeshBuffer const *
 						{
 	MeshBuffer const *ret = new MeshBuffer(data_path("cube.pnct"));
-	meshes_for_lit_color_texture_program = ret->make_vao_for_program(my_lit_color_texture_program->program);
+	meshes_for_lit_color_texture_program = ret->make_vao_for_program(lit_color_texture_program->program);
 	return ret; });
 
 Load<Scene> hexapod_scene(LoadTagDefault, []() -> Scene const *
@@ -27,7 +27,10 @@ Load<Scene> hexapod_scene(LoadTagDefault, []() -> Scene const *
 
 									scene.drawables.emplace_back(transform);
 									Scene::Drawable &drawable = scene.drawables.back();
-									drawable.pipeline = my_lit_color_texture_program_pipeline;
+									drawable.pipeline = lit_color_texture_program_pipeline;
+									if(drawable.transform->name == "Ground99")
+										drawable.pipeline = lit_color_texture_trans_program_pipeline;
+									
 									drawable.pipeline.type = mesh.type;
 									drawable.pipeline.start = mesh.start;
 									drawable.pipeline.count = mesh.count;
@@ -379,10 +382,10 @@ void PlayMode::draw(glm::uvec2 const &drawable_size)
 
 	// set up light type and position for lit_color_texture_program:
 	//  TODO: consider using the Light(s) in the scene to do this
-	glUseProgram(my_lit_color_texture_program->program);
-	glUniform1i(my_lit_color_texture_program->LIGHT_TYPE_int, 1);
-	glUniform3fv(my_lit_color_texture_program->LIGHT_DIRECTION_vec3, 1, glm::value_ptr(glm::vec3(0.0f, 0.0f, -1.0f)));
-	glUniform3fv(my_lit_color_texture_program->LIGHT_ENERGY_vec3, 1, glm::value_ptr(glm::vec3(1.0f, 1.0f, 0.95f)));
+	glUseProgram(lit_color_texture_program->program);
+	glUniform1i(lit_color_texture_program->LIGHT_TYPE_int, 1);
+	glUniform3fv(lit_color_texture_program->LIGHT_DIRECTION_vec3, 1, glm::value_ptr(glm::vec3(0.0f, 0.0f, -1.0f)));
+	glUniform3fv(lit_color_texture_program->LIGHT_ENERGY_vec3, 1, glm::value_ptr(glm::vec3(1.0f, 1.0f, 0.95f)));
 
 	glUseProgram(0);
 
