@@ -873,20 +873,25 @@ void PlayMode::land_on_platform(glm::vec3 expected_position)
 	// camera->transform->position += move.x * frame_right + move.y * frame_forward;
 	// player->position += move.x * frame_right + move.y * frame_forward + move.z * frame_up;
 
-	if (expected_position.z <= start_point.z && std::abs(expected_position.x - (-11.5f)) < 4.4f)
+	// if (expected_position.z <= start_point.z && std::abs(expected_position.x - (-11.5f)) < 4.4f)
+	// // hardcode to prevent a jump at start
+	// {
+	//   expected_position.z = start_point.z;
+	// }
+	if (expected_position.z < start_point.z)
 	// hardcode to prevent a jump at start
 	{
 	  expected_position.z = start_point.z;
 	}
 	camera->transform->position += expected_position - player->position;
 	player->position = expected_position;
-	if (expected_position.z <= start_point.z - 1.3f) {
-		if (die_camera_pos == glm::vec3{0.0f, 0.0f, 0.0f}) {
-			die_camera_pos = camera->transform->position;
-		} else {
-			camera->transform->position = die_camera_pos;
-		}
-	}
+	// if (expected_position.z <= start_point.z - 2.3f) {
+	// 	if (die_camera_pos == glm::vec3{0.0f, 0.0f, 0.0f}) {
+	// 		die_camera_pos = camera->transform->position;
+	// 	} else {
+	// 		camera->transform->position = die_camera_pos;
+	// 	}
+	// }
 }
 
 /*
