@@ -54,9 +54,14 @@ struct PlayMode : Mode
 		Scene::Transform *transform = nullptr;
 		bool isDestroied = false;
 	};
-
 	int cage_index = 0;
 	std::vector<Cage> cages;
+
+	// boots
+	Scene::Transform *boots = nullptr;
+	bool hasBoots = false;
+	Scene::Transform *component_boots = nullptr;
+	glm::vec3 boots_scale;
 
 	glm::vec3 start_point;
 

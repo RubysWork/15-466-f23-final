@@ -168,6 +168,16 @@ PlayMode::PlayMode() : scene(*hexapod_scene)
 			cages.emplace_back(cage);
 			cage_index++;
 		}
+		else if (transform.name == "Boots")
+		{
+			boots = &transform;
+		}
+		else if (transform.name == "ComponentBoots")
+		{
+			component_boots = &transform;
+			boots_scale = component_boots->scale;
+			component_boots->scale = glm::vec4(0);
+		}
 	}
 
 	for (auto &bullet : bullets)
@@ -292,14 +302,19 @@ void PlayMode::update(float elapsed)
 	}
 
 	// hit cage
-	for (auto cage : cages)
+	if (get_weapon && !cages.begin()->isDestroied && keyatk.pressed && !attack && (component->make_local_to_world() * glm::vec4(component->position, 1.0f)).x > (cages.begin()->transform->make_local_to_world() * glm::vec4(cages.begin()->transform->position, 1.0f)).x && (component->make_local_to_world() * glm::vec4(component->position, 1.0f)).x < (cages.begin()->transform->make_local_to_world() * glm::vec4(cages.begin()->transform->position, 1.0f)).x + 1 && (cages.begin()->transform->make_local_to_world() * glm::vec4(cages.begin()->transform->position, 1.0f)).z < (component->make_local_to_world() * glm::vec4(component->position, 1.0f)).z && (cages.begin()->transform->make_local_to_world() * glm::vec4(cages.begin()->transform->position, 1.0f)).z > (component->make_local_to_world() * glm::vec4(component->position, 1.0f)).z - 0.5f)
 	{
-		if (get_weapon && !cage.isDestroied && keyatk.pressed && !attack && (cage.transform->make_local_to_world() * glm::vec4(cage.transform->position, 1.0f)).x < (component->make_local_to_world() * glm::vec4(component->position, 1.0f)).x && (cage.transform->make_local_to_world() * glm::vec4(cage.transform->position, 1.0f)).x > (component->make_local_to_world() * glm::vec4(component->position, 1.0f)).x - 1.0f && (cage.transform->make_local_to_world() * glm::vec4(cage.transform->position, 1.0f)).z < (component->make_local_to_world() * glm::vec4(component->position, 1.0f)).z - 0.3f && (cage.transform->make_local_to_world() * glm::vec4(cage.transform->position, 1.0f)).z > (component->make_local_to_world() * glm::vec4(component->position, 1.0f)).z - 0.35f)
-		{
-			attack = true;
-			cage.isDestroied = true;
-			cage.transform->scale = glm::vec4(0);
-		}
+		attack = true;
+		cages.begin()->isDestroied = true;
+		cages.begin()->transform->scale = glm::vec4(0);
+	}
+
+	// get boots
+	if (!hasBoots && cages.begin()->isDestroied && (boots->make_local_to_world() * glm::vec4(boots->position, 1.0f)).x < player->position.x && (boots->make_local_to_world() * glm::vec4(boots->position, 1.0f)).x > player->position.x - 0.5f && (boots->make_local_to_world() * glm::vec4(boots->position, 1.0f)).z < player->position.z && (boots->make_local_to_world() * glm::vec4(boots->position, 1.0f)).z > player->position.z - 0.6f)
+	{
+		hasBoots = true;
+		boots->scale = glm::vec4(0);
+		component_boots->scale = boots_scale;
 	}
 
 	// player die
@@ -545,7 +560,7 @@ void PlayMode::update(float elapsed)
 				first_jump = true;
 				jump_velocity = 3.0f;
 			}
-			else if (first_jump && !second_jump && jump_signal)
+			else if (first_jump && !second_jump && jump_signal && hasBoots)
 			{
 				jump_signal = false;
 				second_jump = true;
