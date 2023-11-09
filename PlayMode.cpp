@@ -83,14 +83,27 @@ PlayMode::PlayMode() : scene(*hexapod_scene)
 	platforms.emplace_back(platform9);
 	Platform platform10 = {(glm::vec3{-10.75f, 0, 1.52f}), 0.4f, 0.9f};
 	platforms.emplace_back(platform10);
-	Platform platform11 = {(glm::vec3{-9.75f, 0, 3.6f}), 1.2f, 3.0f};
+	Platform platform11 = {(glm::vec3{-9.75f, 0, 3.65f}), 1.2f, 3.1f};
 	platforms.emplace_back(platform11);
 	Platform platform12 = {(glm::vec3{-7.05f, 0, 2.6f}), 0.4f, 0.9f};
 	platforms.emplace_back(platform12);
-	Platform platform13 = {(glm::vec3{-6.55f, 0, 2.7f}), 0.4f, 0.2f};
+	Platform platform13 = {(glm::vec3{-6.55f, 0, 2.75f}), 0.4f, 0.3f};
 	platforms.emplace_back(platform13);
 	Platform platform14 = {(glm::vec3{-6.1f, 0, 2.88f}), 0.4f, 0.75f};
 	platforms.emplace_back(platform14);
+	Platform platform15 = {(glm::vec3{-4.35f, 0, 0.0f}), 4.0f, 1.1f};
+	platforms.emplace_back(platform15);
+	Platform platform16 = {(glm::vec3{-4.35f, 0, 3.4f}), 5.0f, 2.1f};
+	platforms.emplace_back(platform16);
+	Platform platform17 = {(glm::vec3{-7.05f, 0, 4.6f}), 0.8f, 1.3f};
+	platforms.emplace_back(platform17);
+	Platform platform18 = {(glm::vec3{-9.5f, 0, 4.4f}), 0.5f, 1.1f};
+	platforms.emplace_back(platform18);
+	Platform platform19 = {(glm::vec3{-10.15f, 0, 4.3f}), 0.3f, 0.4f};
+	platforms.emplace_back(platform19);
+	Platform platform20 = {(glm::vec3{-8.9f, 0, 4.3f}), 0.3f, 0.4f};
+	platforms.emplace_back(platform20);
+
 
 	Platform newPlatform1;
 	newPlatform1.pos = glm::vec3{-1.2f, 0, 2.0f};
@@ -774,8 +787,8 @@ bool PlayMode::hit_platform()
 
 void PlayMode::land_on_platform(glm::vec3 expected_position)
 {
-	// std::cout << "\n"
-	// 		  << player->position.x << " ," << player->position.y << " ," << player->position.z;
+	std::cout << "\n"
+			  << player->position.x << " ," << player->position.y << " ," << player->position.z;
 	for (auto platform : platforms)
 	{
 		// std::cout << "\n" << outer_block -> name << "position z " << world_coords(outer_block).z ;
