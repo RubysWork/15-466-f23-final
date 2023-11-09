@@ -285,7 +285,7 @@ void PlayMode::update(float elapsed)
 			weapon_timer = 0;
 		}
 		// Boos switch status
-		if (boss->position.x < player->position.x + 3.5f && boss->position.x > player->position.x - 3.5f && boss->position.z < player->position.z + 5.0f && boss->position.z > player->position.z - 5.0f)
+		if (boss->position.x < player->position.x + 2.5f && boss->position.x > player->position.x - 2.5f && boss->position.z < player->position.z + 5.0f && boss->position.z > player->position.z - 5.0f)
 		{
 
 			boss_status = Melee;
@@ -298,10 +298,39 @@ void PlayMode::update(float elapsed)
 		switch (boss_status)
 		{
 		case Melee:
+			// deal with bullet
+			if (!finish_bullet)
+			{
+				bullet_total_time = 0;
+				shooting1 = true;
+				shooting2 = true;
+				shooting3 = true;
+				hit1 = false;
+				hit2 = false;
+				hit3 = false;
+				for (auto bullet : current_bullets)
+				{
+					put_away_bullet(bullet);
+				}
+				finish_bullet = true;
+			}
 			// boss move towards to the player
+			glm::vec3 dir = glm::normalize(player->position - boss->position);
+			boss->position.x += dir.x * boss_speed * elapsed;
+			if ((boss_weapon->make_local_to_world() * glm::vec4(boss_weapon->position, 1.0f)).x < player->position.x + 0.2f && (boss_weapon->make_local_to_world() * glm::vec4(boss_weapon->position, 1.0f)).x > player->position.x - 1 && (boss_weapon->make_local_to_world() * glm::vec4(boss_weapon->position, 1.0f)).x > player->position.x - 1)
+			{
+				// close to player,stop move, attack player
+			}
 			break;
 		case Shoot:
 			// shoot
+			if (finish_bullet)
+			{
+				for (auto bullet : current_bullets)
+				{
+					bullet.player_pos = player->position;
+				}
+			}
 			current_bullets_index = 0;
 			bullet_total_time += bullet_speed * elapsed;
 

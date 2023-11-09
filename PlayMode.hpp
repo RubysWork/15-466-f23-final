@@ -104,9 +104,11 @@ struct PlayMode : Mode
 		Melee,
 		Shoot
 	};
+	bool finish_bullet = false;
 	BattleStatus boss_status = Shoot;
 	/// boss
 	Scene::Transform *boss = nullptr;
+	float boss_speed = 1.0f;
 	// player attack once
 	bool attack = false;
 	/// bosshp
