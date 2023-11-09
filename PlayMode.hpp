@@ -51,6 +51,9 @@ struct PlayMode : Mode
 	glm::vec3 player_origin_scale;
 	bool face_right = true;
 
+	// boss weapon
+	Scene::Transform *boss_weapon = nullptr;
+	int weapon_timer = 0;
 	// bullet
 	typedef struct Bullet
 	{
@@ -67,6 +70,22 @@ struct PlayMode : Mode
 	} Bullet;
 
 	std::vector<Bullet> bullets;
+	Bullet current_bullet;
+
+	float bullet_total_time = 0;
+	std::list<Bullet> current_bullets; // each three bullets in a group
+	int current_bullets_index = 0;	   // the index in the current_bullets
+	int bullet_index = 0;			   // all bullet index
+	int bullet_current_index = 0;	   // put next index
+	int bullet_count = 3;
+	float bullet_speed = 3.0f;
+
+	bool shooting1 = true;
+	bool shooting2 = true;
+	bool shooting3 = true;
+	bool hit1 = false;
+	bool hit2 = false;
+	bool hit3 = false;
 
 	std::list<Scene::Transform *> outerList;
 
@@ -78,24 +97,6 @@ struct PlayMode : Mode
 	} Platform;
 
 	std::list<Platform> platforms;
-
-	Bullet current_bullet;
-	float bullet_total_time = 0;
-	std::list<Bullet> current_bullets; // each three bullets in a group
-
-	// std::array<Bullet, 3> current_bullets; // each three bullets in a group
-	int current_bullets_index = 0; // the index in the current_bullets
-	int bullet_index = 0;		   // all bullet index
-	int bullet_current_index = 0;  // put next index
-	int bullet_count = 3;
-	float bullet_speed = 3.0f;
-
-	bool shooting1 = true;
-	bool shooting2 = true;
-	bool shooting3 = true;
-	bool hit1 = false;
-	bool hit2 = false;
-	bool hit3 = false;
 
 	// boss status
 	enum BattleStatus

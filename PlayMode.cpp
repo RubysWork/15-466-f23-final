@@ -119,6 +119,10 @@ PlayMode::PlayMode() : scene(*hexapod_scene)
 		{
 			component = &transform;
 		}
+		else if (transform.name == "BossAttack")
+		{
+			boss_weapon = &transform;
+		}
 	}
 
 	for (auto &bullet : bullets)
@@ -247,8 +251,7 @@ void PlayMode::update(float elapsed)
 	}
 	else
 	{
-		// bullet attack
-		for (auto &bullet : current_bullets)
+		bullet attack for (auto &bullet : current_bullets)
 		{
 
 			if (!bullet.hit_player && bullet.transform->position.x < player->position.x + 0.3f && bullet.transform->position.x > player->position.x && bullet.transform->position.z < player->position.z + 0.3f && bullet.transform->position.z > player->position.z - 0.3f)
@@ -257,6 +260,28 @@ void PlayMode::update(float elapsed)
 				bullet.hit_player = true;
 				put_away_bullet(bullet);
 			}
+		}
+		// Weapon attack
+		if ((boss_weapon->make_local_to_world() * glm::vec4(boss_weapon->position, 1.0f)).x < player->position.x + 0.2f && (boss_weapon->make_local_to_world() * glm::vec4(boss_weapon->position, 1.0f)).x > player->position.x - 1 && (boss_weapon->make_local_to_world() * glm::vec4(boss_weapon->position, 1.0f)).z < player->position.z + 0.5f && (boss_weapon->make_local_to_world() * glm::vec4(boss_weapon->position, 1.0f)).x > player->position.x - 1 && (boss_weapon->make_local_to_world() * glm::vec4(boss_weapon->position, 1.0f)).z > player->position.z - 0.5f)
+		{
+			if (weapon_timer == 0)
+			{
+				hit_player();
+				weapon_timer++;
+			}
+			if (weapon_timer > 50)
+			{
+				weapon_timer = 1;
+				hit_player();
+			}
+			else
+			{
+				weapon_timer++;
+			}
+		}
+		else
+		{
+			weapon_timer = 0;
 		}
 		// boss status
 		switch (boss_status)
@@ -503,19 +528,11 @@ glm::vec3 world_coords(Scene::Transform *block)
 	return world_block;
 }
 
-// glm::vec3 PlayMode::get_leg_tip_position()
-// {
-// 	// the vertex position here was read from the model in blender:
-// 	return lower_leg->make_local_to_world() * glm::vec4(-1.26137f, -11.861f, 0.0f, 1.0f);
-// }
 glm::vec3 PlayMode::bullet_current_Pos(glm::vec3 origin_Pos, glm::vec3 final_Pos, float time)
 {
 	glm::vec3 dir = glm::normalize(final_Pos - origin_Pos);
 	glm::vec3 current_Pos = origin_Pos + dir * time;
 	current_Pos.y = player->position.y;
-	// std::cout << "dir:(" << dir.x << "," << dir.y << "," << dir.z << ")";
-	//  std::cout << "position:(" << current_Pos.x << "," << current_Pos.y << "," << current_Pos.z << ")"
-	//  		  << std::endl;
 	return current_Pos;
 }
 
@@ -553,18 +570,14 @@ void PlayMode::put_away_bullet(Bullet bullet)
 	{
 	case 0:
 		hit1 = true;
-		std::cout << "hit1!!" << std::endl;
 		break;
 	case 1:
 		hit2 = true;
-		std::cout << "hit2!!" << std::endl;
 		break;
 	case 2:
 		hit3 = true;
-		std::cout << "hit3!!" << std::endl;
 		break;
 	default:
-		std::cout << "no hit!!" << std::endl;
 		break;
 	}
 	// generate new one
