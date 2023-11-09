@@ -123,6 +123,9 @@ PlayMode::PlayMode() : scene(*hexapod_scene)
 		{
 			boss_weapon = &transform;
 		}
+		else if (transform.name == "PlayerAttack")
+		{
+		}
 	}
 
 	for (auto &bullet : bullets)
@@ -290,13 +293,31 @@ void PlayMode::update(float elapsed)
 
 			boss_status = Melee;
 		}
-		else
+		else if (boss->position.x < player->position.x + 6.5f && boss->position.x > player->position.x - 6.5f && boss->position.z < player->position.z + 6.5f && boss->position.z > player->position.z - 6.5f)
 		{
 			boss_status = Shoot;
+		}
+		else
+		{
+			boss_status = Idle;
 		}
 		// boss status
 		switch (boss_status)
 		{
+		case Idle:
+			// deal with bullet
+			if (!finish_bullet)
+			{
+				shooting1 = true;
+				shooting2 = true;
+				shooting3 = true;
+				hit1 = false;
+				hit2 = false;
+				hit3 = false;
+
+				finish_bullet = true;
+			}
+			break;
 		case Melee:
 			// deal with bullet
 			if (!finish_bullet)

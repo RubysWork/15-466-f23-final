@@ -39,6 +39,9 @@ struct PlayMode : Mode
 
 	// glm::vec3 get_leg_tip_position();
 	Scene::Transform *player = nullptr;
+	// player attack once
+	bool attack = false;
+	Scene::Transform *player_atk_cpnt;
 
 	glm::vec3 start_point;
 
@@ -102,15 +105,15 @@ struct PlayMode : Mode
 	enum BattleStatus
 	{
 		Melee,
-		Shoot
+		Shoot,
+		Idle
 	};
 	bool finish_bullet = false;
 	BattleStatus boss_status = Shoot;
 	/// boss
 	Scene::Transform *boss = nullptr;
 	float boss_speed = 1.0f;
-	// player attack once
-	bool attack = false;
+
 	/// bosshp
 	Scene::Transform *boss_hp = nullptr;
 	float max_boss_hp = 1.0f;
