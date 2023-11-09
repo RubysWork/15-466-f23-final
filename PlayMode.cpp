@@ -251,7 +251,8 @@ void PlayMode::update(float elapsed)
 	}
 	else
 	{
-		bullet attack for (auto &bullet : current_bullets)
+		// bullet attack
+		for (auto &bullet : current_bullets)
 		{
 
 			if (!bullet.hit_player && bullet.transform->position.x < player->position.x + 0.3f && bullet.transform->position.x > player->position.x && bullet.transform->position.z < player->position.z + 0.3f && bullet.transform->position.z > player->position.z - 0.3f)
@@ -283,11 +284,21 @@ void PlayMode::update(float elapsed)
 		{
 			weapon_timer = 0;
 		}
+		// Boos switch status
+		if (boss->position.x < player->position.x + 3.5f && boss->position.x > player->position.x - 3.5f && boss->position.z < player->position.z + 5.0f && boss->position.z > player->position.z - 5.0f)
+		{
+
+			boss_status = Melee;
+		}
+		else
+		{
+			boss_status = Shoot;
+		}
 		// boss status
 		switch (boss_status)
 		{
 		case Melee:
-
+			// boss move towards to the player
 			break;
 		case Shoot:
 			// shoot
