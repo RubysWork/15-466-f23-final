@@ -57,6 +57,7 @@ struct PlayMode : Mode
 	int cage_index = 0;
 	std::vector<Cage> cages;
 
+	bool player_die = false;
 	// boots
 	Scene::Transform *boots = nullptr;
 	bool hasBoots = false;

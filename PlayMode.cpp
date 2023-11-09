@@ -884,7 +884,8 @@ void PlayMode::land_on_platform(glm::vec3 expected_position)
 	{
 		expected_position.z = start_point.z;
 	}
-	if (!player_die) {
+	if (!player_die)
+	{
 		camera->transform->position += expected_position - player->position;
 		player->position = expected_position;
 	}
