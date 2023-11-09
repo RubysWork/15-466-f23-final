@@ -355,6 +355,7 @@ void PlayMode::update(float elapsed)
 	if (player_hp->scale.x <= 0.0001f)
 	{
 		player->scale = glm::vec3(0);
+		player_die = true;
 	}
 
 	// boss die
@@ -883,15 +884,10 @@ void PlayMode::land_on_platform(glm::vec3 expected_position)
 	{
 		expected_position.z = start_point.z;
 	}
-	camera->transform->position += expected_position - player->position;
-	player->position = expected_position;
-	// if (expected_position.z <= start_point.z - 2.3f) {
-	// 	if (die_camera_pos == glm::vec3{0.0f, 0.0f, 0.0f}) {
-	// 		die_camera_pos = camera->transform->position;
-	// 	} else {
-	// 		camera->transform->position = die_camera_pos;
-	// 	}
-	// }
+	if (!player_die) {
+		camera->transform->position += expected_position - player->position;
+		player->position = expected_position;
+	}
 }
 
 /*
