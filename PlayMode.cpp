@@ -19,6 +19,30 @@ Load<MeshBuffer> meshes(LoadTagDefault, []() -> MeshBuffer const *
 	MeshBuffer const *ret = new MeshBuffer(data_path("cube.pnct"));
 	meshes_for_lit_color_texture_program = ret->make_vao_for_program(my_lit_color_texture_program->program);
 	return ret; });
+<<<<<<< Updated upstream
+=======
+Load<GLuint> scene_texture(LoadTagEarly, []() -> GLuint const *
+						   {
+
+	//make a 1-pixel white texture to bind by default:
+	GLuint *tex = new GLuint;
+	glGenTextures(1, tex);
+
+	glBindTexture(GL_TEXTURE_2D, *tex);
+	//std::vector< glm::u8vec4 > tex_data(1, glm::u8vec4(0xff));
+	//glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 1, 1, 0, GL_RGBA, GL_UNSIGNED_BYTE, tex_data.data());
+	std::vector< glm::u8vec4 > tex_data;
+	glm::uvec2 size;
+	load_png("Tileset.png", &size, &tex_data, OriginLocation::LowerLeftOrigin);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, size.x, size.y, 0, GL_RGBA, GL_UNSIGNED_BYTE, tex_data.data());
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glBindTexture(GL_TEXTURE_2D, 0);
+
+	return tex; });
+>>>>>>> Stashed changes
 
 Load<Scene> hexapod_scene(LoadTagDefault, []() -> Scene const *
 						  { return new Scene(
@@ -40,6 +64,54 @@ Load<Sound::Sample> dusty_floor_sample(LoadTagDefault, []() -> Sound::Sample con
 
 PlayMode::PlayMode() : scene(*hexapod_scene)
 {
+<<<<<<< Updated upstream
+=======
+	Platform platform1 = {(glm::vec3{-11.5f, 0, -2.0f}), 3.7f, 4.4f};
+	platforms.emplace_back(platform1);
+	Platform platform2 = {(glm::vec3{-12.5f, 0, 0.0f}), 12.0f, 2.6f};
+	platforms.emplace_back(platform2);
+	Platform platform3 = {(glm::vec3{-9.85f, 0, 0.85f}), 0.6f, 0.9f};
+	platforms.emplace_back(platform3);
+	Platform platform4 = {(glm::vec3{-8.55f, 0, -0.25f}), 0.6f, 0.9f};
+	platforms.emplace_back(platform4);
+	Platform platform5 = {(glm::vec3{-6.85f, 0, -5.16f}), 10.0f, 2.1f};
+	platforms.emplace_back(platform5);
+	Platform platform6 = {(glm::vec3{-5.25f, 0, 0.15f}), 0.4f, 0.9f};
+	platforms.emplace_back(platform6);
+	Platform platform7 = {(glm::vec3{-6.95f, 0, 0.8f}), 0.5f, 1.9f};
+	platforms.emplace_back(platform7);
+	Platform platform8 = {(glm::vec3{-8.7f, 0, 1.3f}), 0.3f, 1.0f};
+	platforms.emplace_back(platform8);
+	Platform platform9 = {(glm::vec3{-8.65f, 0, 2.05f}), 0.52f, 1.8f};
+	platforms.emplace_back(platform9);
+	Platform platform10 = {(glm::vec3{-10.75f, 0, 1.52f}), 0.4f, 0.9f};
+	platforms.emplace_back(platform10);
+	Platform platform11 = {(glm::vec3{-9.75f, 0, 3.6f}), 1.2f, 3.0f};
+	platforms.emplace_back(platform11);
+	Platform platform12 = {(glm::vec3{-7.05f, 0, 2.6f}), 0.4f, 0.9f};
+	platforms.emplace_back(platform12);
+	Platform platform13 = {(glm::vec3{-6.55f, 0, 2.7f}), 0.4f, 0.2f};
+	platforms.emplace_back(platform13);
+	Platform platform14 = {(glm::vec3{-6.1f, 0, 2.88f}), 0.4f, 0.75f};
+	platforms.emplace_back(platform14);
+
+	Platform newPlatform1;
+	newPlatform1.pos = glm::vec3{-1.2f, 0, 2.0f};
+	newPlatform1.height = 1.0f;
+	newPlatform1.width = 1.5f;
+	platforms.emplace_back(newPlatform1);
+	Platform newPlatform2;
+	newPlatform2.pos = glm::vec3{2.8f, 0, 3.4f};
+	newPlatform2.height = 0.7f;
+	newPlatform2.width = 2.2f;
+	platforms.emplace_back(newPlatform2);
+	Platform newPlatform3;
+	newPlatform3.pos = glm::vec3{-2.9f, 0, 3.4f};
+	newPlatform3.height = 1.2f;
+	newPlatform3.width = 2.0f;
+	platforms.emplace_back(newPlatform3);
+
+>>>>>>> Stashed changes
 	for (auto &transform : scene.transforms)
 	{
 		if (transform.name == "Player")
@@ -200,6 +272,219 @@ void PlayMode::update(float elapsed)
 		break;
 	}
 
+<<<<<<< Updated upstream
+=======
+	// boss die
+	if (boss_hp->scale.x <= 0.0001f)
+	{
+		boss->scale = glm::vec3(0);
+		// put_away_bullet(current_bullet);
+	}
+	else
+	{
+		// bullet attack
+		for (auto &bullet : current_bullets)
+		{
+
+			if (!bullet.hit_player && bullet.transform->position.x < player->position.x + 0.3f && bullet.transform->position.x > player->position.x && bullet.transform->position.z < player->position.z + 0.3f && bullet.transform->position.z > player->position.z - 0.3f)
+			{
+				hit_player();
+				bullet.hit_player = true;
+				put_away_bullet(bullet);
+			}
+		}
+		// Weapon attack
+		if ((boss_weapon->make_local_to_world() * glm::vec4(boss_weapon->position, 1.0f)).x < player->position.x + 0.2f && (boss_weapon->make_local_to_world() * glm::vec4(boss_weapon->position, 1.0f)).x > player->position.x - 1 && (boss_weapon->make_local_to_world() * glm::vec4(boss_weapon->position, 1.0f)).z < player->position.z + 0.5f && (boss_weapon->make_local_to_world() * glm::vec4(boss_weapon->position, 1.0f)).x > player->position.x - 1 && (boss_weapon->make_local_to_world() * glm::vec4(boss_weapon->position, 1.0f)).z > player->position.z - 0.5f)
+		{
+			if (weapon_timer == 0)
+			{
+				hit_player();
+				weapon_timer++;
+			}
+			if (weapon_timer > 50)
+			{
+				weapon_timer = 1;
+				hit_player();
+			}
+			else
+			{
+				weapon_timer++;
+			}
+		}
+		else
+		{
+			weapon_timer = 0;
+		}
+		// Boos switch status
+		if (boss->position.x < player->position.x + 2.5f && boss->position.x > player->position.x - 2.5f && boss->position.z < player->position.z + 5.0f && boss->position.z > player->position.z - 5.0f)
+		{
+
+			boss_status = Melee;
+		}
+		else if (boss->position.x < player->position.x + 6.5f && boss->position.x > player->position.x - 6.5f && boss->position.z < player->position.z + 6.5f && boss->position.z > player->position.z - 6.5f)
+		{
+			boss_status = Shoot;
+		}
+		else
+		{
+			boss_status = Idle;
+		}
+		// boss status
+		switch (boss_status)
+		{
+		case Idle:
+		{
+			// deal with bullet
+			if (!finish_bullet)
+			{
+				shooting1 = true;
+				shooting2 = true;
+				shooting3 = true;
+				hit1 = false;
+				hit2 = false;
+				hit3 = false;
+
+				finish_bullet = true;
+			}
+			break;
+		}
+		case Melee:
+		{
+			// deal with bullet
+			if (!finish_bullet)
+			{
+				shooting1 = true;
+				shooting2 = true;
+				shooting3 = true;
+				hit1 = false;
+				hit2 = false;
+				hit3 = false;
+
+				finish_bullet = true;
+			}
+			// boss move towards to the player
+			glm::vec3 dir = glm::normalize(player->position - boss->position);
+			boss->position.x += dir.x * boss_speed * elapsed;
+			if ((boss_weapon->make_local_to_world() * glm::vec4(boss_weapon->position, 1.0f)).x < player->position.x + 0.2f && (boss_weapon->make_local_to_world() * glm::vec4(boss_weapon->position, 1.0f)).x > player->position.x - 1 && (boss_weapon->make_local_to_world() * glm::vec4(boss_weapon->position, 1.0f)).x > player->position.x - 1)
+			{
+				// close to player,stop move, attack player
+			}
+			break;
+		}
+		case Shoot:
+		{
+			// shoot
+			if (finish_bullet)
+			{
+				for (auto bullet : current_bullets)
+				{
+					bullet.player_pos = player->position;
+				}
+			}
+			current_bullets_index = 0;
+			bullet_total_time += bullet_speed * elapsed;
+
+			if (bullet_total_time > 15)
+			{
+				bullet_total_time = 0;
+				shooting1 = true;
+				shooting2 = true;
+				shooting3 = true;
+				hit1 = false;
+				hit2 = false;
+				hit3 = false;
+			}
+			break;
+		}
+		default:
+
+			break;
+		}
+		// shoot, for deal with the last bullets before switch the attack mode, the bullets can't write in the shooting status
+
+		if (shooting1 && !hit1 && bullet_total_time > 0)
+		{
+			if (current_bullets.begin()->bullet_current_time < 20)
+			{
+				auto bi = current_bullets.begin();
+				std::advance(bi, 0);
+				bi->transform->scale = glm::vec3(0.1f);
+				bi->transform->position.y = player->position.y;
+				bi->bullet_current_time += bullet_speed * elapsed;
+				bi->transform->position = bullet_current_Pos(boss->position, current_bullets.begin()->player_pos, current_bullets.begin()->bullet_current_time);
+			}
+			else
+			{
+				current_bullets.begin()->transform->scale = glm::vec3(0);
+				current_bullets.begin()->transform->position = current_bullets.begin()->original_pos;
+				current_bullets.begin()->bullet_current_time = 0;
+			}
+		}
+		if (shooting2 && !hit2 && bullet_total_time > 1)
+		{
+			auto bi = current_bullets.begin();
+			std::advance(bi, 1);
+			if (bi->bullet_current_time < 20)
+			{
+				bi->transform->scale = glm::vec3(0.1f);
+				bi->transform->position.y = player->position.y;
+				bi->bullet_current_time += bullet_speed * elapsed;
+				bi->transform->position = bullet_current_Pos(boss->position, bi->player_pos, bi->bullet_current_time);
+			}
+			else
+			{
+				bi->transform->scale = glm::vec3(0);
+				bi->transform->position = bi->original_pos;
+				bi->bullet_current_time = 0;
+			}
+		}
+		if (shooting3 && !hit3 && bullet_total_time > 2)
+		{
+
+			auto bi = current_bullets.begin();
+			std::advance(bi, 2);
+			if (bi->bullet_current_time < 20)
+			{
+				bi->transform->scale = glm::vec3(0.1f);
+				bi->transform->position.y = player->position.y;
+				bi->bullet_current_time += bullet_speed * elapsed;
+				bi->transform->position = bullet_current_Pos(boss->position, bi->player_pos, bi->bullet_current_time);
+			}
+			else
+			{
+				bi->transform->scale = glm::vec3(0);
+				bi->transform->position = bi->original_pos;
+				bi->bullet_current_time = 0;
+			}
+		}
+
+		if (!hit1 && bullet_total_time > 10)
+		{
+			put_away_bullet(*current_bullets.begin());
+			shooting1 = false;
+		}
+		if (!hit2 && bullet_total_time > 12)
+		{
+			auto bi = current_bullets.begin();
+			std::advance(bi, 1);
+			put_away_bullet(*bi);
+			shooting2 = false;
+		}
+		if (!hit3 && bullet_total_time > 14)
+		{
+			auto bi = current_bullets.begin();
+			std::advance(bi, 2);
+			put_away_bullet(*bi);
+			shooting3 = false;
+		}
+	}
+	// player attack
+	if (keyatk.pressed && !attack && (component->make_local_to_world() * glm::vec4(component->position, 1.0f)).z < boss->position.z + 0.5f && (component->make_local_to_world() * glm::vec4(component->position, 1.0f)).z > boss->position.z && ((face_right && (component->make_local_to_world() * glm::vec4(component->position, 1.0f)).x < boss->position.x + 0.8f && (component->make_local_to_world() * glm::vec4(component->position, 1.0f)).x > boss->position.x) || (!face_right && (component->make_local_to_world() * glm::vec4(component->position, 1.0f)).x < boss->position.x && (component->make_local_to_world() * glm::vec4(component->position, 1.0f)).x > boss->position.x - 0.8f)))
+	{
+		attack = true;
+		hit_boss();
+	}
+>>>>>>> Stashed changes
 	// move camera:
 	{
 
@@ -304,9 +589,282 @@ glm::vec3 PlayMode::bullet_current_Pos(glm::vec3 origin_Pos, glm::vec3 final_Pos
 void PlayMode::put_away_bullet(Bullet bullet)
 {
 	bullet.transform->position.y = 100;
+<<<<<<< Updated upstream
 	one_bullet_timer = 0;
 	bullet_current_index++;
 	bullet_current_index %= 6;
 	bullet_current_time = 0;
 	(*(bullets.begin() + bullet_current_index)).player_pos = player->position;
 }
+=======
+	bullet.transform->scale = glm::vec3(0);
+	int away_index = 0;
+	for (auto blt : current_bullets)
+	{
+		if (bullet.index == blt.index)
+		{
+			auto bi = current_bullets.begin();
+			std::advance(bi, away_index);
+			// current_bullets.erase(bi);
+
+			bullet_current_index += 3;
+			bullet_current_index %= 9;
+			Bullet new_bullet = *(bullets.begin() + bullet_current_index);
+
+			bi->index = new_bullet.index;
+			bi->transform = new_bullet.transform;
+			bi->transform->position = boss->position;
+			bi->original_pos = new_bullet.original_pos;
+			bi->final_pos = player->position;
+			bi->bullet_current_time = 0;
+			bi->player_pos = player->position;
+			bi->hit_player = false;
+			break;
+		}
+		away_index++;
+	}
+	switch (away_index)
+	{
+	case 0:
+		hit1 = true;
+		break;
+	case 1:
+		hit2 = true;
+		break;
+	case 2:
+		hit3 = true;
+		break;
+	default:
+		break;
+	}
+	// generate new one
+	// bullet_current_index++;
+	// bullet_current_index %= 6;
+	// // bullet.bullet_current_time = 0;
+	// current_bullets.emplace_back(*(bullets.begin() + bullet_current_index));
+	// auto bi = current_bullets.begin();
+	// std::advance(bi, 2);
+	// bi->player_pos = player->position;
+	// bi->hit_player = false;
+}
+
+void PlayMode::hit_player()
+{
+	if (player_hp->scale.x > 0.0001f)
+	{
+		player_hp->scale.x -= max_player_hp * 0.05f;
+	}
+}
+
+void PlayMode::hit_boss()
+{
+	if (boss_hp->scale.x > 0.0001f)
+	{
+		boss_hp->scale.x -= max_boss_hp * 0.1f;
+	}
+}
+
+bool PlayMode::on_platform()
+{
+	for (auto platform : platforms)
+	{
+		if (player->position.z == platform.pos.z + platform.height / 2)
+		{
+			return true;
+		}
+	}
+	return player->position.z == start_point.z;
+}
+
+bool PlayMode::hit_platform()
+{
+	for (auto platform : platforms)
+	{
+		if (player->position.z == platform.pos.z - platform.height / 2)
+		{
+			return true;
+		}
+	}
+	return false;
+}
+
+void PlayMode::land_on_platform(glm::vec3 expected_position)
+{
+	std::cout << "\n"
+			  << player->position.x << " ," << player->position.y << " ," << player->position.z;
+	for (auto platform : platforms)
+	{
+		// std::cout << "\n" << outer_block -> name << "position z " << world_coords(outer_block).z ;
+		// std::cout << "\n" << outer_block -> name << "scale x" << outer_block->scale.x;
+		// std::cout << "\n" << expected_position.z << "z";
+
+		if (std::abs(expected_position.x - platform.pos.x) < platform.width / 2 &&
+			std::abs(expected_position.z - platform.pos.z) < platform.height / 2)
+		{
+			if (player->position.z >= platform.pos.z + platform.height / 2)
+			{
+				if (expected_position.z < platform.pos.z + platform.height / 2)
+				{
+					// from higher position
+					expected_position.z = platform.pos.z + platform.height / 2;
+				}
+			}
+			if (player->position.z <= platform.pos.z - platform.height / 2)
+			{
+				if (expected_position.z > platform.pos.z - platform.height / 2)
+				{
+					// for lower position
+					expected_position.z = platform.pos.z - platform.height / 2;
+				}
+				if (player->position.x < platform.pos.x - platform.width / 2 &&
+					expected_position.x > platform.pos.x - platform.width / 2)
+				{
+					expected_position.x = platform.pos.x - platform.width / 2;
+				}
+				if (player->position.x > platform.pos.x + platform.width / 2 &&
+					expected_position.x < platform.pos.x + platform.width / 2)
+				{
+					expected_position.x = platform.pos.x + platform.width / 2;
+				}
+			}
+			else
+			{
+				if (player->position.x <= platform.pos.x - platform.width / 2)
+				{
+					if (expected_position.x > platform.pos.x - platform.width / 2)
+					{
+						expected_position.x = platform.pos.x - platform.width / 2;
+					}
+				}
+				if (player->position.x >= platform.pos.x + platform.width / 2)
+				{
+					if (expected_position.x < platform.pos.x + platform.width / 2)
+					{
+						expected_position.x = platform.pos.x + platform.width / 2;
+					}
+				}
+			}
+		}
+	}
+	// camera->transform->position += move.x * frame_right + move.y * frame_forward;
+	// player->position += move.x * frame_right + move.y * frame_forward + move.z * frame_up;
+
+	if (expected_position.z < start_point.z)
+	{
+		expected_position.z = start_point.z;
+	}
+	camera->transform->position += expected_position - player->position;
+	player->position = expected_position;
+}
+/*
+void PlayMode::show_dialogue()
+{
+	if (line_index <= choices.choiceLibrary.size() && line_index >= 0)
+	{
+		// wait until player input, then show next text
+		if (showtext)
+		{
+			//  type:1-single line
+
+			base_line = choices.GetChoice(line_index).baseChoice.context;
+			if (choices.GetChoice(line_index).dataPath.length() > 1)
+			{
+				Sound::stop_all_samples();
+				voiceover = Sound::play_3D(*choices.GetChoice(line_index).voice, 1.0f, glm::vec3(0, 0, 0), 10.0f);
+			}
+
+			if (choices.GetChoice(line_index).type == 1)
+			{
+				for (auto &line : choice_lines)
+				{
+					line = "";
+				}
+			}
+			// 2-choose
+			if (choices.GetChoice(line_index).type == 2)
+			{
+				// show all choice
+				for (int i = 0; i < 3; i++)
+				{
+					if (i < choices.GetChoice(line_index).choiceCount)
+					{
+						if (choices.GetChoice(line_index).choiceCount > i)
+							choice_lines[i] = std::to_string(i + 1) + ": " + choices.GetChoice(line_index).potentialChoice[i].context;
+					}
+					else
+					{
+						choice_lines[i] = "";
+					}
+				}
+			}
+
+			// reset player input
+			showtext = false;
+			space_downcount = 0;
+			choice1_downcount = 0;
+			choice2_downcount = 0;
+			choice3_downcount = 0;
+		}
+
+		// detect player input
+		if (space.released && space_downcount == 0)
+		{
+			if (choices.GetChoice(line_index).type == 1)
+			{
+				if (choices.GetChoice(line_index).baseChoice.choiceNext > 0)
+				{
+					space_downcount++;
+					// std::cout << "next is:" << choices.GetChoice(line_index).baseChoice.choiceNext << std::endl;
+					line_index = choices.GetChoice(line_index).baseChoice.choiceNext;
+
+					showtext = true;
+				}
+				else
+				{
+					std::cout << "no next line!!" << std::endl;
+				}
+			}
+			space.released = false;
+		}
+
+		if (choices.GetChoice(line_index).type == 2)
+		{
+			int choiceNum = -1;
+			if (choice1.released && choice1_downcount == 0)
+			{
+				choice1_downcount++;
+				choiceNum = 0;
+				choice1.released = false;
+			}
+			if (choice2.released && choice2_downcount == 0 && choices.GetChoice(line_index).choiceCount > 1)
+			{
+				choice2_downcount++;
+				choiceNum = 1;
+				choice2.released = false;
+			}
+
+			if (choice3.released && choice3_downcount == 0 && choices.GetChoice(line_index).choiceCount > 2)
+			{
+				choice3_downcount++;
+				choiceNum = 2;
+				choice3.released = false;
+			}
+
+			// show next line
+			if (choiceNum >= 0)
+			{
+				if (choices.GetChoice(line_index).potentialChoice[choiceNum].choiceNext > 0)
+				{
+					line_index = choices.GetChoice(line_index).potentialChoice[choiceNum].choiceNext;
+					showtext = true;
+				}
+				else
+				{
+					// std::cout << "no choose content!!" << std::endl;
+				}
+			}
+		}
+	}
+}
+*/
+>>>>>>> Stashed changes
