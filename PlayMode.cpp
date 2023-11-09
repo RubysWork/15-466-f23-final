@@ -106,7 +106,6 @@ PlayMode::PlayMode() : scene(*hexapod_scene)
 	Platform platform20 = {(glm::vec3{-8.9f, 0, 4.3f}), 0.3f, 0.4f};
 	platforms.emplace_back(platform20);
 
-
 	Platform newPlatform1;
 	newPlatform1.pos = glm::vec3{-1.2f, 0, 2.0f};
 	newPlatform1.height = 1.0f;
@@ -342,7 +341,10 @@ void PlayMode::update(float elapsed)
 	if (boss_hp->scale.x <= 0.0001f)
 	{
 		boss->scale = glm::vec3(0);
-		// put_away_bullet(current_bullet);
+		for (auto &bullet : current_bullets)
+		{
+			put_away_bullet(bullet);
+		}
 	}
 	else
 	{
@@ -542,8 +544,9 @@ void PlayMode::update(float elapsed)
 		}
 	}
 	// player attack
-	if (keyatk.pressed && !attack && (component->make_local_to_world() * glm::vec4(component->position, 1.0f)).z < boss->position.z + 0.5f && (component->make_local_to_world() * glm::vec4(component->position, 1.0f)).z > boss->position.z && ((face_right && (component->make_local_to_world() * glm::vec4(component->position, 1.0f)).x < boss->position.x + 0.8f && (component->make_local_to_world() * glm::vec4(component->position, 1.0f)).x > boss->position.x) || (!face_right && (component->make_local_to_world() * glm::vec4(component->position, 1.0f)).x < boss->position.x && (component->make_local_to_world() * glm::vec4(component->position, 1.0f)).x > boss->position.x - 0.8f)))
+	if (get_weapon && keyatk.pressed && !attack && (component->make_local_to_world() * glm::vec4(component->position, 1.0f)).z < boss->position.z + 0.4f && (component->make_local_to_world() * glm::vec4(component->position, 1.0f)).z > boss->position.z - 0.4f && ((face_right && (component->make_local_to_world() * glm::vec4(component->position, 1.0f)).x < boss->position.x + 0.8f && (component->make_local_to_world() * glm::vec4(component->position, 1.0f)).x > boss->position.x) || (!face_right && (component->make_local_to_world() * glm::vec4(component->position, 1.0f)).x < boss->position.x && (component->make_local_to_world() * glm::vec4(component->position, 1.0f)).x > boss->position.x - 0.8f)))
 	{
+		std::cout << "hit!" << std::endl;
 		attack = true;
 		hit_boss();
 	}
@@ -789,8 +792,8 @@ bool PlayMode::hit_platform()
 
 void PlayMode::land_on_platform(glm::vec3 expected_position)
 {
-	std::cout << "\n"
-			  << player->position.x << " ," << player->position.y << " ," << player->position.z;
+	// std::cout << "\n"
+	// 		  << player->position.x << " ," << player->position.y << " ," << player->position.z;
 	for (auto platform : platforms)
 	{
 		// std::cout << "\n" << outer_block -> name << "position z " << world_coords(outer_block).z ;
