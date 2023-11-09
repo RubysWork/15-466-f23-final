@@ -78,7 +78,7 @@ PlayMode::PlayMode() : scene(*hexapod_scene)
 	Platform platform7 = {(glm::vec3{-6.95f, 0, 0.8f}), 0.5f, 1.9f};
 	platforms.emplace_back(platform7);
 	Platform platform8 = {(glm::vec3{-8.7f, 0, 1.3f}), 0.3f, 1.0f};
-	platforms.emplace_back(platform8);	
+	platforms.emplace_back(platform8);
 	Platform platform9 = {(glm::vec3{-8.65f, 0, 2.05f}), 0.52f, 1.8f};
 	platforms.emplace_back(platform9);
 	Platform platform10 = {(glm::vec3{-10.75f, 0, 1.52f}), 0.4f, 0.9f};
@@ -91,7 +91,6 @@ PlayMode::PlayMode() : scene(*hexapod_scene)
 	platforms.emplace_back(platform13);
 	Platform platform14 = {(glm::vec3{-6.1f, 0, 2.88f}), 0.4f, 0.75f};
 	platforms.emplace_back(platform14);
-
 
 	Platform newPlatform1;
 	newPlatform1.pos = glm::vec3{-1.2f, 0, 2.0f};
@@ -108,7 +107,6 @@ PlayMode::PlayMode() : scene(*hexapod_scene)
 	newPlatform3.height = 1.2f;
 	newPlatform3.width = 2.0f;
 	platforms.emplace_back(newPlatform3);
-
 
 	for (auto &transform : scene.transforms)
 	{
@@ -151,6 +149,8 @@ PlayMode::PlayMode() : scene(*hexapod_scene)
 		else if (transform.name == "Component")
 		{
 			component = &transform;
+			component_scale = component->scale;
+			component->scale = glm::vec4(0);
 		}
 		else if (transform.name == "BossAttack")
 		{
@@ -158,6 +158,15 @@ PlayMode::PlayMode() : scene(*hexapod_scene)
 		}
 		else if (transform.name == "PlayerAttack")
 		{
+			player_atk_cpnt = &transform;
+		}
+		else if (transform.name == "Cage")
+		{
+			Cage cage;
+			cage.index = cage_index;
+			cage.transform = &transform;
+			cages.emplace_back(cage);
+			cage_index++;
 		}
 	}
 
@@ -274,6 +283,25 @@ void PlayMode::update(float elapsed)
 	// show dialogue
 	// show_dialogue();
 
+	// get weapon
+	if (!get_weapon && player_atk_cpnt->position.x < player->position.x + 0.3f && player_atk_cpnt->position.x > player->position.x - 0.3f && player_atk_cpnt->position.z < player->position.z + 0.3f && player_atk_cpnt->position.z > player->position.z - 0.3f)
+	{
+		get_weapon = true;
+		component->scale = component_scale;
+		player_atk_cpnt->scale = glm::vec4(0);
+	}
+
+	// hit cage
+	for (auto cage : cages)
+	{
+		if (get_weapon && !cage.isDestroied && keyatk.pressed && !attack && (cage.transform->make_local_to_world() * glm::vec4(cage.transform->position, 1.0f)).x < (component->make_local_to_world() * glm::vec4(component->position, 1.0f)).x && (cage.transform->make_local_to_world() * glm::vec4(cage.transform->position, 1.0f)).x > (component->make_local_to_world() * glm::vec4(component->position, 1.0f)).x - 1.0f && (cage.transform->make_local_to_world() * glm::vec4(cage.transform->position, 1.0f)).z < (component->make_local_to_world() * glm::vec4(component->position, 1.0f)).z - 0.3f && (cage.transform->make_local_to_world() * glm::vec4(cage.transform->position, 1.0f)).z > (component->make_local_to_world() * glm::vec4(component->position, 1.0f)).z - 0.35f)
+		{
+			attack = true;
+			cage.isDestroied = true;
+			cage.transform->scale = glm::vec4(0);
+		}
+	}
+
 	// player die
 	if (player_hp->scale.x <= 0.0001f)
 	{
@@ -321,7 +349,7 @@ void PlayMode::update(float elapsed)
 		{
 			weapon_timer = 0;
 		}
-		// Boos switch status
+		// Boss switch status
 		if (boss->position.x < player->position.x + 2.5f && boss->position.x > player->position.x - 2.5f && boss->position.z < player->position.z + 5.0f && boss->position.z > player->position.z - 5.0f)
 		{
 
@@ -338,7 +366,8 @@ void PlayMode::update(float elapsed)
 		// boss status
 		switch (boss_status)
 		{
-		case Idle: {
+		case Idle:
+		{
 			// deal with bullet
 			if (!finish_bullet)
 			{
@@ -353,7 +382,8 @@ void PlayMode::update(float elapsed)
 			}
 			break;
 		}
-		case Melee: {
+		case Melee:
+		{
 			// deal with bullet
 			if (!finish_bullet)
 			{
@@ -375,7 +405,8 @@ void PlayMode::update(float elapsed)
 			}
 			break;
 		}
-		case Shoot: {
+		case Shoot:
+		{
 			// shoot
 			if (finish_bullet)
 			{
@@ -404,14 +435,13 @@ void PlayMode::update(float elapsed)
 			break;
 		}
 		// shoot, for deal with the last bullets before switch the attack mode, the bullets can't write in the shooting status
-
 		if (shooting1 && !hit1 && bullet_total_time > 0)
 		{
 			if (current_bullets.begin()->bullet_current_time < 20)
 			{
 				auto bi = current_bullets.begin();
 				std::advance(bi, 0);
-				bi->transform->scale = glm::vec3(0.15f);
+				bi->transform->scale = glm::vec3(0.1f);
 				bi->transform->position.y = player->position.y;
 				bi->bullet_current_time += bullet_speed * elapsed;
 				bi->transform->position = bullet_current_Pos(boss->position, current_bullets.begin()->player_pos, current_bullets.begin()->bullet_current_time);
@@ -429,7 +459,7 @@ void PlayMode::update(float elapsed)
 			std::advance(bi, 1);
 			if (bi->bullet_current_time < 20)
 			{
-				bi->transform->scale = glm::vec3(0.15f);
+				bi->transform->scale = glm::vec3(0.1f);
 				bi->transform->position.y = player->position.y;
 				bi->bullet_current_time += bullet_speed * elapsed;
 				bi->transform->position = bullet_current_Pos(boss->position, bi->player_pos, bi->bullet_current_time);
@@ -448,7 +478,7 @@ void PlayMode::update(float elapsed)
 			std::advance(bi, 2);
 			if (bi->bullet_current_time < 20)
 			{
-				bi->transform->scale = glm::vec3(0.15f);
+				bi->transform->scale = glm::vec3(0.1f);
 				bi->transform->position.y = player->position.y;
 				bi->bullet_current_time += bullet_speed * elapsed;
 				bi->transform->position = bullet_current_Pos(boss->position, bi->player_pos, bi->bullet_current_time);
@@ -729,7 +759,8 @@ bool PlayMode::hit_platform()
 
 void PlayMode::land_on_platform(glm::vec3 expected_position)
 {
-	std::cout << "\n" << player->position.x << " ," << player->position.y << " ," << player->position.z;
+	// std::cout << "\n"
+	// 		  << player->position.x << " ," << player->position.y << " ," << player->position.z;
 	for (auto platform : platforms)
 	{
 		// std::cout << "\n" << outer_block -> name << "position z " << world_coords(outer_block).z ;
@@ -739,34 +770,45 @@ void PlayMode::land_on_platform(glm::vec3 expected_position)
 		if (std::abs(expected_position.x - platform.pos.x) < platform.width / 2 &&
 			std::abs(expected_position.z - platform.pos.z) < platform.height / 2)
 		{
-			if (player->position.z >= platform.pos.z + platform.height / 2) {
-				if (expected_position.z < platform.pos.z + platform.height / 2) {
+			if (player->position.z >= platform.pos.z + platform.height / 2)
+			{
+				if (expected_position.z < platform.pos.z + platform.height / 2)
+				{
 					// from higher position
 					expected_position.z = platform.pos.z + platform.height / 2;
 				}
-			} 
-			if (player->position.z <= platform.pos.z - platform.height / 2) {
-				if (expected_position.z > platform.pos.z - platform.height / 2) {
+			}
+			if (player->position.z <= platform.pos.z - platform.height / 2)
+			{
+				if (expected_position.z > platform.pos.z - platform.height / 2)
+				{
 					// for lower position
 					expected_position.z = platform.pos.z - platform.height / 2;
 				}
 				if (player->position.x < platform.pos.x - platform.width / 2 &&
-					expected_position.x > platform.pos.x - platform.width / 2) {
+					expected_position.x > platform.pos.x - platform.width / 2)
+				{
 					expected_position.x = platform.pos.x - platform.width / 2;
 				}
 				if (player->position.x > platform.pos.x + platform.width / 2 &&
-					expected_position.x < platform.pos.x + platform.width / 2) {
+					expected_position.x < platform.pos.x + platform.width / 2)
+				{
 					expected_position.x = platform.pos.x + platform.width / 2;
 				}
 			}
-			else {
-				if (player->position.x <= platform.pos.x - platform.width / 2) {
-					if (expected_position.x > platform.pos.x - platform.width / 2) {
+			else
+			{
+				if (player->position.x <= platform.pos.x - platform.width / 2)
+				{
+					if (expected_position.x > platform.pos.x - platform.width / 2)
+					{
 						expected_position.x = platform.pos.x - platform.width / 2;
 					}
 				}
-				if (player->position.x >= platform.pos.x + platform.width / 2) {
-					if (expected_position.x < platform.pos.x + platform.width / 2) {
+				if (player->position.x >= platform.pos.x + platform.width / 2)
+				{
+					if (expected_position.x < platform.pos.x + platform.width / 2)
+					{
 						expected_position.x = platform.pos.x + platform.width / 2;
 					}
 				}

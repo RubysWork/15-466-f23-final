@@ -42,6 +42,21 @@ struct PlayMode : Mode
 	// player attack once
 	bool attack = false;
 	Scene::Transform *player_atk_cpnt;
+	bool get_weapon = false;
+	// component
+	Scene::Transform *component = nullptr;
+	glm::vec3 component_scale;
+
+	// cage
+	struct Cage
+	{
+		int index = 0;
+		Scene::Transform *transform = nullptr;
+		bool isDestroied = false;
+	};
+
+	int cage_index = 0;
+	std::vector<Cage> cages;
 
 	glm::vec3 start_point;
 
@@ -89,18 +104,6 @@ struct PlayMode : Mode
 	bool hit1 = false;
 	bool hit2 = false;
 	bool hit3 = false;
-
-	std::list<Scene::Transform *> outerList;
-
-	typedef struct Platform
-	{
-		glm::vec3 pos = glm::vec3(0, 0, 0);
-		float height = 0;
-		float width = 0;
-	} Platform;
-
-	std::list<Platform> platforms;
-
 	// boss status
 	enum BattleStatus
 	{
@@ -110,6 +113,7 @@ struct PlayMode : Mode
 	};
 	bool finish_bullet = false;
 	BattleStatus boss_status = Shoot;
+
 	/// boss
 	Scene::Transform *boss = nullptr;
 	float boss_speed = 1.0f;
@@ -123,8 +127,16 @@ struct PlayMode : Mode
 	float max_player_hp = 1.0f;
 	float current_player_hp = 1.0f;
 
-	// component
-	Scene::Transform *component = nullptr;
+	std::list<Scene::Transform *> outerList;
+
+	typedef struct Platform
+	{
+		glm::vec3 pos = glm::vec3(0, 0, 0);
+		float height = 0;
+		float width = 0;
+	} Platform;
+
+	std::list<Platform> platforms;
 
 	// music coming from the tip of the leg (as a demonstration):
 	std::shared_ptr<Sound::PlayingSample> leg_tip_loop;
