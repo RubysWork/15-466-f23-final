@@ -8,6 +8,7 @@
 #include <array>
 #include <vector>
 #include <deque>
+#include <list>
 
 struct PlayMode : Mode
 {
@@ -60,6 +61,9 @@ struct PlayMode : Mode
 		glm::vec3 final_pos = glm::vec3(0, 0, 0);
 
 		glm::vec3 player_pos = glm::vec3(0, 0, 0);
+
+		float bullet_current_time = 0;
+		bool hit_player = false;
 	} Bullet;
 
 	std::vector<Bullet> bullets;
@@ -76,12 +80,17 @@ struct PlayMode : Mode
 	std::list<Platform> platforms;
 
 	Bullet current_bullet;
-	int bullet_index = 0;
-	int bullet_current_index = 0;
+	float bullet_total_time = 0;
+	std::list<Bullet> current_bullets; // each three bullets in a group
+
+	// std::array<Bullet, 3> current_bullets; // each three bullets in a group
+	int current_bullets_index = 0; // the index in the current_bullets
+	int bullet_index = 0;		   // all bullet index
+	int bullet_current_index = 0;  // put next index
 	int bullet_count = 3;
-	float bullet_speed = 1.5f;
-	float bullet_current_time = 0;
-	int one_bullet_timer = 0;
+	float bullet_speed = 1.0f;
+
+	bool shooting = true;
 
 	// boss status
 	enum BattleStatus

@@ -102,6 +102,8 @@ PlayMode::PlayMode() : scene(*hexapod_scene)
 			bullet.original_pos = bullet.transform->position;
 
 			bullets.emplace_back(bullet);
+			if (bullet_index < 3)
+				current_bullets.emplace_back(bullet);
 
 			bullet_index++;
 		}
@@ -123,7 +125,10 @@ PlayMode::PlayMode() : scene(*hexapod_scene)
 	{
 		bullet.player_pos = player->position;
 	}
-
+	for (auto &bullet : current_bullets)
+	{
+		bullet.player_pos = player->position;
+	}
 	// get pointer to camera for convenience:
 	if (scene.cameras.size() != 1)
 		throw std::runtime_error("Expecting scene to have exactly one camera, but it has " + std::to_string(scene.cameras.size()));
@@ -238,11 +243,21 @@ void PlayMode::update(float elapsed)
 	if (boss_hp->scale.x <= 0.0001f)
 	{
 		boss->scale = glm::vec3(0);
-		put_away_bullet(current_bullet);
+		// put_away_bullet(current_bullet);
 	}
 	else
 	{
+		// bullet attack
+		for (auto &bullet : current_bullets)
+		{
 
+			if (!bullet.hit_player && bullet.transform->position.x < player->position.x + 0.5f && bullet.transform->position.x > player->position.x)
+			{
+				hit_player();
+				bullet.hit_player = true;
+				put_away_bullet(bullet);
+			}
+		}
 		// boss status
 		switch (boss_status)
 		{
@@ -250,24 +265,80 @@ void PlayMode::update(float elapsed)
 
 			break;
 		case Shoot:
-
-			bullet_current_time += bullet_speed * elapsed;
-			current_bullet = *(bullets.begin() + bullet_current_index);
-			current_bullet.transform->scale = glm::vec3(0.15f);
-			current_bullet.transform->position.y = player->position.y;
-			current_bullet.transform->position = bullet_current_Pos(boss->position, current_bullet.player_pos, bullet_current_time);
-
-			one_bullet_timer++;
-			// std::cout << one_bullet_timer << std::endl;
-			// generate new one
-			if (current_bullet.transform->position.x < player->position.x + 0.4f && current_bullet.transform->position.x > player->position.x - 0.4f && current_bullet.transform->position.z < player->position.z + 0.4f && current_bullet.transform->position.z > player->position.z - 0.4f)
+			// shoot
+			current_bullets_index = 0;
+			bullet_total_time += bullet_speed * elapsed;
+			if (shooting)
 			{
-				put_away_bullet(current_bullet);
-				hit_player();
+				if (bullet_total_time > 0)
+				{
+					if (current_bullets.begin()->bullet_current_time < 20)
+					{
+						auto bi = current_bullets.begin();
+						std::advance(bi, 0);
+						bi->transform->scale = glm::vec3(0.15f);
+						bi->transform->position.y = player->position.y;
+						bi->bullet_current_time += bullet_speed * elapsed;
+						bi->transform->position = bullet_current_Pos(boss->position, current_bullets.begin()->player_pos, current_bullets.begin()->bullet_current_time);
+					}
+					else
+					{
+						current_bullets.begin()->bullet_current_time = 0;
+					}
+				}
+				if (bullet_total_time > 1)
+				{
+					auto bi = current_bullets.begin();
+					std::advance(bi, 1);
+					if (bi->bullet_current_time < 20)
+					{
+						bi->transform->scale = glm::vec3(0.15f);
+						bi->transform->position.y = player->position.y;
+						bi->bullet_current_time += bullet_speed * elapsed;
+						bi->transform->position = bullet_current_Pos(boss->position, bi->player_pos, bi->bullet_current_time);
+					}
+					else
+					{
+						bi->bullet_current_time = 0;
+					}
+				}
+				if (bullet_total_time > 2)
+				{
+
+					auto bi = current_bullets.begin();
+					std::advance(bi, 2);
+					if (bi->bullet_current_time < 20)
+					{
+						bi->transform->scale = glm::vec3(0.15f);
+						bi->transform->position.y = player->position.y;
+						bi->bullet_current_time += bullet_speed * elapsed;
+						bi->transform->position = bullet_current_Pos(boss->position, bi->player_pos, bi->bullet_current_time);
+					}
+					else
+					{
+						bi->bullet_current_time = 0;
+					}
+				}
 			}
-			if (one_bullet_timer > 300)
+			if (bullet_total_time > 20)
 			{
-				put_away_bullet(current_bullet);
+
+				put_away_bullet(*current_bullets.begin());
+				shooting = false;
+			}
+			if (bullet_total_time > 23)
+			{
+				auto bi = current_bullets.begin();
+				std::advance(bi, 1);
+				put_away_bullet(*bi);
+			}
+			if (bullet_total_time > 25)
+			{
+				auto bi = current_bullets.begin();
+				std::advance(bi, 2);
+				put_away_bullet(*bi);
+				bullet_total_time = 0;
+				shooting = true;
 			}
 
 			break;
@@ -429,18 +500,39 @@ glm::vec3 PlayMode::bullet_current_Pos(glm::vec3 origin_Pos, glm::vec3 final_Pos
 	glm::vec3 dir = glm::normalize(final_Pos - origin_Pos);
 	glm::vec3 current_Pos = origin_Pos + dir * time;
 	current_Pos.y = player->position.y;
+	// std::cout << "dir:(" << dir.x << "," << dir.y << "," << dir.z << ")";
+	//  std::cout << "position:(" << current_Pos.x << "," << current_Pos.y << "," << current_Pos.z << ")"
+	//  		  << std::endl;
 	return current_Pos;
 }
 
 void PlayMode::put_away_bullet(Bullet bullet)
 {
+	// put away bullet
 	bullet.transform->position.y = 100;
 	bullet.transform->scale = glm::vec3(0);
-	one_bullet_timer = 0;
+	int away_index = 0;
+	for (auto blt : current_bullets)
+	{
+		if (bullet.index == blt.index)
+		{
+			auto bi = current_bullets.begin();
+			std::advance(bi, away_index);
+			current_bullets.erase(bi);
+			break;
+		}
+		away_index++;
+	}
+
+	// generate new one
 	bullet_current_index++;
 	bullet_current_index %= 6;
-	bullet_current_time = 0;
-	(*(bullets.begin() + bullet_current_index)).player_pos = player->position;
+	// bullet.bullet_current_time = 0;
+	current_bullets.emplace_back(*(bullets.begin() + bullet_current_index));
+	auto bi = current_bullets.begin();
+	std::advance(bi, 2);
+	bi->player_pos = player->position;
+	bi->hit_player = false;
 }
 
 void PlayMode::hit_player()
@@ -485,8 +577,8 @@ bool PlayMode::hit_platform()
 
 void PlayMode::land_on_platform(glm::vec3 expected_position)
 {
-	std::cout << "\n"
-			  << player->position.x << " ," << player->position.y << " ," << player->position.z;
+	// std::cout << "\n"
+	// 		  << player->position.x << " ," << player->position.y << " ," << player->position.z;
 	for (auto platform : platforms)
 	{
 		// std::cout << "\n" << outer_block -> name << "position z " << world_coords(outer_block).z ;
