@@ -174,6 +174,7 @@ PlayMode::PlayMode() : scene(*hexapod_scene)
 		else if (transform.name == "BossHp")
 		{
 			boss_hp = &transform;
+			boss_hp->position.z += 5;
 		}
 		else if (transform.name == "PlayerHp")
 		{
@@ -813,6 +814,8 @@ void PlayMode::land_on_platform(glm::vec3 expected_position)
 {
 	// std::cout << "\n"
 	// 		  << player->position.x << " ," << player->position.y << " ," << player->position.z;
+	// std::cout << "\n"
+	// 		  << camera->transform->position.x << " ," << camera->transform->position.y << " ," << camera->transform->position.z;
 	for (auto platform : platforms)
 	{
 		// std::cout << "\n" << outer_block -> name << "position z " << world_coords(outer_block).z ;
@@ -870,13 +873,22 @@ void PlayMode::land_on_platform(glm::vec3 expected_position)
 	// camera->transform->position += move.x * frame_right + move.y * frame_forward;
 	// player->position += move.x * frame_right + move.y * frame_forward + move.z * frame_up;
 
-	if (expected_position.z < start_point.z)
+	if (expected_position.z <= start_point.z && std::abs(expected_position.x - (-11.5f)) < 4.4f)
+	// hardcode to prevent a jump at start
 	{
-		expected_position.z = start_point.z;
+	  expected_position.z = start_point.z;
 	}
 	camera->transform->position += expected_position - player->position;
 	player->position = expected_position;
+	if (expected_position.z <= start_point.z - 1.3f) {
+		if (die_camera_pos == glm::vec3{0.0f, 0.0f, 0.0f}) {
+			die_camera_pos = camera->transform->position;
+		} else {
+			camera->transform->position = die_camera_pos;
+		}
+	}
 }
+
 /*
 void PlayMode::show_dialogue()
 {
