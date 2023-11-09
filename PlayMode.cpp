@@ -67,7 +67,7 @@ PlayMode::PlayMode() : scene(*hexapod_scene)
 {
 	Platform platform1 = {(glm::vec3{-11.5f, 0, -2.0f}), 3.7f, 4.4f};
 	platforms.emplace_back(platform1);
-	Platform platform2 = {(glm::vec3{-12.5f, 0, 0.0f}), 12.0f, 2.6f};
+	Platform platform2 = {(glm::vec3{-12.6f, 0, 1.0f}), 5.0f, 3.0f};
 	platforms.emplace_back(platform2);
 	Platform platform3 = {(glm::vec3{-9.85f, 0, 0.85f}), 0.6f, 0.9f};
 	platforms.emplace_back(platform3);
@@ -105,22 +105,41 @@ PlayMode::PlayMode() : scene(*hexapod_scene)
 	platforms.emplace_back(platform19);
 	Platform platform20 = {(glm::vec3{-8.9f, 0, 4.3f}), 0.3f, 0.4f};
 	platforms.emplace_back(platform20);
+	Platform platform21 = {(glm::vec3{-8.55f, 0, 5.75f}), 0.6f, 2.3f};
+	platforms.emplace_back(platform21);
+	Platform platform22 = {(glm::vec3{-4.35f, 0, 5.7f}), 0.8f, 4.1f};
+	platforms.emplace_back(platform22);
+	Platform platform23 = {(glm::vec3{-2.7f, 0, 3.3f}), 0.5f, 1.2f};
+	platforms.emplace_back(platform23);
+	Platform platform24 = {(glm::vec3{-0.9f, 0, 2.15f}), 0.8f, 0.8f};
+	platforms.emplace_back(platform24);
+	Platform platform25 = {(glm::vec3{-1.1f, 0, 1.95f}), 0.6f, 0.8f};
+	platforms.emplace_back(platform25);
+	Platform platform26 = {(glm::vec3{-0.7f, 0, 1.95f}), 0.6f, 0.8f};
+	platforms.emplace_back(platform26);
+	Platform platform27 = {(glm::vec3{-4.45f, 0, -2.575f}), 4.85f, 1.3f};
+	platforms.emplace_back(platform27);
+	Platform platform28 = {(glm::vec3{2.4f, 0, -2.925f}), 6.3f, 5.8f};
+	platforms.emplace_back(platform28);
+	Platform platform29 = {(glm::vec3{3.1f, 0, 3.48f}), 0.6f, 2.0f};
+	platforms.emplace_back(platform29);
+	Platform platform30 = {(glm::vec3{6.25f, 0, 2.0f}), 14.2f, 2.32f};
+	platforms.emplace_back(platform30);
+	Platform platform31 = {(glm::vec3{3.05f, 0, 5.3f}), 1.2f, 8.7f};
+	platforms.emplace_back(platform31);
+	Platform platform32 = {(glm::vec3{3.05f, 0, 5.3f}), 1.2f, 8.7f};
+	platforms.emplace_back(platform32);
+	Platform platform33 = {(glm::vec3{-0.5f, 0, 5.9f}), 0.8f, 1.0f};
+	platforms.emplace_back(platform33);
+	Platform platform34 = {(glm::vec3{-0.5f, 0, 5.8f}), 0.6f, 1.8f};
+	platforms.emplace_back(platform34);
+	Platform platform35 = {(glm::vec3{1.4f, 0, 7.0f}), 4.0f, 0.6f};
+	platforms.emplace_back(platform35);
+	Platform platform36 = {(glm::vec3{-12.35f, 0, 4.1f}), 1.4f, 2.7f};
+	platforms.emplace_back(platform36);
+	Platform platform37 = {(glm::vec3{-13.3f, 0, 7.0f}), 12.0f, 1.4f};
+	platforms.emplace_back(platform37);
 
-	Platform newPlatform1;
-	newPlatform1.pos = glm::vec3{-1.2f, 0, 2.0f};
-	newPlatform1.height = 1.0f;
-	newPlatform1.width = 1.5f;
-	platforms.emplace_back(newPlatform1);
-	Platform newPlatform2;
-	newPlatform2.pos = glm::vec3{2.8f, 0, 3.4f};
-	newPlatform2.height = 0.7f;
-	newPlatform2.width = 2.2f;
-	platforms.emplace_back(newPlatform2);
-	Platform newPlatform3;
-	newPlatform3.pos = glm::vec3{-2.9f, 0, 3.4f};
-	newPlatform3.height = 1.2f;
-	newPlatform3.width = 2.0f;
-	platforms.emplace_back(newPlatform3);
 
 	for (auto &transform : scene.transforms)
 	{
