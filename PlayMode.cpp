@@ -140,7 +140,6 @@ PlayMode::PlayMode() : scene(*hexapod_scene)
 	Platform platform37 = {(glm::vec3{-13.3f, 0, 7.0f}), 12.0f, 1.4f};
 	platforms.emplace_back(platform37);
 
-
 	for (auto &transform : scene.transforms)
 	{
 		if (transform.name == "Player")
@@ -179,6 +178,7 @@ PlayMode::PlayMode() : scene(*hexapod_scene)
 		else if (transform.name == "PlayerHp")
 		{
 			player_hp = &transform;
+			player_hp->position.z += 5;
 		}
 		else if (transform.name == "Component")
 		{
@@ -881,7 +881,7 @@ void PlayMode::land_on_platform(glm::vec3 expected_position)
 	if (expected_position.z < start_point.z)
 	// hardcode to prevent a jump at start
 	{
-	  expected_position.z = start_point.z;
+		expected_position.z = start_point.z;
 	}
 	camera->transform->position += expected_position - player->position;
 	player->position = expected_position;
