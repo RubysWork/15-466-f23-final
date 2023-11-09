@@ -98,7 +98,7 @@ PlayMode::PlayMode() : scene(*hexapod_scene)
 			Bullet bullet;
 			bullet.index = bullet_index;
 			bullet.transform = &transform;
-			bullet.transform->scale = glm::vec3(0, 0, 0);
+			bullet.transform->scale = glm::vec3(0);
 			bullet.original_pos = bullet.transform->position;
 
 			bullets.emplace_back(bullet);
@@ -251,7 +251,7 @@ void PlayMode::update(float elapsed)
 		for (auto &bullet : current_bullets)
 		{
 
-			if (!bullet.hit_player && bullet.transform->position.x < player->position.x + 0.5f && bullet.transform->position.x > player->position.x)
+			if (!bullet.hit_player && bullet.transform->position.x < player->position.x + 0.3f && bullet.transform->position.x > player->position.x && bullet.transform->position.z < player->position.z + 0.3f && bullet.transform->position.z > player->position.z - 0.3f)
 			{
 				hit_player();
 				bullet.hit_player = true;
@@ -268,79 +268,92 @@ void PlayMode::update(float elapsed)
 			// shoot
 			current_bullets_index = 0;
 			bullet_total_time += bullet_speed * elapsed;
-			if (shooting)
-			{
-				if (bullet_total_time > 0)
-				{
-					if (current_bullets.begin()->bullet_current_time < 20)
-					{
-						auto bi = current_bullets.begin();
-						std::advance(bi, 0);
-						bi->transform->scale = glm::vec3(0.15f);
-						bi->transform->position.y = player->position.y;
-						bi->bullet_current_time += bullet_speed * elapsed;
-						bi->transform->position = bullet_current_Pos(boss->position, current_bullets.begin()->player_pos, current_bullets.begin()->bullet_current_time);
-					}
-					else
-					{
-						current_bullets.begin()->bullet_current_time = 0;
-					}
-				}
-				if (bullet_total_time > 1)
-				{
-					auto bi = current_bullets.begin();
-					std::advance(bi, 1);
-					if (bi->bullet_current_time < 20)
-					{
-						bi->transform->scale = glm::vec3(0.15f);
-						bi->transform->position.y = player->position.y;
-						bi->bullet_current_time += bullet_speed * elapsed;
-						bi->transform->position = bullet_current_Pos(boss->position, bi->player_pos, bi->bullet_current_time);
-					}
-					else
-					{
-						bi->bullet_current_time = 0;
-					}
-				}
-				if (bullet_total_time > 2)
-				{
 
+			if (shooting1 && !hit1 && bullet_total_time > 0)
+			{
+				if (current_bullets.begin()->bullet_current_time < 20)
+				{
 					auto bi = current_bullets.begin();
-					std::advance(bi, 2);
-					if (bi->bullet_current_time < 20)
-					{
-						bi->transform->scale = glm::vec3(0.15f);
-						bi->transform->position.y = player->position.y;
-						bi->bullet_current_time += bullet_speed * elapsed;
-						bi->transform->position = bullet_current_Pos(boss->position, bi->player_pos, bi->bullet_current_time);
-					}
-					else
-					{
-						bi->bullet_current_time = 0;
-					}
+					std::advance(bi, 0);
+					bi->transform->scale = glm::vec3(0.15f);
+					bi->transform->position.y = player->position.y;
+					bi->bullet_current_time += bullet_speed * elapsed;
+					bi->transform->position = bullet_current_Pos(boss->position, current_bullets.begin()->player_pos, current_bullets.begin()->bullet_current_time);
+				}
+				else
+				{
+					current_bullets.begin()->transform->scale = glm::vec3(0);
+					current_bullets.begin()->transform->position = current_bullets.begin()->original_pos;
+					current_bullets.begin()->bullet_current_time = 0;
 				}
 			}
-			if (bullet_total_time > 20)
+			if (shooting2 && !hit2 && bullet_total_time > 1)
+			{
+				auto bi = current_bullets.begin();
+				std::advance(bi, 1);
+				if (bi->bullet_current_time < 20)
+				{
+					bi->transform->scale = glm::vec3(0.15f);
+					bi->transform->position.y = player->position.y;
+					bi->bullet_current_time += bullet_speed * elapsed;
+					bi->transform->position = bullet_current_Pos(boss->position, bi->player_pos, bi->bullet_current_time);
+				}
+				else
+				{
+					bi->transform->scale = glm::vec3(0);
+					bi->transform->position = bi->original_pos;
+					bi->bullet_current_time = 0;
+				}
+			}
+			if (shooting3 && !hit3 && bullet_total_time > 2)
 			{
 
+				auto bi = current_bullets.begin();
+				std::advance(bi, 2);
+				if (bi->bullet_current_time < 20)
+				{
+					bi->transform->scale = glm::vec3(0.15f);
+					bi->transform->position.y = player->position.y;
+					bi->bullet_current_time += bullet_speed * elapsed;
+					bi->transform->position = bullet_current_Pos(boss->position, bi->player_pos, bi->bullet_current_time);
+				}
+				else
+				{
+					bi->transform->scale = glm::vec3(0);
+					bi->transform->position = bi->original_pos;
+					bi->bullet_current_time = 0;
+				}
+			}
+
+			if (!hit1 && bullet_total_time > 10)
+			{
 				put_away_bullet(*current_bullets.begin());
-				shooting = false;
+				shooting1 = false;
 			}
-			if (bullet_total_time > 23)
+			if (!hit2 && bullet_total_time > 12)
 			{
 				auto bi = current_bullets.begin();
 				std::advance(bi, 1);
 				put_away_bullet(*bi);
+				shooting2 = false;
 			}
-			if (bullet_total_time > 25)
+			if (!hit3 && bullet_total_time > 14)
 			{
 				auto bi = current_bullets.begin();
 				std::advance(bi, 2);
 				put_away_bullet(*bi);
-				bullet_total_time = 0;
-				shooting = true;
+				shooting3 = false;
 			}
-
+			if (bullet_total_time > 15)
+			{
+				bullet_total_time = 0;
+				shooting1 = true;
+				shooting2 = true;
+				shooting3 = true;
+				hit1 = false;
+				hit2 = false;
+				hit3 = false;
+			}
 			break;
 		default:
 
@@ -518,28 +531,58 @@ void PlayMode::put_away_bullet(Bullet bullet)
 		{
 			auto bi = current_bullets.begin();
 			std::advance(bi, away_index);
-			current_bullets.erase(bi);
+			// current_bullets.erase(bi);
+
+			bullet_current_index += 3;
+			bullet_current_index %= 9;
+			Bullet new_bullet = *(bullets.begin() + bullet_current_index);
+
+			bi->index = new_bullet.index;
+			bi->transform = new_bullet.transform;
+			bi->transform->position = boss->position;
+			bi->original_pos = new_bullet.original_pos;
+			bi->final_pos = player->position;
+			bi->bullet_current_time = 0;
+			bi->player_pos = player->position;
+			bi->hit_player = false;
 			break;
 		}
 		away_index++;
 	}
-
+	switch (away_index)
+	{
+	case 0:
+		hit1 = true;
+		std::cout << "hit1!!" << std::endl;
+		break;
+	case 1:
+		hit2 = true;
+		std::cout << "hit2!!" << std::endl;
+		break;
+	case 2:
+		hit3 = true;
+		std::cout << "hit3!!" << std::endl;
+		break;
+	default:
+		std::cout << "no hit!!" << std::endl;
+		break;
+	}
 	// generate new one
-	bullet_current_index++;
-	bullet_current_index %= 6;
-	// bullet.bullet_current_time = 0;
-	current_bullets.emplace_back(*(bullets.begin() + bullet_current_index));
-	auto bi = current_bullets.begin();
-	std::advance(bi, 2);
-	bi->player_pos = player->position;
-	bi->hit_player = false;
+	// bullet_current_index++;
+	// bullet_current_index %= 6;
+	// // bullet.bullet_current_time = 0;
+	// current_bullets.emplace_back(*(bullets.begin() + bullet_current_index));
+	// auto bi = current_bullets.begin();
+	// std::advance(bi, 2);
+	// bi->player_pos = player->position;
+	// bi->hit_player = false;
 }
 
 void PlayMode::hit_player()
 {
 	if (player_hp->scale.x > 0.0001f)
 	{
-		player_hp->scale.x -= max_player_hp * 0.2f;
+		player_hp->scale.x -= max_player_hp * 0.05f;
 	}
 }
 

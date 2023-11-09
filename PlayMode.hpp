@@ -88,9 +88,14 @@ struct PlayMode : Mode
 	int bullet_index = 0;		   // all bullet index
 	int bullet_current_index = 0;  // put next index
 	int bullet_count = 3;
-	float bullet_speed = 1.0f;
+	float bullet_speed = 3.0f;
 
-	bool shooting = true;
+	bool shooting1 = true;
+	bool shooting2 = true;
+	bool shooting3 = true;
+	bool hit1 = false;
+	bool hit2 = false;
+	bool hit3 = false;
 
 	// boss status
 	enum BattleStatus
