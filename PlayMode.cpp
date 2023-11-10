@@ -381,7 +381,7 @@ void PlayMode::update(float elapsed)
 			}
 		}
 		// Weapon attack
-		if ((boss_weapon->make_local_to_world() * glm::vec4(boss_weapon->position, 1.0f)).x < player->position.x + 0.2f && (boss_weapon->make_local_to_world() * glm::vec4(boss_weapon->position, 1.0f)).x > player->position.x - 1 && (boss_weapon->make_local_to_world() * glm::vec4(boss_weapon->position, 1.0f)).z < player->position.z + 0.5f && (boss_weapon->make_local_to_world() * glm::vec4(boss_weapon->position, 1.0f)).x > player->position.x - 1 && (boss_weapon->make_local_to_world() * glm::vec4(boss_weapon->position, 1.0f)).z > player->position.z - 0.5f)
+		if (player->position.x > (boss_weapon->make_local_to_world() * glm::vec4(boss_weapon->position, 1.0f)).x + 0.4f && player->position.x < (boss_weapon->make_local_to_world() * glm::vec4(boss_weapon->position, 1.0f)).x + 1 && (boss_weapon->make_local_to_world() * glm::vec4(boss_weapon->position, 1.0f)).z < player->position.z + 0.5f && (boss_weapon->make_local_to_world() * glm::vec4(boss_weapon->position, 1.0f)).x > player->position.x - 1 && (boss_weapon->make_local_to_world() * glm::vec4(boss_weapon->position, 1.0f)).z > player->position.z - 0.5f)
 		{
 			if (weapon_timer == 0)
 			{
