@@ -3,11 +3,11 @@ BLENDER="C:\Program Files\Blender Foundation\Blender 3.3\blender.exe"
 DIST=../dist
 
 all : \
-    $(DIST)/cube.pnct \
-    $(DIST)/cube.scene \
+    $(DIST)/cube1.pnct \
+    $(DIST)/cube1.scene \
 
-$(DIST)/cube.scene : cube.blend export-scene.py
-    $(BLENDER) --background --python export-scene.py -- "cube.blend:Main" "$(DIST)/cube.scene"
+$(DIST)/cube1.scene : cube1.blend export-scene.py
+    $(BLENDER) --background --python export-scene.py -- "cube1.blend:Main" "$(DIST)/cube1.scene"
 
-$(DIST)/cube.pnct : cube.blend export-meshes.py
-    $(BLENDER) --background --python export-meshes.py -- "cube.blend:Main" "$(DIST)/cube.pnct" 
+$(DIST)/cube1.pnct : cube1.blend export-meshes.py
+    $(BLENDER) --background --python export-meshes.py -- "cube1.blend:Main" "$(DIST)/cube1.pnct" 

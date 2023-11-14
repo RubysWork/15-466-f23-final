@@ -49,6 +49,11 @@ struct Scene
 		Transform(Transform const &) = delete;
 		// if we delete some constructors, we need to let the compiler know that the default constructor is still okay:
 		Transform() = default;
+
+		// Bounding box.
+		// useful for debug visualization and (perhaps, eventually) collision detection:
+		glm::vec3 min = glm::vec3(std::numeric_limits<float>::infinity());
+		glm::vec3 max = glm::vec3(-std::numeric_limits<float>::infinity());
 	};
 
 	struct Drawable

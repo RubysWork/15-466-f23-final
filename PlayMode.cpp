@@ -16,8 +16,13 @@
 GLuint meshes_for_lit_color_texture_program = 0;
 Load<MeshBuffer> meshes(LoadTagDefault, []() -> MeshBuffer const *
 						{
+<<<<<<< Updated upstream
 	MeshBuffer const *ret = new MeshBuffer(data_path("cube.pnct"));
 	meshes_for_lit_color_texture_program = ret->make_vao_for_program(my_lit_color_texture_program->program);
+=======
+	MeshBuffer const *ret = new MeshBuffer(data_path("cube1.pnct"));
+	meshes_for_lit_color_texture_program = ret->make_vao_for_program(lit_color_texture_program->program);
+>>>>>>> Stashed changes
 	return ret; });
 <<<<<<< Updated upstream
 =======
@@ -46,16 +51,25 @@ Load<GLuint> scene_texture(LoadTagEarly, []() -> GLuint const *
 
 Load<Scene> hexapod_scene(LoadTagDefault, []() -> Scene const *
 						  { return new Scene(
-								data_path("cube.scene"), [&](Scene &scene, Scene::Transform *transform, std::string const &mesh_name)
+								data_path("cube1.scene"), [&](Scene &scene, Scene::Transform *transform, std::string const &mesh_name)
 								{
 									Mesh const mesh = meshes->lookup(mesh_name);
 
+									transform->min=mesh.min;
+									transform->max=mesh.max;
 									scene.drawables.emplace_back(transform);
 									Scene::Drawable &drawable = scene.drawables.back();
 									drawable.pipeline = my_lit_color_texture_program_pipeline;
 									drawable.pipeline.type = mesh.type;
 									drawable.pipeline.start = mesh.start;
 									drawable.pipeline.count = mesh.count;
+<<<<<<< Updated upstream
+=======
+									
+									
+									//PlayMode::current_drawable_name = transform.name;
+									//drawable.pipeline.textures[0].texture= *scene_texture;
+>>>>>>> Stashed changes
 
 									drawable.pipeline.vao = meshes_for_lit_color_texture_program; }); });
 
@@ -65,7 +79,11 @@ Load<Sound::Sample> dusty_floor_sample(LoadTagDefault, []() -> Sound::Sample con
 PlayMode::PlayMode() : scene(*hexapod_scene)
 {
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
 =======
+=======
+	/*
+>>>>>>> Stashed changes
 	Platform platform1 = {(glm::vec3{-11.5f, 0, -2.0f}), 3.7f, 4.4f};
 	platforms.emplace_back(platform1);
 	Platform platform2 = {(glm::vec3{-12.5f, 0, 0.0f}), 12.0f, 2.6f};
@@ -94,6 +112,7 @@ PlayMode::PlayMode() : scene(*hexapod_scene)
 	platforms.emplace_back(platform13);
 	Platform platform14 = {(glm::vec3{-6.1f, 0, 2.88f}), 0.4f, 0.75f};
 	platforms.emplace_back(platform14);
+<<<<<<< Updated upstream
 
 	Platform newPlatform1;
 	newPlatform1.pos = glm::vec3{-1.2f, 0, 2.0f};
@@ -112,18 +131,76 @@ PlayMode::PlayMode() : scene(*hexapod_scene)
 	platforms.emplace_back(newPlatform3);
 
 >>>>>>> Stashed changes
+=======
+	Platform platform15 = {(glm::vec3{-4.35f, 0, 0.0f}), 4.0f, 1.1f};
+	platforms.emplace_back(platform15);
+	Platform platform16 = {(glm::vec3{-4.35f, 0, 3.4f}), 5.0f, 2.1f};
+	platforms.emplace_back(platform16);
+	Platform platform17 = {(glm::vec3{-7.05f, 0, 4.6f}), 0.8f, 1.3f};
+	platforms.emplace_back(platform17);
+	Platform platform18 = {(glm::vec3{-9.5f, 0, 4.4f}), 0.5f, 1.1f};
+	platforms.emplace_back(platform18);
+	Platform platform19 = {(glm::vec3{-10.15f, 0, 4.3f}), 0.3f, 0.4f};
+	platforms.emplace_back(platform19);
+	Platform platform20 = {(glm::vec3{-8.9f, 0, 4.3f}), 0.3f, 0.4f};
+	platforms.emplace_back(platform20);
+	Platform platform21 = {(glm::vec3{-8.55f, 0, 5.75f}), 0.6f, 2.3f};
+	platforms.emplace_back(platform21);
+	Platform platform22 = {(glm::vec3{-4.35f, 0, 5.7f}), 0.8f, 4.1f};
+	platforms.emplace_back(platform22);
+	Platform platform23 = {(glm::vec3{-2.7f, 0, 3.3f}), 0.5f, 1.2f};
+	platforms.emplace_back(platform23);
+	Platform platform24 = {(glm::vec3{-0.9f, 0, 2.15f}), 0.8f, 0.8f};
+	platforms.emplace_back(platform24);
+	Platform platform25 = {(glm::vec3{-1.1f, 0, 1.95f}), 0.6f, 0.8f};
+	platforms.emplace_back(platform25);
+	Platform platform26 = {(glm::vec3{-0.7f, 0, 1.95f}), 0.6f, 0.8f};
+	platforms.emplace_back(platform26);
+	Platform platform27 = {(glm::vec3{-4.45f, 0, -2.575f}), 4.85f, 1.3f};
+	platforms.emplace_back(platform27);
+	Platform platform28 = {(glm::vec3{2.4f, 0, -2.925f}), 6.3f, 5.8f};
+	platforms.emplace_back(platform28);
+	Platform platform29 = {(glm::vec3{3.1f, 0, 3.48f}), 0.6f, 2.0f};
+	platforms.emplace_back(platform29);
+	Platform platform30 = {(glm::vec3{6.25f, 0, 2.0f}), 14.2f, 2.32f};
+	platforms.emplace_back(platform30);
+	Platform platform31 = {(glm::vec3{3.05f, 0, 5.3f}), 1.2f, 8.7f};
+	platforms.emplace_back(platform31);
+	Platform platform32 = {(glm::vec3{3.05f, 0, 5.3f}), 1.2f, 8.7f};
+	platforms.emplace_back(platform32);
+	Platform platform33 = {(glm::vec3{-0.5f, 0, 5.9f}), 0.8f, 1.0f};
+	platforms.emplace_back(platform33);
+	Platform platform34 = {(glm::vec3{-0.5f, 0, 5.8f}), 0.6f, 1.8f};
+	platforms.emplace_back(platform34);
+	Platform platform35 = {(glm::vec3{1.4f, 0, 7.0f}), 4.0f, 0.6f};
+	platforms.emplace_back(platform35);
+	Platform platform36 = {(glm::vec3{-12.35f, 0, 4.1f}), 1.4f, 2.7f};
+	platforms.emplace_back(platform36);
+	Platform platform37 = {(glm::vec3{-13.3f, 0, 7.0f}), 12.0f, 1.4f};
+	platforms.emplace_back(platform37);
+		*/
+>>>>>>> Stashed changes
 	for (auto &transform : scene.transforms)
 	{
 		if (transform.name == "Player")
 		{
 			player = &transform;
+<<<<<<< Updated upstream
+=======
+
+			// player->position = glm::vec3{-11.0f, 0.0f, -0.15f};
+			// player->scale = glm::vec3{0.15f, 0.15f, 0.15f};
+			// start_point = player->position;
+			// player_origin_scale = player->scale;
+>>>>>>> Stashed changes
 		}
 
-		else if (transform.name == "Boss")
-		{
-			boss = &transform;
-		}
+		// else if (transform.name == "Boss")
+		// {
+		// 	boss = &transform;
+		// }
 
+<<<<<<< Updated upstream
 		else if (transform.name.find("Bullet") != std::string::npos)
 		{
 
@@ -142,6 +219,75 @@ PlayMode::PlayMode() : scene(*hexapod_scene)
 	{
 		bullet.player_pos = player->position;
 	}
+=======
+		// else if (transform.name.find("Bullet") != std::string::npos)
+		// {
+		// 	Bullet bullet;
+		// 	bullet.index = bullet_index;
+		// 	bullet.transform = &transform;
+		// 	bullet.transform->scale = glm::vec3(0);
+		// 	bullet.original_pos = bullet.transform->position;
+
+		// 	bullets.emplace_back(bullet);
+		// 	if (bullet_index < 3)
+		// 		current_bullets.emplace_back(bullet);
+
+		// 	bullet_index++;
+		// }
+		// else if (transform.name == "BossHp")
+		// {
+		// 	boss_hp = &transform;
+		// 	boss_hp->position.z += 5;
+		// }
+		// else if (transform.name == "PlayerHp")
+		// {
+		// 	player_hp = &transform;
+		// 	player_hp->position.z += 5;
+		// }
+		// else if (transform.name == "Component")
+		// {
+		// 	component = &transform;
+		// 	component_scale = component->scale;
+		// 	component->scale = glm::vec4(0);
+		// }
+		// else if (transform.name == "BossAttack")
+		// {
+		// 	boss_weapon = &transform;
+		// }
+		// else if (transform.name == "PlayerAttack")
+		// {
+		// 	player_atk_cpnt = &transform;
+		// }
+		// else if (transform.name == "Cage")
+		// {
+		// 	Cage cage;
+		// 	cage.index = cage_index;
+		// 	cage.transform = &transform;
+		// 	cages.emplace_back(cage);
+		// 	cage_index++;
+		// }
+		// else if (transform.name == "Boots")
+		// {
+		// 	boots = &transform;
+		// }
+		// else if (transform.name == "ComponentBoots")
+		// {
+		// 	component_boots = &transform;
+		// 	boots_scale = component_boots->scale;
+		// 	component_boots->scale = glm::vec4(0);
+		// }
+	}
+
+	// for (auto &bullet : bullets)
+	// {
+	// 	bullet.player_pos = player->position;
+	// }
+	// for (auto &bullet : current_bullets)
+	// {
+	// 	bullet.player_pos = player->position;
+	// }
+
+>>>>>>> Stashed changes
 	// get pointer to camera for convenience:
 	if (scene.cameras.size() != 1)
 		throw std::runtime_error("Expecting scene to have exactly one camera, but it has " + std::to_string(scene.cameras.size()));
@@ -241,8 +387,22 @@ bool PlayMode::handle_event(SDL_Event const &evt, glm::uvec2 const &window_size)
 
 void PlayMode::update(float elapsed)
 {
+<<<<<<< Updated upstream
 
 	switch (boss_status)
+=======
+	std::cout << "player location:(" << player->position.x << "," << player->position.y << "," << player->position.z << ")";
+	std::cout << "; player size:(" << player->scale.x << "," << player->scale.y << "," << player->scale.z << ")";
+	std::cout << "; player min bbox:(" << player->min.x << "," << player->min.y << "," << player->min.z << ")";
+	std::cout << "; player max bbox:(" << player->max.x << "," << player->max.y << "," << player->max.z << ")" << std::endl;
+
+	// show dialogue
+	// show_dialogue();
+
+	// get weapon
+	/*
+	if (!get_weapon && player_atk_cpnt->position.x < player->position.x + 0.3f && player_atk_cpnt->position.x > player->position.x - 0.3f && player_atk_cpnt->position.z < player->position.z + 0.3f && player_atk_cpnt->position.z > player->position.z - 0.3f)
+>>>>>>> Stashed changes
 	{
 	case Melee:
 
@@ -521,10 +681,18 @@ void PlayMode::update(float elapsed)
 	}
 
 	// reset button press counters:
+<<<<<<< Updated upstream
 	left.downs = 0;
 	right.downs = 0;
 	up.downs = 0;
 	down.downs = 0;
+=======
+	keya.downs = 0;
+	keyd.downs = 0;
+	keyw.downs = 0;
+	keys.downs = 0;
+	space.downs = 0;*/
+>>>>>>> Stashed changes
 }
 
 void PlayMode::draw(glm::uvec2 const &drawable_size)
