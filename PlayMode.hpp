@@ -110,6 +110,34 @@ struct PlayMode : Mode
 	bool hit1 = false;
 	bool hit2 = false;
 	bool hit3 = false;
+
+	struct SubUV
+	{
+		std::vector<Scene::Transform *> subtransforms;
+		uint32_t bitmask = 1;
+		uint32_t start_index = 0;
+		uint32_t range = 0;
+		float anim_timer = 0.0f;
+		float speed = 1.0f;
+		float scale = 1.0f;
+	};
+
+	// player status
+	enum class PlayerStatus
+	{
+		Idle,
+		MoveLeft,
+		MoveRight,
+		JumpStart,
+		JumpLoop,
+		JumpEnd,
+		Hurt,
+		Dead
+	};
+
+	SubUV subuv;
+	PlayerStatus player_status = PlayerStatus::Idle;
+
 	// boss status
 	enum BattleStatus
 	{
@@ -151,4 +179,6 @@ struct PlayMode : Mode
 	Scene::Camera *camera = nullptr;
 
 	void put_away_bullet(Bullet bullet);
+
+	void update_player_status();
 };

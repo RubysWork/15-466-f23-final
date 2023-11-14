@@ -156,6 +156,12 @@ PlayMode::PlayMode() : scene(*hexapod_scene)
 			boss = &transform;
 		}
 
+		else if (transform.name.find("SubUV") != std::string::npos)
+		{
+			transform.scale = glm::vec3(0.0f);
+			subuv.subtransforms.emplace_back(&transform);
+		}
+
 		else if (transform.name.find("Bullet") != std::string::npos)
 		{
 			Bullet bullet;
@@ -251,12 +257,14 @@ bool PlayMode::handle_event(SDL_Event const &evt, glm::uvec2 const &window_size)
 		{
 			keya.downs += 1;
 			keya.pressed = true;
+			player_status = PlayerStatus::MoveLeft;
 			return true;
 		}
 		else if (evt.key.keysym.sym == SDLK_d)
 		{
 			keyd.downs += 1;
 			keyd.pressed = true;
+			player_status = PlayerStatus::MoveRight;
 			return true;
 		}
 		else if (evt.key.keysym.sym == SDLK_w)
@@ -281,6 +289,7 @@ bool PlayMode::handle_event(SDL_Event const &evt, glm::uvec2 const &window_size)
 		{
 			space.downs += 1;
 			space.pressed = true;
+			player_status = PlayerStatus::JumpStart;
 			return true;
 		}
 	}
@@ -289,11 +298,13 @@ bool PlayMode::handle_event(SDL_Event const &evt, glm::uvec2 const &window_size)
 		if (evt.key.keysym.sym == SDLK_a)
 		{
 			keya.pressed = false;
+			player_status = PlayerStatus::Idle;
 			return true;
 		}
 		else if (evt.key.keysym.sym == SDLK_d)
 		{
 			keyd.pressed = false;
+			player_status = PlayerStatus::Idle;
 			return true;
 		}
 		else if (evt.key.keysym.sym == SDLK_w)
@@ -324,6 +335,8 @@ bool PlayMode::handle_event(SDL_Event const &evt, glm::uvec2 const &window_size)
 
 void PlayMode::update(float elapsed)
 {
+	update_player_status();
+
 	// show dialogue
 	// show_dialogue();
 
@@ -769,6 +782,73 @@ void PlayMode::put_away_bullet(Bullet bullet)
 	// std::advance(bi, 2);
 	// bi->player_pos = player->position;
 	// bi->hit_player = false;
+}
+
+void PlayMode::update_player_status()
+{
+	subuv.anim_timer += 0.1f * subuv.speed;
+
+	uint32_t bit = 1;
+	while (true)
+	{
+		if (subuv.bitmask >> bit == 0)
+			break;
+		bit++;
+	}
+
+	switch (player_status)
+	{
+	case PlayerStatus::Idle:
+		subuv.start_index = 0;
+		subuv.range = 7;
+		subuv.speed = 1.25f;
+		break;
+	case PlayerStatus::MoveLeft:
+		subuv.start_index = 8;
+		subuv.range = 7;
+		subuv.speed = 2.5f;
+		break;
+	case PlayerStatus::MoveRight:
+		subuv.start_index = 16;
+		subuv.range = 7;
+		subuv.speed = 2.5f;
+		break;
+	case PlayerStatus::JumpStart:
+		subuv.start_index = 24;
+		subuv.range = 4;
+		subuv.speed = 1.0f;
+		break;
+	case PlayerStatus::JumpLoop:
+		subuv.start_index = 29;
+		subuv.range = 1;
+		break;
+	case PlayerStatus::JumpEnd:
+		subuv.start_index = 31;
+		subuv.range = 4;
+		break;
+	default:
+		subuv.start_index = 0;
+		subuv.range = 7;
+	}
+
+	if (subuv.anim_timer > 1)
+	{
+		subuv.subtransforms[bit - 1]->scale = glm::vec3(0.0f);
+		bit++;
+		if (bit - 1 > subuv.start_index + subuv.range)
+			bit = subuv.start_index + 1;
+		subuv.bitmask = 1 << (bit - 1);
+		subuv.subtransforms[bit - 1]->scale = glm::vec3(1.0f);
+		subuv.anim_timer = 0.0f;
+	}
+	else if (bit - 1 >= subuv.start_index + subuv.range || bit - 1 < subuv.start_index)
+	{
+		subuv.subtransforms[bit - 1]->scale = glm::vec3(0.0f);
+		bit = subuv.start_index + 1;
+		subuv.bitmask = 1 << (bit - 1);
+		subuv.subtransforms[bit - 1]->scale = glm::vec3(1.0f);
+		subuv.anim_timer = 0.0f;
+	}
 }
 
 void PlayMode::hit_player()
