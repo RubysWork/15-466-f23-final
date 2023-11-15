@@ -172,6 +172,15 @@ struct PlayMode : Mode
 
 	std::list<Platform> platforms;
 
+	// hit object
+	typedef struct HitObject
+	{
+		std::string name;
+		bool overlapped = false;
+	} HitObject;
+	// hit_obj
+	HitObject hit_detect_obj;
+
 	// music coming from the tip of the leg (as a demonstration):
 	std::shared_ptr<Sound::PlayingSample> leg_tip_loop;
 
@@ -181,4 +190,6 @@ struct PlayMode : Mode
 	void put_away_bullet(Bullet bullet);
 
 	void update_player_status();
+
+	HitObject hit_detect(Scene::Transform *obj, Scene::Transform *hit_obj);
 };

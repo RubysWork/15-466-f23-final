@@ -193,7 +193,9 @@ PlayMode::PlayMode() : scene(*hexapod_scene)
 		{
 			component = &transform;
 			component_scale = component->scale;
+			std::cout << "component min1" << component->min.z << std::endl;
 			component->scale = glm::vec4(0);
+			std::cout << "component min2" << component->min.z << std::endl;
 		}
 		else if (transform.name == "BossAttack")
 		{
@@ -352,18 +354,20 @@ void PlayMode::update(float elapsed)
 	}
 
 	// hit cage
-	std::cout << "cage location" << (cages.begin()->transform->make_local_to_world() * glm::vec4(cages.begin()->transform->position, 1.0f)).x << std::endl;
-	std::cout << "cage location minX:" << (cages.begin()->transform->make_local_to_world() * glm::vec4(cages.begin()->transform->position, 1.0f)).x + cages.begin()->transform->min.x << ", maxX:" << (cages.begin()->transform->make_local_to_world() * glm::vec4(cages.begin()->transform->position, 1.0f)).x + cages.begin()->transform->max.x << std::endl;
-	std::cout << "player location x" << player->position.x << std::endl;
-
-	if (get_weapon && !cages.begin()->isDestroied && keyatk.pressed && !attack && (component->make_local_to_world() * glm::vec4(component->position, 1.0f)).x > (cages.begin()->transform->make_local_to_world() * glm::vec4(cages.begin()->transform->position, 1.0f)).x && (component->make_local_to_world() * glm::vec4(component->position, 1.0f)).x < (cages.begin()->transform->make_local_to_world() * glm::vec4(cages.begin()->transform->position, 1.0f)).x + 1 && (cages.begin()->transform->make_local_to_world() * glm::vec4(cages.begin()->transform->position, 1.0f)).z < (component->make_local_to_world() * glm::vec4(component->position, 1.0f)).z && (cages.begin()->transform->make_local_to_world() * glm::vec4(cages.begin()->transform->position, 1.0f)).z > (component->make_local_to_world() * glm::vec4(component->position, 1.0f)).z - 0.5f)
+	// if (hit_detect(component, cages.begin()->transform).overlapped)
+	// {
+	// attack = true;
+	// cages.begin()->isDestroied = true;
+	// cages.begin()->transform->scale = glm::vec4(0);
+	//}
+	// get_weapon && !cages.begin()->isDestroied && keyatk.pressed && !attack &&
+	if (get_weapon && !cages.begin()->isDestroied && keyatk.pressed && !attack && hit_detect(component, cages.begin()->transform).overlapped)
 	{
 		attack = true;
 		cages.begin()->isDestroied = true;
 		cages.begin()->transform->scale = glm::vec4(0);
 	}
-
-	// get boots
+	//  get boots
 	if (!hasBoots && cages.begin()->isDestroied && (boots->make_local_to_world() * glm::vec4(boots->position, 1.0f)).x < player->position.x && (boots->make_local_to_world() * glm::vec4(boots->position, 1.0f)).x > player->position.x - 0.5f && (boots->make_local_to_world() * glm::vec4(boots->position, 1.0f)).z < player->position.z && (boots->make_local_to_world() * glm::vec4(boots->position, 1.0f)).z > player->position.z - 0.6f)
 	{
 		hasBoots = true;
@@ -976,6 +980,36 @@ void PlayMode::land_on_platform(glm::vec3 expected_position)
 		camera->transform->position += expected_position - player->position;
 		player->position = expected_position;
 	}
+}
+
+PlayMode::HitObject PlayMode::hit_detect(Scene::Transform *obj, Scene::Transform *hit_obj)
+{
+
+	std::cout << "max:" << obj->max.z << ", min:" << obj->min.z << std::endl;
+	float obj_dis_x = (obj->max.x - obj->min.x) / 2;
+	float obj_dis_z = (obj->max.z - obj->min.z) / 2;
+	float hit_obj_dis_x = (hit_obj->max.x - hit_obj->min.x) / 2;
+	float hit_obj_dis_z = (hit_obj->max.z - hit_obj->min.z) / 2;
+
+	glm::vec3 obj_pos = obj->make_local_to_world() * glm::vec4(obj->position, 1.0f);
+	glm::vec3 hit_obj_pos = hit_obj->make_local_to_world() * glm::vec4(hit_obj->position, 1.0f);
+
+	std::cout << "component x:" << obj_pos.x - obj_dis_x << ", " << obj_pos.x + obj_dis_x << "; "
+			  << "component z:" << obj_pos.z - obj_dis_z << ", " << obj_pos.z + obj_dis_z << std::endl;
+
+	std::cout << "cage min x:" << hit_obj_pos.x - hit_obj_dis_x << ", " << hit_obj_pos.x + hit_obj_dis_x << "; "
+			  << "cage max z:" << hit_obj_pos.z - hit_obj_dis_z << ", " << hit_obj_pos.z + hit_obj_dis_z << std::endl;
+
+	std::cout << "x:" << ((obj_pos.x + obj_dis_x < hit_obj_pos.x + hit_obj_dis_x && obj_pos.x + obj_dis_x > hit_obj_pos.x - hit_obj_dis_x) || (obj_pos.x - obj_dis_x < hit_obj_pos.x + hit_obj_dis_x && obj_pos.x - obj_dis_x > hit_obj_pos.x - hit_obj_dis_x)) << "; z:" << ((obj_pos.z + obj_dis_z < hit_obj_pos.z + hit_obj_dis_z && obj_pos.z + obj_dis_z > hit_obj_pos.z - hit_obj_dis_z) || (obj_pos.z - obj_dis_z < hit_obj_pos.z + hit_obj_dis_z && obj_pos.z - obj_dis_z > hit_obj_pos.z - hit_obj_dis_z)) << std::endl;
+
+	if (((obj_pos.x + obj_dis_x < hit_obj_pos.x + hit_obj_dis_x && obj_pos.x + obj_dis_x > hit_obj_pos.x - hit_obj_dis_x) || (obj_pos.x - obj_dis_x < hit_obj_pos.x + hit_obj_dis_x && obj_pos.x - obj_dis_x > hit_obj_pos.x - hit_obj_dis_x)) && ((obj_pos.z + obj_dis_z < hit_obj_pos.z + hit_obj_dis_z && obj_pos.z + obj_dis_z > hit_obj_pos.z - hit_obj_dis_z) || (obj_pos.z - obj_dis_z < hit_obj_pos.z + hit_obj_dis_z && obj_pos.z - obj_dis_z > hit_obj_pos.z - hit_obj_dis_z)))
+	{
+		hit_detect_obj.overlapped = true;
+		hit_detect_obj.name = hit_obj->name;
+		std::cout << "hit name:" << hit_detect_obj.name << std::endl;
+	}
+
+	return hit_detect_obj;
 }
 
 /*

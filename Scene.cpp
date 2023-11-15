@@ -287,11 +287,8 @@ void Scene::load(std::string const &filename,
 		uint32_t name_end;
 		glm::vec3 position;
 		glm::quat rotation;
-		// glm::vec3 min;
-		// glm::vec3 max;
 		glm::vec3 scale;
 	};
-	// static_assert(sizeof(HierarchyEntry) == 4 + 4 + 4 + 4 * 3 + 4 * 4 + 4 * 3 + 4 * 3 + 4 * 3, "HierarchyEntry is packed.");
 	static_assert(sizeof(HierarchyEntry) == 4 + 4 + 4 + 4 * 3 + 4 * 4 + 4 * 3, "HierarchyEntry is packed.");
 	std::vector<HierarchyEntry> hierarchy;
 	read_chunk(file, "xfh0", &hierarchy);
@@ -361,9 +358,6 @@ void Scene::load(std::string const &filename,
 		t->position = h.position;
 		t->rotation = h.rotation;
 		t->scale = h.scale;
-		// t->min = h.min;
-		// t->max = h.max;
-
 		hierarchy_transforms.emplace_back(t);
 	}
 	assert(hierarchy_transforms.size() == hierarchy.size());
