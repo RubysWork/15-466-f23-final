@@ -46,6 +46,9 @@ Load<Scene> hexapod_scene(LoadTagDefault, []() -> Scene const *
 								{
 									
 									Mesh const mesh = meshes->lookup(mesh_name);
+									transform->min=mesh.min;
+									transform->max=mesh.max;
+								//	std::cout<<"transform min:"<<transform->min.x<<", max:"<<transform->max.x<<std::endl;
 
 									scene.drawables.emplace_back(transform);
 									Scene::Drawable &drawable = scene.drawables.back();
@@ -349,6 +352,10 @@ void PlayMode::update(float elapsed)
 	}
 
 	// hit cage
+	std::cout << "cage location" << (cages.begin()->transform->make_local_to_world() * glm::vec4(cages.begin()->transform->position, 1.0f)).x << std::endl;
+	std::cout << "cage location minX:" << (cages.begin()->transform->make_local_to_world() * glm::vec4(cages.begin()->transform->position, 1.0f)).x + cages.begin()->transform->min.x << ", maxX:" << (cages.begin()->transform->make_local_to_world() * glm::vec4(cages.begin()->transform->position, 1.0f)).x + cages.begin()->transform->max.x << std::endl;
+	std::cout << "player location x" << player->position.x << std::endl;
+
 	if (get_weapon && !cages.begin()->isDestroied && keyatk.pressed && !attack && (component->make_local_to_world() * glm::vec4(component->position, 1.0f)).x > (cages.begin()->transform->make_local_to_world() * glm::vec4(cages.begin()->transform->position, 1.0f)).x && (component->make_local_to_world() * glm::vec4(component->position, 1.0f)).x < (cages.begin()->transform->make_local_to_world() * glm::vec4(cages.begin()->transform->position, 1.0f)).x + 1 && (cages.begin()->transform->make_local_to_world() * glm::vec4(cages.begin()->transform->position, 1.0f)).z < (component->make_local_to_world() * glm::vec4(component->position, 1.0f)).z && (cages.begin()->transform->make_local_to_world() * glm::vec4(cages.begin()->transform->position, 1.0f)).z > (component->make_local_to_world() * glm::vec4(component->position, 1.0f)).z - 0.5f)
 	{
 		attack = true;
