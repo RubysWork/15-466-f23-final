@@ -11,21 +11,13 @@
 #include <glm/gtc/type_ptr.hpp>
 
 #include <random>
-#include <string>
 
 GLuint meshes_for_lit_color_texture_program = 0;
 Load<MeshBuffer> meshes(LoadTagDefault, []() -> MeshBuffer const *
 						{
-<<<<<<< Updated upstream
 	MeshBuffer const *ret = new MeshBuffer(data_path("cube.pnct"));
-	meshes_for_lit_color_texture_program = ret->make_vao_for_program(my_lit_color_texture_program->program);
-=======
-	MeshBuffer const *ret = new MeshBuffer(data_path("cube1.pnct"));
 	meshes_for_lit_color_texture_program = ret->make_vao_for_program(lit_color_texture_program->program);
->>>>>>> Stashed changes
 	return ret; });
-<<<<<<< Updated upstream
-=======
 Load<GLuint> scene_texture(LoadTagEarly, []() -> GLuint const *
 						   {
 
@@ -38,7 +30,7 @@ Load<GLuint> scene_texture(LoadTagEarly, []() -> GLuint const *
 	//glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 1, 1, 0, GL_RGBA, GL_UNSIGNED_BYTE, tex_data.data());
 	std::vector< glm::u8vec4 > tex_data;
 	glm::uvec2 size;
-	load_png("Tileset.png", &size, &tex_data, OriginLocation::LowerLeftOrigin);
+	load_png("Tileset_demo.png", &size, &tex_data, OriginLocation::LowerLeftOrigin);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, size.x, size.y, 0, GL_RGBA, GL_UNSIGNED_BYTE, tex_data.data());
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
@@ -47,29 +39,27 @@ Load<GLuint> scene_texture(LoadTagEarly, []() -> GLuint const *
 	glBindTexture(GL_TEXTURE_2D, 0);
 
 	return tex; });
->>>>>>> Stashed changes
 
 Load<Scene> hexapod_scene(LoadTagDefault, []() -> Scene const *
 						  { return new Scene(
-								data_path("cube1.scene"), [&](Scene &scene, Scene::Transform *transform, std::string const &mesh_name)
+								data_path("cube.scene"), [&](Scene &scene, Scene::Transform *transform, std::string const &mesh_name)
 								{
+									
 									Mesh const mesh = meshes->lookup(mesh_name);
-
 									transform->min=mesh.min;
 									transform->max=mesh.max;
+								//	std::cout<<"transform min:"<<transform->min.x<<", max:"<<transform->max.x<<std::endl;
+
 									scene.drawables.emplace_back(transform);
 									Scene::Drawable &drawable = scene.drawables.back();
-									drawable.pipeline = my_lit_color_texture_program_pipeline;
+									drawable.pipeline = lit_color_texture_program_pipeline;
+									if(drawable.transform->name == "Ground99")
+										drawable.pipeline = lit_color_texture_trans_program_pipeline;
 									drawable.pipeline.type = mesh.type;
 									drawable.pipeline.start = mesh.start;
 									drawable.pipeline.count = mesh.count;
-<<<<<<< Updated upstream
-=======
-									
-									
 									//PlayMode::current_drawable_name = transform.name;
 									//drawable.pipeline.textures[0].texture= *scene_texture;
->>>>>>> Stashed changes
 
 									drawable.pipeline.vao = meshes_for_lit_color_texture_program; }); });
 
@@ -78,15 +68,9 @@ Load<Sound::Sample> dusty_floor_sample(LoadTagDefault, []() -> Sound::Sample con
 
 PlayMode::PlayMode() : scene(*hexapod_scene)
 {
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-=======
-=======
-	/*
->>>>>>> Stashed changes
 	Platform platform1 = {(glm::vec3{-11.5f, 0, -2.0f}), 3.7f, 4.4f};
 	platforms.emplace_back(platform1);
-	Platform platform2 = {(glm::vec3{-12.5f, 0, 0.0f}), 12.0f, 2.6f};
+	Platform platform2 = {(glm::vec3{-12.6f, 0, 1.0f}), 5.0f, 3.0f};
 	platforms.emplace_back(platform2);
 	Platform platform3 = {(glm::vec3{-9.85f, 0, 0.85f}), 0.6f, 0.9f};
 	platforms.emplace_back(platform3);
@@ -104,34 +88,14 @@ PlayMode::PlayMode() : scene(*hexapod_scene)
 	platforms.emplace_back(platform9);
 	Platform platform10 = {(glm::vec3{-10.75f, 0, 1.52f}), 0.4f, 0.9f};
 	platforms.emplace_back(platform10);
-	Platform platform11 = {(glm::vec3{-9.75f, 0, 3.6f}), 1.2f, 3.0f};
+	Platform platform11 = {(glm::vec3{-9.75f, 0, 3.65f}), 1.2f, 3.1f};
 	platforms.emplace_back(platform11);
 	Platform platform12 = {(glm::vec3{-7.05f, 0, 2.6f}), 0.4f, 0.9f};
 	platforms.emplace_back(platform12);
-	Platform platform13 = {(glm::vec3{-6.55f, 0, 2.7f}), 0.4f, 0.2f};
+	Platform platform13 = {(glm::vec3{-6.55f, 0, 2.75f}), 0.4f, 0.3f};
 	platforms.emplace_back(platform13);
 	Platform platform14 = {(glm::vec3{-6.1f, 0, 2.88f}), 0.4f, 0.75f};
 	platforms.emplace_back(platform14);
-<<<<<<< Updated upstream
-
-	Platform newPlatform1;
-	newPlatform1.pos = glm::vec3{-1.2f, 0, 2.0f};
-	newPlatform1.height = 1.0f;
-	newPlatform1.width = 1.5f;
-	platforms.emplace_back(newPlatform1);
-	Platform newPlatform2;
-	newPlatform2.pos = glm::vec3{2.8f, 0, 3.4f};
-	newPlatform2.height = 0.7f;
-	newPlatform2.width = 2.2f;
-	platforms.emplace_back(newPlatform2);
-	Platform newPlatform3;
-	newPlatform3.pos = glm::vec3{-2.9f, 0, 3.4f};
-	newPlatform3.height = 1.2f;
-	newPlatform3.width = 2.0f;
-	platforms.emplace_back(newPlatform3);
-
->>>>>>> Stashed changes
-=======
 	Platform platform15 = {(glm::vec3{-4.35f, 0, 0.0f}), 4.0f, 1.1f};
 	platforms.emplace_back(platform15);
 	Platform platform16 = {(glm::vec3{-4.35f, 0, 3.4f}), 5.0f, 2.1f};
@@ -178,40 +142,86 @@ PlayMode::PlayMode() : scene(*hexapod_scene)
 	platforms.emplace_back(platform36);
 	Platform platform37 = {(glm::vec3{-13.3f, 0, 7.0f}), 12.0f, 1.4f};
 	platforms.emplace_back(platform37);
-		*/
->>>>>>> Stashed changes
+
 	for (auto &transform : scene.transforms)
 	{
 		if (transform.name == "Player")
 		{
 			player = &transform;
-<<<<<<< Updated upstream
-=======
-
-			// player->position = glm::vec3{-11.0f, 0.0f, -0.15f};
-			// player->scale = glm::vec3{0.15f, 0.15f, 0.15f};
-			// start_point = player->position;
-			// player_origin_scale = player->scale;
->>>>>>> Stashed changes
+			player->position = glm::vec3{-11.0f, 0.0f, -0.15f};
+			player->scale = glm::vec3{0.15f, 0.15f, 0.15f};
+			start_point = player->position;
+			player_origin_scale = player->scale;
 		}
 
-		// else if (transform.name == "Boss")
-		// {
-		// 	boss = &transform;
-		// }
+		else if (transform.name == "Boss")
+		{
+			boss = &transform;
+		}
 
-<<<<<<< Updated upstream
+		else if (transform.name.find("SubUV") != std::string::npos)
+		{
+			transform.scale = glm::vec3(0.0f);
+			subuv.subtransforms.emplace_back(&transform);
+		}
+
 		else if (transform.name.find("Bullet") != std::string::npos)
 		{
-
 			Bullet bullet;
 			bullet.index = bullet_index;
 			bullet.transform = &transform;
-			bullet.transform->position.y = 10;
+			bullet.transform->scale = glm::vec3(0);
 			bullet.original_pos = bullet.transform->position;
 
 			bullets.emplace_back(bullet);
+			if (bullet_index < 3)
+				current_bullets.emplace_back(bullet);
+
 			bullet_index++;
+		}
+		else if (transform.name == "BossHp")
+		{
+			boss_hp = &transform;
+			boss_hp->position.z += 5;
+		}
+		else if (transform.name == "PlayerHp")
+		{
+			player_hp = &transform;
+			player_hp->position.z += 5;
+		}
+		else if (transform.name == "Component")
+		{
+			component = &transform;
+			component_scale = component->scale;
+			std::cout << "component min1" << component->min.z << std::endl;
+			component->scale = glm::vec4(0);
+			std::cout << "component min2" << component->min.z << std::endl;
+		}
+		else if (transform.name == "BossAttack")
+		{
+			boss_weapon = &transform;
+		}
+		else if (transform.name == "PlayerAttack")
+		{
+			player_atk_cpnt = &transform;
+		}
+		else if (transform.name == "Cage")
+		{
+			Cage cage;
+			cage.index = cage_index;
+			cage.transform = &transform;
+			cages.emplace_back(cage);
+			cage_index++;
+		}
+		else if (transform.name == "Boots")
+		{
+			boots = &transform;
+		}
+		else if (transform.name == "ComponentBoots")
+		{
+			component_boots = &transform;
+			boots_scale = component_boots->scale;
+			component_boots->scale = glm::vec4(0);
 		}
 	}
 
@@ -219,80 +229,15 @@ PlayMode::PlayMode() : scene(*hexapod_scene)
 	{
 		bullet.player_pos = player->position;
 	}
-=======
-		// else if (transform.name.find("Bullet") != std::string::npos)
-		// {
-		// 	Bullet bullet;
-		// 	bullet.index = bullet_index;
-		// 	bullet.transform = &transform;
-		// 	bullet.transform->scale = glm::vec3(0);
-		// 	bullet.original_pos = bullet.transform->position;
-
-		// 	bullets.emplace_back(bullet);
-		// 	if (bullet_index < 3)
-		// 		current_bullets.emplace_back(bullet);
-
-		// 	bullet_index++;
-		// }
-		// else if (transform.name == "BossHp")
-		// {
-		// 	boss_hp = &transform;
-		// 	boss_hp->position.z += 5;
-		// }
-		// else if (transform.name == "PlayerHp")
-		// {
-		// 	player_hp = &transform;
-		// 	player_hp->position.z += 5;
-		// }
-		// else if (transform.name == "Component")
-		// {
-		// 	component = &transform;
-		// 	component_scale = component->scale;
-		// 	component->scale = glm::vec4(0);
-		// }
-		// else if (transform.name == "BossAttack")
-		// {
-		// 	boss_weapon = &transform;
-		// }
-		// else if (transform.name == "PlayerAttack")
-		// {
-		// 	player_atk_cpnt = &transform;
-		// }
-		// else if (transform.name == "Cage")
-		// {
-		// 	Cage cage;
-		// 	cage.index = cage_index;
-		// 	cage.transform = &transform;
-		// 	cages.emplace_back(cage);
-		// 	cage_index++;
-		// }
-		// else if (transform.name == "Boots")
-		// {
-		// 	boots = &transform;
-		// }
-		// else if (transform.name == "ComponentBoots")
-		// {
-		// 	component_boots = &transform;
-		// 	boots_scale = component_boots->scale;
-		// 	component_boots->scale = glm::vec4(0);
-		// }
+	for (auto &bullet : current_bullets)
+	{
+		bullet.player_pos = player->position;
 	}
-
-	// for (auto &bullet : bullets)
-	// {
-	// 	bullet.player_pos = player->position;
-	// }
-	// for (auto &bullet : current_bullets)
-	// {
-	// 	bullet.player_pos = player->position;
-	// }
-
->>>>>>> Stashed changes
 	// get pointer to camera for convenience:
 	if (scene.cameras.size() != 1)
 		throw std::runtime_error("Expecting scene to have exactly one camera, but it has " + std::to_string(scene.cameras.size()));
-
 	camera = &scene.cameras.front();
+	camera->transform->position = glm::vec3{-9.0f, -28.0f, 0.8f};
 
 	// start music loop playing:
 	//  (note: position will be over-ridden in update())
@@ -315,26 +260,41 @@ bool PlayMode::handle_event(SDL_Event const &evt, glm::uvec2 const &window_size)
 		}
 		else if (evt.key.keysym.sym == SDLK_a)
 		{
-			left.downs += 1;
-			left.pressed = true;
+			keya.downs += 1;
+			keya.pressed = true;
+			player_status = PlayerStatus::MoveLeft;
 			return true;
 		}
 		else if (evt.key.keysym.sym == SDLK_d)
 		{
-			right.downs += 1;
-			right.pressed = true;
+			keyd.downs += 1;
+			keyd.pressed = true;
+			player_status = PlayerStatus::MoveRight;
 			return true;
 		}
 		else if (evt.key.keysym.sym == SDLK_w)
 		{
-			up.downs += 1;
-			up.pressed = true;
+			keyw.downs += 1;
+			keyw.pressed = true;
 			return true;
 		}
 		else if (evt.key.keysym.sym == SDLK_s)
 		{
-			down.downs += 1;
-			down.pressed = true;
+			keys.downs += 1;
+			keys.pressed = true;
+			return true;
+		}
+		else if (evt.key.keysym.sym == SDLK_e)
+		{
+			keyatk.downs += 1;
+			keyatk.pressed = true;
+			return true;
+		}
+		else if (evt.key.keysym.sym == SDLK_SPACE)
+		{
+			space.downs += 1;
+			space.pressed = true;
+			player_status = PlayerStatus::JumpStart;
 			return true;
 		}
 	}
@@ -342,42 +302,35 @@ bool PlayMode::handle_event(SDL_Event const &evt, glm::uvec2 const &window_size)
 	{
 		if (evt.key.keysym.sym == SDLK_a)
 		{
-			left.pressed = false;
+			keya.pressed = false;
+			player_status = PlayerStatus::Idle;
 			return true;
 		}
 		else if (evt.key.keysym.sym == SDLK_d)
 		{
-			right.pressed = false;
+			keyd.pressed = false;
+			player_status = PlayerStatus::Idle;
 			return true;
 		}
 		else if (evt.key.keysym.sym == SDLK_w)
 		{
-			up.pressed = false;
+			keyw.pressed = false;
 			return true;
 		}
 		else if (evt.key.keysym.sym == SDLK_s)
 		{
-			down.pressed = false;
+			keys.pressed = false;
 			return true;
 		}
-	}
-	else if (evt.type == SDL_MOUSEBUTTONDOWN)
-	{
-		if (SDL_GetRelativeMouseMode() == SDL_FALSE)
+		else if (evt.key.keysym.sym == SDLK_e)
 		{
-			SDL_SetRelativeMouseMode(SDL_TRUE);
+			keyatk.pressed = false;
+			attack = false;
 			return true;
 		}
-	}
-	else if (evt.type == SDL_MOUSEMOTION)
-	{
-		if (SDL_GetRelativeMouseMode() == SDL_TRUE)
+		else if (evt.key.keysym.sym == SDLK_SPACE)
 		{
-			glm::vec2 motion = glm::vec2(
-				evt.motion.xrel / float(window_size.y),
-				-evt.motion.yrel / float(window_size.y));
-			camera->transform->rotation = glm::normalize(
-				camera->transform->rotation * glm::angleAxis(-motion.x * camera->fovy, glm::vec3(0.0f, 1.0f, 0.0f)) * glm::angleAxis(motion.y * camera->fovy, glm::vec3(1.0f, 0.0f, 0.0f)));
+			space.pressed = false;
 			return true;
 		}
 	}
@@ -387,58 +340,56 @@ bool PlayMode::handle_event(SDL_Event const &evt, glm::uvec2 const &window_size)
 
 void PlayMode::update(float elapsed)
 {
-<<<<<<< Updated upstream
-
-	switch (boss_status)
-=======
-	std::cout << "player location:(" << player->position.x << "," << player->position.y << "," << player->position.z << ")";
-	std::cout << "; player size:(" << player->scale.x << "," << player->scale.y << "," << player->scale.z << ")";
-	std::cout << "; player min bbox:(" << player->min.x << "," << player->min.y << "," << player->min.z << ")";
-	std::cout << "; player max bbox:(" << player->max.x << "," << player->max.y << "," << player->max.z << ")" << std::endl;
+	update_player_status();
 
 	// show dialogue
 	// show_dialogue();
 
 	// get weapon
-	/*
 	if (!get_weapon && player_atk_cpnt->position.x < player->position.x + 0.3f && player_atk_cpnt->position.x > player->position.x - 0.3f && player_atk_cpnt->position.z < player->position.z + 0.3f && player_atk_cpnt->position.z > player->position.z - 0.3f)
->>>>>>> Stashed changes
 	{
-	case Melee:
-
-		break;
-	case Shoot:
-
-		bullet_current_time += bullet_speed * elapsed;
-		current_bullet = *(bullets.begin() + bullet_current_index);
-		current_bullet.transform->position.y = player->position.y;
-		current_bullet.transform->position = bullet_current_Pos(boss->position, current_bullet.player_pos, bullet_current_time);
-
-		one_bullet_timer++;
-		// std::cout << one_bullet_timer << std::endl;
-		// generate new one
-		if (current_bullet.transform->position.x < player->position.x + 0.4f && current_bullet.transform->position.x > player->position.x - 0.4f && current_bullet.transform->position.z < player->position.z + 0.4f && current_bullet.transform->position.z > player->position.z - 0.4f)
-		{
-			put_away_bullet(current_bullet);
-		}
-		if (one_bullet_timer > 1000)
-		{
-			put_away_bullet(current_bullet);
-		}
-
-		break;
-	default:
-
-		break;
+		get_weapon = true;
+		component->scale = component_scale;
+		player_atk_cpnt->scale = glm::vec4(0);
 	}
 
-<<<<<<< Updated upstream
-=======
+	// hit cage
+	// if (hit_detect(component, cages.begin()->transform).overlapped)
+	// {
+	// attack = true;
+	// cages.begin()->isDestroied = true;
+	// cages.begin()->transform->scale = glm::vec4(0);
+	//}
+	// get_weapon && !cages.begin()->isDestroied && keyatk.pressed && !attack &&
+	if (get_weapon && !cages.begin()->isDestroied && keyatk.pressed && !attack && hit_detect(component, cages.begin()->transform).overlapped)
+	{
+		attack = true;
+		cages.begin()->isDestroied = true;
+		cages.begin()->transform->scale = glm::vec4(0);
+	}
+	//  get boots
+	if (!hasBoots && cages.begin()->isDestroied && (boots->make_local_to_world() * glm::vec4(boots->position, 1.0f)).x < player->position.x && (boots->make_local_to_world() * glm::vec4(boots->position, 1.0f)).x > player->position.x - 0.5f && (boots->make_local_to_world() * glm::vec4(boots->position, 1.0f)).z < player->position.z && (boots->make_local_to_world() * glm::vec4(boots->position, 1.0f)).z > player->position.z - 0.6f)
+	{
+		hasBoots = true;
+		boots->scale = glm::vec4(0);
+		component_boots->scale = boots_scale;
+	}
+
+	// player die
+	if (player_hp->scale.x <= 0.0001f)
+	{
+		player->scale = glm::vec3(0);
+		player_die = true;
+	}
+
 	// boss die
 	if (boss_hp->scale.x <= 0.0001f)
 	{
 		boss->scale = glm::vec3(0);
-		// put_away_bullet(current_bullet);
+		for (auto &bullet : current_bullets)
+		{
+			put_away_bullet(bullet);
+		}
 	}
 	else
 	{
@@ -454,7 +405,7 @@ void PlayMode::update(float elapsed)
 			}
 		}
 		// Weapon attack
-		if ((boss_weapon->make_local_to_world() * glm::vec4(boss_weapon->position, 1.0f)).x < player->position.x + 0.2f && (boss_weapon->make_local_to_world() * glm::vec4(boss_weapon->position, 1.0f)).x > player->position.x - 1 && (boss_weapon->make_local_to_world() * glm::vec4(boss_weapon->position, 1.0f)).z < player->position.z + 0.5f && (boss_weapon->make_local_to_world() * glm::vec4(boss_weapon->position, 1.0f)).x > player->position.x - 1 && (boss_weapon->make_local_to_world() * glm::vec4(boss_weapon->position, 1.0f)).z > player->position.z - 0.5f)
+		if (player->position.x > (boss_weapon->make_local_to_world() * glm::vec4(boss_weapon->position, 1.0f)).x + 0.4f && player->position.x < (boss_weapon->make_local_to_world() * glm::vec4(boss_weapon->position, 1.0f)).x + 1 && (boss_weapon->make_local_to_world() * glm::vec4(boss_weapon->position, 1.0f)).z < player->position.z + 0.5f && (boss_weapon->make_local_to_world() * glm::vec4(boss_weapon->position, 1.0f)).x > player->position.x - 1 && (boss_weapon->make_local_to_world() * glm::vec4(boss_weapon->position, 1.0f)).z > player->position.z - 0.5f)
 		{
 			if (weapon_timer == 0)
 			{
@@ -475,7 +426,7 @@ void PlayMode::update(float elapsed)
 		{
 			weapon_timer = 0;
 		}
-		// Boos switch status
+		// Boss switch status
 		if (boss->position.x < player->position.x + 2.5f && boss->position.x > player->position.x - 2.5f && boss->position.z < player->position.z + 5.0f && boss->position.z > player->position.z - 5.0f)
 		{
 
@@ -561,7 +512,6 @@ void PlayMode::update(float elapsed)
 			break;
 		}
 		// shoot, for deal with the last bullets before switch the attack mode, the bullets can't write in the shooting status
-
 		if (shooting1 && !hit1 && bullet_total_time > 0)
 		{
 			if (current_bullets.begin()->bullet_current_time < 20)
@@ -639,38 +589,93 @@ void PlayMode::update(float elapsed)
 		}
 	}
 	// player attack
-	if (keyatk.pressed && !attack && (component->make_local_to_world() * glm::vec4(component->position, 1.0f)).z < boss->position.z + 0.5f && (component->make_local_to_world() * glm::vec4(component->position, 1.0f)).z > boss->position.z && ((face_right && (component->make_local_to_world() * glm::vec4(component->position, 1.0f)).x < boss->position.x + 0.8f && (component->make_local_to_world() * glm::vec4(component->position, 1.0f)).x > boss->position.x) || (!face_right && (component->make_local_to_world() * glm::vec4(component->position, 1.0f)).x < boss->position.x && (component->make_local_to_world() * glm::vec4(component->position, 1.0f)).x > boss->position.x - 0.8f)))
+	if (get_weapon && keyatk.pressed && !attack && (component->make_local_to_world() * glm::vec4(component->position, 1.0f)).z < boss->position.z + 0.4f && (component->make_local_to_world() * glm::vec4(component->position, 1.0f)).z > boss->position.z - 0.4f && ((face_right && (component->make_local_to_world() * glm::vec4(component->position, 1.0f)).x < boss->position.x + 0.8f && (component->make_local_to_world() * glm::vec4(component->position, 1.0f)).x > boss->position.x) || (!face_right && (component->make_local_to_world() * glm::vec4(component->position, 1.0f)).x < boss->position.x && (component->make_local_to_world() * glm::vec4(component->position, 1.0f)).x > boss->position.x - 0.8f)))
 	{
+		std::cout << "hit!" << std::endl;
 		attack = true;
 		hit_boss();
 	}
->>>>>>> Stashed changes
 	// move camera:
 	{
-
 		// combine inputs into a move:
-		constexpr float PlayerSpeed = 30.0f;
-		glm::vec2 move = glm::vec2(0.0f);
-		if (left.pressed && !right.pressed)
-			move.x = -1.0f;
-		if (!left.pressed && right.pressed)
-			move.x = 1.0f;
-		if (down.pressed && !up.pressed)
-			move.y = -1.0f;
-		if (!down.pressed && up.pressed)
-			move.y = 1.0f;
+		constexpr float PlayerSpeed = 2.0f;
+		// move left and right
+		float move = 0.0f;
+		if (keya.pressed && !keyd.pressed)
+		{
+			player->scale.x = -player_origin_scale.x;
+			face_right = false;
+			move = -1.0f;
+		}
+
+		if (!keya.pressed && keyd.pressed)
+		{
+			move = 1.0f;
+			player->scale.x = player_origin_scale.x;
+			face_right = true;
+		}
+
+		if (space.pressed)
+		{
+			if (!first_jump)
+			{
+				jump_signal = false;
+				first_jump = true;
+				jump_velocity = 3.0f;
+			}
+			else if (first_jump && !second_jump && jump_signal && hasBoots)
+			{
+				jump_signal = false;
+				second_jump = true;
+				jump_velocity = 3.0f;
+			}
+			else
+			{
+				// do nothing
+			}
+		}
+
+		if (!space.pressed)
+		{
+			jump_signal = true;
+		}
+
+		float gravity = -4.0f;
+
+		// if (down.pressed && !up.pressed)
+		// 	move.y = -1.0f;
+		// if (!down.pressed && up.pressed)
+		// 	move.y = 1.0f;
 
 		// make it so that moving diagonally doesn't go faster:
-		if (move != glm::vec2(0.0f))
-			move = glm::normalize(move) * PlayerSpeed * elapsed;
+		float hori_move = move * PlayerSpeed * elapsed;
+
+		jump_velocity += gravity * elapsed;
+		float vert_move = jump_velocity * elapsed;
+
+		// std::cout << first_jump << ", " << second_jump << ", " << jump_interval << "\n";
+		// std::cout << jump_velocity << "\n";
 
 		glm::mat4x3 frame = camera->transform->make_local_to_parent();
 		glm::vec3 frame_right = frame[0];
-		// glm::vec3 up = frame[1];
-		glm::vec3 frame_forward = -frame[2];
+		glm::vec3 frame_up = frame[1];
+		// glm::vec3 frame_forward = -frame[2];
 
-		// camera->transform->position += move.x * frame_right + move.y * frame_forward;
-		player->position += move.x * frame_right + move.y * frame_forward;
+		if (on_platform())
+		{
+			first_jump = false;
+			second_jump = false;
+			jump_velocity = 0;
+			jump_signal = false;
+		}
+
+		if (hit_platform())
+		{
+			jump_velocity = 0;
+		}
+
+		glm::vec3 expected_position = player->position + hori_move * frame_right + vert_move * frame_up;
+		land_on_platform(expected_position);
 	}
 
 	{ // update listener to camera position:
@@ -681,18 +686,11 @@ void PlayMode::update(float elapsed)
 	}
 
 	// reset button press counters:
-<<<<<<< Updated upstream
-	left.downs = 0;
-	right.downs = 0;
-	up.downs = 0;
-	down.downs = 0;
-=======
 	keya.downs = 0;
 	keyd.downs = 0;
 	keyw.downs = 0;
 	keys.downs = 0;
-	space.downs = 0;*/
->>>>>>> Stashed changes
+	space.downs = 0;
 }
 
 void PlayMode::draw(glm::uvec2 const &drawable_size)
@@ -702,11 +700,10 @@ void PlayMode::draw(glm::uvec2 const &drawable_size)
 
 	// set up light type and position for lit_color_texture_program:
 	//  TODO: consider using the Light(s) in the scene to do this
-	glUseProgram(my_lit_color_texture_program->program);
-	glUniform1i(my_lit_color_texture_program->LIGHT_TYPE_int, 1);
-	glUniform3fv(my_lit_color_texture_program->LIGHT_DIRECTION_vec3, 1, glm::value_ptr(glm::vec3(0.0f, 0.0f, -1.0f)));
-	glUniform3fv(my_lit_color_texture_program->LIGHT_ENERGY_vec3, 1, glm::value_ptr(glm::vec3(1.0f, 1.0f, 0.95f)));
-
+	glUseProgram(lit_color_texture_program->program);
+	glUniform1i(lit_color_texture_program->LIGHT_TYPE_int, 1);
+	glUniform3fv(lit_color_texture_program->LIGHT_DIRECTION_vec3, 1, glm::value_ptr(glm::vec3(0.0f, 0.0f, -1.0f)));
+	glUniform3fv(lit_color_texture_program->LIGHT_ENERGY_vec3, 1, glm::value_ptr(glm::vec3(1.0f, 1.0f, 0.95f)));
 	glUseProgram(0);
 
 	glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
@@ -718,34 +715,23 @@ void PlayMode::draw(glm::uvec2 const &drawable_size)
 
 	scene.draw(*camera);
 
-	{ // use DrawLines to overlay some text:
-		glDisable(GL_DEPTH_TEST);
-		float aspect = float(drawable_size.x) / float(drawable_size.y);
-		DrawLines lines(glm::mat4(
-			1.0f / aspect, 0.0f, 0.0f, 0.0f,
-			0.0f, 1.0f, 0.0f, 0.0f,
-			0.0f, 0.0f, 1.0f, 0.0f,
-			0.0f, 0.0f, 0.0f, 1.0f));
+	// {
+	// 	text.Draw(text_program, base_line, 100.0f, 480.0f, drawable_size, glm::vec3(1.0f, 1.0f, 1.0f), 0.4f);
+	// 	text.Draw(text_program, choice_lines[0], 100.0f, 250.0f, drawable_size, glm::vec3(1.0f, 1.0f, 0.3f), 0.4f);
+	// 	text.Draw(text_program, choice_lines[1], 100.0f, 210.0f, drawable_size, glm::vec3(1.0f, 1.0f, 0.3f), 0.4f);
+	// 	text.Draw(text_program, choice_lines[2], 100.0f, 170.0f, drawable_size, glm::vec3(1.0f, 1.0f, 0.3f), 0.4f);
+	// 	text.Draw(text_program, "Next - Space; Choices - 1/2/3", 250.0f, 0.0f, drawable_size, glm::vec3(0.4f, 0.4f, 0.4f), 0.4f);
+	// }
 
-		constexpr float H = 0.09f;
-		lines.draw_text("Mouse motion rotates camera; WASD moves; escape ungrabs mouse",
-						glm::vec3(-aspect + 0.1f * H, -1.0 + 0.1f * H, 0.0),
-						glm::vec3(H, 0.0f, 0.0f), glm::vec3(0.0f, H, 0.0f),
-						glm::u8vec4(0x00, 0x00, 0x00, 0x00));
-		float ofs = 2.0f / drawable_size.y;
-		lines.draw_text("Mouse motion rotates camera; WASD moves; escape ungrabs mouse",
-						glm::vec3(-aspect + 0.1f * H + ofs, -1.0 + +0.1f * H + ofs, 0.0),
-						glm::vec3(H, 0.0f, 0.0f), glm::vec3(0.0f, H, 0.0f),
-						glm::u8vec4(0xff, 0xff, 0xff, 0x00));
-	}
 	GL_ERRORS();
 }
 
-// glm::vec3 PlayMode::get_leg_tip_position()
-// {
-// 	// the vertex position here was read from the model in blender:
-// 	return lower_leg->make_local_to_world() * glm::vec4(-1.26137f, -11.861f, 0.0f, 1.0f);
-// }
+glm::vec3 world_coords(Scene::Transform *block)
+{
+	auto world_block = block->make_local_to_world() * glm::vec4(block->position, 1.0f);
+	return world_block;
+}
+
 glm::vec3 PlayMode::bullet_current_Pos(glm::vec3 origin_Pos, glm::vec3 final_Pos, float time)
 {
 	glm::vec3 dir = glm::normalize(final_Pos - origin_Pos);
@@ -756,15 +742,8 @@ glm::vec3 PlayMode::bullet_current_Pos(glm::vec3 origin_Pos, glm::vec3 final_Pos
 
 void PlayMode::put_away_bullet(Bullet bullet)
 {
+	// put away bullet
 	bullet.transform->position.y = 100;
-<<<<<<< Updated upstream
-	one_bullet_timer = 0;
-	bullet_current_index++;
-	bullet_current_index %= 6;
-	bullet_current_time = 0;
-	(*(bullets.begin() + bullet_current_index)).player_pos = player->position;
-}
-=======
 	bullet.transform->scale = glm::vec3(0);
 	int away_index = 0;
 	for (auto blt : current_bullets)
@@ -816,6 +795,73 @@ void PlayMode::put_away_bullet(Bullet bullet)
 	// bi->hit_player = false;
 }
 
+void PlayMode::update_player_status()
+{
+	subuv.anim_timer += 0.1f * subuv.speed;
+
+	uint32_t bit = 1;
+	while (true)
+	{
+		if (subuv.bitmask >> bit == 0)
+			break;
+		bit++;
+	}
+
+	switch (player_status)
+	{
+	case PlayerStatus::Idle:
+		subuv.start_index = 0;
+		subuv.range = 7;
+		subuv.speed = 1.25f;
+		break;
+	case PlayerStatus::MoveLeft:
+		subuv.start_index = 8;
+		subuv.range = 7;
+		subuv.speed = 2.5f;
+		break;
+	case PlayerStatus::MoveRight:
+		subuv.start_index = 16;
+		subuv.range = 7;
+		subuv.speed = 2.5f;
+		break;
+	case PlayerStatus::JumpStart:
+		subuv.start_index = 24;
+		subuv.range = 4;
+		subuv.speed = 1.0f;
+		break;
+	case PlayerStatus::JumpLoop:
+		subuv.start_index = 29;
+		subuv.range = 1;
+		break;
+	case PlayerStatus::JumpEnd:
+		subuv.start_index = 31;
+		subuv.range = 4;
+		break;
+	default:
+		subuv.start_index = 0;
+		subuv.range = 7;
+	}
+
+	if (subuv.anim_timer > 1)
+	{
+		subuv.subtransforms[bit - 1]->scale = glm::vec3(0.0f);
+		bit++;
+		if (bit - 1 > subuv.start_index + subuv.range)
+			bit = subuv.start_index + 1;
+		subuv.bitmask = 1 << (bit - 1);
+		subuv.subtransforms[bit - 1]->scale = glm::vec3(1.0f);
+		subuv.anim_timer = 0.0f;
+	}
+	else if (bit - 1 >= subuv.start_index + subuv.range || bit - 1 < subuv.start_index)
+	{
+		subuv.subtransforms[bit - 1]->scale = glm::vec3(0.0f);
+		bit = subuv.start_index + 1;
+		subuv.bitmask = 1 << (bit - 1);
+		subuv.subtransforms[bit - 1]->scale = glm::vec3(1.0f);
+		subuv.anim_timer = 0.0f;
+	}
+}
+
 void PlayMode::hit_player()
 {
 	if (player_hp->scale.x > 0.0001f)
@@ -858,8 +904,10 @@ bool PlayMode::hit_platform()
 
 void PlayMode::land_on_platform(glm::vec3 expected_position)
 {
-	std::cout << "\n"
-			  << player->position.x << " ," << player->position.y << " ," << player->position.z;
+	// std::cout << "\n"
+	// 		  << player->position.x << " ," << player->position.y << " ," << player->position.z;
+	// std::cout << "\n"
+	// 		  << camera->transform->position.x << " ," << camera->transform->position.y << " ," << camera->transform->position.z;
 	for (auto platform : platforms)
 	{
 		// std::cout << "\n" << outer_block -> name << "position z " << world_coords(outer_block).z ;
@@ -917,13 +965,53 @@ void PlayMode::land_on_platform(glm::vec3 expected_position)
 	// camera->transform->position += move.x * frame_right + move.y * frame_forward;
 	// player->position += move.x * frame_right + move.y * frame_forward + move.z * frame_up;
 
+	// if (expected_position.z <= start_point.z && std::abs(expected_position.x - (-11.5f)) < 4.4f)
+	// // hardcode to prevent a jump at start
+	// {
+	//   expected_position.z = start_point.z;
+	// }
 	if (expected_position.z < start_point.z)
+	// hardcode to prevent a jump at start
 	{
 		expected_position.z = start_point.z;
 	}
-	camera->transform->position += expected_position - player->position;
-	player->position = expected_position;
+	if (!player_die)
+	{
+		camera->transform->position += expected_position - player->position;
+		player->position = expected_position;
+	}
 }
+
+PlayMode::HitObject PlayMode::hit_detect(Scene::Transform *obj, Scene::Transform *hit_obj)
+{
+
+	std::cout << "max:" << obj->max.z << ", min:" << obj->min.z << std::endl;
+	float obj_dis_x = (obj->max.x - obj->min.x) / 2;
+	float obj_dis_z = (obj->max.z - obj->min.z) / 2;
+	float hit_obj_dis_x = (hit_obj->max.x - hit_obj->min.x) / 2;
+	float hit_obj_dis_z = (hit_obj->max.z - hit_obj->min.z) / 2;
+
+	glm::vec3 obj_pos = obj->make_local_to_world() * glm::vec4(obj->position, 1.0f);
+	glm::vec3 hit_obj_pos = hit_obj->make_local_to_world() * glm::vec4(hit_obj->position, 1.0f);
+
+	std::cout << "component x:" << obj_pos.x - obj_dis_x << ", " << obj_pos.x + obj_dis_x << "; "
+			  << "component z:" << obj_pos.z - obj_dis_z << ", " << obj_pos.z + obj_dis_z << std::endl;
+
+	std::cout << "cage min x:" << hit_obj_pos.x - hit_obj_dis_x << ", " << hit_obj_pos.x + hit_obj_dis_x << "; "
+			  << "cage max z:" << hit_obj_pos.z - hit_obj_dis_z << ", " << hit_obj_pos.z + hit_obj_dis_z << std::endl;
+
+	std::cout << "x:" << ((obj_pos.x + obj_dis_x < hit_obj_pos.x + hit_obj_dis_x && obj_pos.x + obj_dis_x > hit_obj_pos.x - hit_obj_dis_x) || (obj_pos.x - obj_dis_x < hit_obj_pos.x + hit_obj_dis_x && obj_pos.x - obj_dis_x > hit_obj_pos.x - hit_obj_dis_x)) << "; z:" << ((obj_pos.z + obj_dis_z < hit_obj_pos.z + hit_obj_dis_z && obj_pos.z + obj_dis_z > hit_obj_pos.z - hit_obj_dis_z) || (obj_pos.z - obj_dis_z < hit_obj_pos.z + hit_obj_dis_z && obj_pos.z - obj_dis_z > hit_obj_pos.z - hit_obj_dis_z)) << std::endl;
+
+	if (((obj_pos.x + obj_dis_x < hit_obj_pos.x + hit_obj_dis_x && obj_pos.x + obj_dis_x > hit_obj_pos.x - hit_obj_dis_x) || (obj_pos.x - obj_dis_x < hit_obj_pos.x + hit_obj_dis_x && obj_pos.x - obj_dis_x > hit_obj_pos.x - hit_obj_dis_x)) && ((obj_pos.z + obj_dis_z < hit_obj_pos.z + hit_obj_dis_z && obj_pos.z + obj_dis_z > hit_obj_pos.z - hit_obj_dis_z) || (obj_pos.z - obj_dis_z < hit_obj_pos.z + hit_obj_dis_z && obj_pos.z - obj_dis_z > hit_obj_pos.z - hit_obj_dis_z)))
+	{
+		hit_detect_obj.overlapped = true;
+		hit_detect_obj.name = hit_obj->name;
+		std::cout << "hit name:" << hit_detect_obj.name << std::endl;
+	}
+
+	return hit_detect_obj;
+}
+
 /*
 void PlayMode::show_dialogue()
 {
@@ -1035,4 +1123,3 @@ void PlayMode::show_dialogue()
 	}
 }
 */
->>>>>>> Stashed changes

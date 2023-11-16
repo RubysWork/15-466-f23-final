@@ -98,16 +98,19 @@ MeshBuffer::MeshBuffer(std::string const &filename)
 	{
 		std::cerr << "WARNING: trailing data in mesh file '" << filename << "'" << std::endl;
 	}
-
-	/* //DEBUG:
-	std::cout << "File '" << filename << "' contained meshes";
-	for (auto const &m : meshes) {
-		if (&m.second == &meshes.rbegin()->second && meshes.size() > 1) std::cout << " and";
-		std::cout << " '" << m.first << "'";
-		if (&m.second != &meshes.rbegin()->second) std::cout << ",";
-	}
-	std::cout << std::endl;
-	*/
+	/*
+		// DEBUG:
+		std::cout << "File '" << filename << "' contained meshes";
+		for (auto const &m : meshes)
+		{
+			if (&m.second == &meshes.rbegin()->second && meshes.size() > 1)
+				std::cout << " and";
+			std::cout << " '" << m.first << "'";
+			if (&m.second != &meshes.rbegin()->second)
+				std::cout << ",";
+		}
+		std::cout << std::endl;
+		*/
 }
 
 const Mesh &MeshBuffer::lookup(std::string const &name) const

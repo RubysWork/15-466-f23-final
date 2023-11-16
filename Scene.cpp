@@ -1,5 +1,4 @@
 #include "Scene.hpp"
-#include "MyLitColorTextureProgram.hpp"
 
 #include "gl_errors.hpp"
 #include "read_write_chunk.hpp"
@@ -104,10 +103,12 @@ void Scene::draw(glm::mat4 const &world_to_clip, glm::mat4x3 const &world_to_lig
 	for (auto const &drawable : drawables)
 	{
 		// Reference to drawable's pipeline for convenience:
-		// Scene::Drawable::Pipeline const &pipeline = drawable.pipeline;
-		Scene::Drawable::Pipeline pipeline = drawable.pipeline;
-		// std::cout << "name:" << drawable.transform->name << std::endl;
-		//  skip any drawables without a shader program set:
+		if (drawable.transform->name == "Ground99")
+			continue;
+
+		Scene::Drawable::Pipeline const &pipeline = drawable.pipeline;
+
+		// skip any drawables without a shader program set:
 		if (pipeline.program == 0)
 			continue;
 		// skip any drawables that don't reference any vertex array:
@@ -117,19 +118,7 @@ void Scene::draw(glm::mat4 const &world_to_clip, glm::mat4x3 const &world_to_lig
 		if (pipeline.count == 0)
 			continue;
 
-		// if (drawable.transform->name == "Player")
-		// {
-		// 	pipeline.img_path = std::string("Player.png");
-		// }
-		// else if (drawable.transform->name == "Boss")
-		// {
-		// 	pipeline.img_path = std::string("Boss.png");
-		// }
-		// else
-		// {
-		// 	pipeline.img_path = std::string("Boss.png");
-		// }
-		//  Set shader program:
+		// Set shader program:
 		glUseProgram(pipeline.program);
 
 		// Set attribute sources:
@@ -193,6 +182,89 @@ void Scene::draw(glm::mat4 const &world_to_clip, glm::mat4x3 const &world_to_lig
 		glActiveTexture(GL_TEXTURE0);
 	}
 
+	// draw transparent object later
+	for (auto const &drawable : drawables)
+	{
+		// Reference to drawable's pipeline for convenience:
+		if (drawable.transform->name == "Ground99")
+		{
+			Scene::Drawable::Pipeline const &pipeline = drawable.pipeline;
+
+			// skip any drawables without a shader program set:
+			if (pipeline.program == 0)
+				continue;
+			// skip any drawables that don't reference any vertex array:
+			if (pipeline.vao == 0)
+				continue;
+			// skip any drawables that don't contain any vertices:
+			if (pipeline.count == 0)
+				continue;
+
+			// Set shader program:
+			glUseProgram(pipeline.program);
+
+			// Set attribute sources:
+			glBindVertexArray(pipeline.vao);
+
+			// Configure program uniforms:
+
+			// the object-to-world matrix is used in all three of these uniforms:
+			assert(drawable.transform); // drawables *must* have a transform
+			glm::mat4x3 object_to_world = drawable.transform->make_local_to_world();
+
+			// OBJECT_TO_CLIP takes vertices from object space to clip space:
+			if (pipeline.OBJECT_TO_CLIP_mat4 != -1U)
+			{
+				glm::mat4 object_to_clip = world_to_clip * glm::mat4(object_to_world);
+				glUniformMatrix4fv(pipeline.OBJECT_TO_CLIP_mat4, 1, GL_FALSE, glm::value_ptr(object_to_clip));
+			}
+
+			// the object-to-light matrix is used in the next two uniforms:
+			glm::mat4x3 object_to_light = world_to_light * glm::mat4(object_to_world);
+
+			// OBJECT_TO_CLIP takes vertices from object space to light space:
+			if (pipeline.OBJECT_TO_LIGHT_mat4x3 != -1U)
+			{
+				glUniformMatrix4x3fv(pipeline.OBJECT_TO_LIGHT_mat4x3, 1, GL_FALSE, glm::value_ptr(object_to_light));
+			}
+
+			// NORMAL_TO_CLIP takes normals from object space to light space:
+			if (pipeline.NORMAL_TO_LIGHT_mat3 != -1U)
+			{
+				glm::mat3 normal_to_light = glm::inverse(glm::transpose(glm::mat3(object_to_light)));
+				glUniformMatrix3fv(pipeline.NORMAL_TO_LIGHT_mat3, 1, GL_FALSE, glm::value_ptr(normal_to_light));
+			}
+
+			// set any requested custom uniforms:
+			if (pipeline.set_uniforms)
+				pipeline.set_uniforms();
+
+			// set up textures:
+			for (uint32_t i = 0; i < Drawable::Pipeline::TextureCount; ++i)
+			{
+				if (pipeline.textures[i].texture != 0)
+				{
+					glActiveTexture(GL_TEXTURE0 + i);
+					glBindTexture(pipeline.textures[i].target, pipeline.textures[i].texture);
+				}
+			}
+
+			// draw the object:
+			glDrawArrays(pipeline.type, pipeline.start, pipeline.count);
+
+			// un-bind textures:
+			for (uint32_t i = 0; i < Drawable::Pipeline::TextureCount; ++i)
+			{
+				if (pipeline.textures[i].texture != 0)
+				{
+					glActiveTexture(GL_TEXTURE0 + i);
+					glBindTexture(pipeline.textures[i].target, 0);
+				}
+			}
+			glActiveTexture(GL_TEXTURE0);
+		}
+	}
+
 	glUseProgram(0);
 	glBindVertexArray(0);
 
@@ -216,10 +288,8 @@ void Scene::load(std::string const &filename,
 		glm::vec3 position;
 		glm::quat rotation;
 		glm::vec3 scale;
-		glm::vec3 min;
-		glm::vec3 max;
 	};
-	static_assert(sizeof(HierarchyEntry) == 4 + 4 + 4 + 4 * 3 + 4 * 4 + 4 * 3 + 4 * 3 + 4 * 3, "HierarchyEntry is packed.");
+	static_assert(sizeof(HierarchyEntry) == 4 + 4 + 4 + 4 * 3 + 4 * 4 + 4 * 3, "HierarchyEntry is packed.");
 	std::vector<HierarchyEntry> hierarchy;
 	read_chunk(file, "xfh0", &hierarchy);
 
@@ -288,9 +358,6 @@ void Scene::load(std::string const &filename,
 		t->position = h.position;
 		t->rotation = h.rotation;
 		t->scale = h.scale;
-		t->min = h.min;
-		t->max = h.max;
-
 		hierarchy_transforms.emplace_back(t);
 	}
 	assert(hierarchy_transforms.size() == hierarchy.size());
