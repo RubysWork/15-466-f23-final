@@ -46,8 +46,8 @@ Load<LitColorTextureProgram> lit_color_texture_program(LoadTagEarly, []() -> Lit
 
 	return ret; });
 
-	Load<LitColorTextureTransProgram> lit_color_texture_trans_program(LoadTagEarly, []() -> LitColorTextureTransProgram const *
-													   {
+Load<LitColorTextureTransProgram> lit_color_texture_trans_program(LoadTagEarly, []() -> LitColorTextureTransProgram const *
+																  {
 	LitColorTextureTransProgram *ret = new LitColorTextureTransProgram();
 
 	//----- build the pipeline template -----
@@ -83,7 +83,7 @@ LitColorTextureProgram::LitColorTextureProgram()
 	// Compile vertex and fragment shaders using the convenient 'gl_compile_program' helper function:
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	
+
 	program = gl_compile_program(
 		// vertex shader:
 		"#version 330\n"
@@ -183,9 +183,9 @@ LitColorTextureProgram::~LitColorTextureProgram()
 LitColorTextureTransProgram::LitColorTextureTransProgram()
 {
 	// Compile vertex and fragment shaders using the convenient 'gl_compile_program' helper function:
-	glEnable(GL_BLEND);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	
+	// glEnable(GL_BLEND);
+	// glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
 	program = gl_compile_program(
 		// vertex shader:
 		"#version 330\n"

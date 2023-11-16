@@ -223,6 +223,10 @@ PlayMode::PlayMode() : scene(*hexapod_scene)
 			boots_scale = component_boots->scale;
 			component_boots->scale = glm::vec4(0);
 		}
+		else if (transform.name == "Test")
+		{
+			test = &transform;
+		}
 	}
 
 	for (auto &bullet : bullets)
@@ -344,7 +348,16 @@ void PlayMode::update(float elapsed)
 
 	// show dialogue
 	// show_dialogue();
-
+	std::cout << "component min:" << component->min.x << "," << component->min.y << "," << component->min.z << std::endl;
+	std::cout << "component max:" << component->max.x << "," << component->max.y << "," << component->max.z << std::endl;
+	std::cout << "component:" << (component->make_local_to_world() * glm::vec4(component->position, 1.0f)).x << "," << (component->make_local_to_world() * glm::vec4(component->position, 1.0f)).y << "," << (component->make_local_to_world() * glm::vec4(component->position, 1.0f)).z << std::endl;
+	std::cout << "test min:" << (test->make_local_to_world() * glm::vec4(test->min, 1.0f)).x << "," << (test->make_local_to_world() * glm::vec4(test->min, 1.0f)).y << "," << (test->make_local_to_world() * glm::vec4(test->min, 1.0f)).z << std::endl;
+	// std::cout << "test min:" << test->min.x << "," << test->min.y << "," << test->min.z << std::endl;
+	std::cout << "test max:" << test->max.x << "," << test->max.y << "," << test->max.z << std::endl;
+	std::cout << "test:" << test->position.x << "," << test->position.y << "," << test->position.z << std::endl;
+	std::cout << "cage min:" << cages.begin()->transform->min.x << "," << cages.begin()->transform->min.y << "," << cages.begin()->transform->min.z << std::endl;
+	std::cout << "cage max:" << cages.begin()->transform->max.x << "," << cages.begin()->transform->max.y << "," << cages.begin()->transform->max.z << std::endl;
+	std::cout << "cage:" << (cages.begin()->transform->make_local_to_world() * glm::vec4(cages.begin()->transform->position, 1.0f)).x << "," << (cages.begin()->transform->make_local_to_world() * glm::vec4(cages.begin()->transform->position, 1.0f)).y << "cage:" << (cages.begin()->transform->make_local_to_world() * glm::vec4(cages.begin()->transform->position, 1.0f)).z << std::endl;
 	// get weapon
 	if (!get_weapon && player_atk_cpnt->position.x < player->position.x + 0.3f && player_atk_cpnt->position.x > player->position.x - 0.3f && player_atk_cpnt->position.z < player->position.z + 0.3f && player_atk_cpnt->position.z > player->position.z - 0.3f)
 	{
@@ -715,6 +728,22 @@ void PlayMode::draw(glm::uvec2 const &drawable_size)
 
 	scene.draw(*camera);
 
+	{
+		glDisable(GL_DEPTH_TEST);
+		float aspect = float(drawable_size.x) / float(drawable_size.y);
+		DrawLines lines(glm::mat4(
+			1.0f / aspect, 0.0f, 0.0f, 0.0f,
+			0.0f, 1.0f, 0.0f, 0.0f,
+			0.0f, 0.0f, 1.0f, 0.0f,
+			0.0f, 0.0f, 0.0f, 1.0f));
+
+		constexpr float H = 0.09f;
+		lines.draw_text("Move - Up/Down/Left/Right Arrow; Jump - Space; Move Slow - Shift",
+						glm::vec3(-aspect + 0.1f * H, -1.0 + 0.1f * H, 0.0),
+						glm::vec3(H, 0.0f, 0.0f), glm::vec3(0.0f, H, 0.0f),
+						glm::u8vec4(0x00, 0x00, 0x00, 0x00));
+	}
+
 	// {
 	// 	text.Draw(text_program, base_line, 100.0f, 480.0f, drawable_size, glm::vec3(1.0f, 1.0f, 1.0f), 0.4f);
 	// 	text.Draw(text_program, choice_lines[0], 100.0f, 250.0f, drawable_size, glm::vec3(1.0f, 1.0f, 0.3f), 0.4f);
@@ -986,6 +1015,7 @@ PlayMode::HitObject PlayMode::hit_detect(Scene::Transform *obj, Scene::Transform
 {
 
 	std::cout << "max:" << obj->max.z << ", min:" << obj->min.z << std::endl;
+
 	float obj_dis_x = (obj->max.x - obj->min.x) / 2;
 	float obj_dis_z = (obj->max.z - obj->min.z) / 2;
 	float hit_obj_dis_x = (hit_obj->max.x - hit_obj->min.x) / 2;

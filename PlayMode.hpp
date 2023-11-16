@@ -192,4 +192,7 @@ struct PlayMode : Mode
 	void update_player_status();
 
 	HitObject hit_detect(Scene::Transform *obj, Scene::Transform *hit_obj);
+
+	// test
+	Scene::Transform *test = nullptr;
 };
