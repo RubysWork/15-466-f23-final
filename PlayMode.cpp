@@ -53,7 +53,7 @@ Load<Scene> hexapod_scene(LoadTagDefault, []() -> Scene const *
 									scene.drawables.emplace_back(transform);
 									Scene::Drawable &drawable = scene.drawables.back();
 									drawable.pipeline = lit_color_texture_program_pipeline;
-									if(drawable.transform->name == "Ground99")
+									if(drawable.transform->name == "Frame01" || drawable.transform->name == "Frame03" || drawable.transform->name == "Frame05")
 										drawable.pipeline = lit_color_texture_trans_program_pipeline;
 									drawable.pipeline.type = mesh.type;
 									drawable.pipeline.start = mesh.start;
