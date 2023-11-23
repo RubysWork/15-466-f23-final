@@ -72,10 +72,12 @@ struct PlayMode : Mode
 	// jet pack
 	Scene::Transform *jetPack = nullptr;
 	bool hasJetPack = false;
+	bool jetpack_on = false;
 	Scene::Transform *component_jetpack = nullptr;
 	glm::vec3 jetpack_scale;
 	float jetpack_max_fuel = 2.0f;
 	float jetpack_fuel = 0.0f;
+	float jetpack_max_speed = 5.5f;
 
 	glm::vec3 start_point;
 	glm::vec3 player_origin_scale;

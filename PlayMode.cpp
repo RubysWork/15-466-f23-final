@@ -633,6 +633,8 @@ void PlayMode::update(float elapsed)
 			face_right = true;
 		}
 
+		float gravity = -4.0f;
+
 		if (space.pressed)
 		{
 			if (!first_jump)
@@ -647,10 +649,13 @@ void PlayMode::update(float elapsed)
 				second_jump = true;
 				jump_velocity = 3.0f;
 			}
-			else if (hasJetPack && jetpack_fuel >= 0)
+			else if (hasJetPack && jetpack_fuel >= 0 && !jetpack_on) {
+				jetpack_on = true;
+				jump_velocity = jetpack_max_speed / jetpack_max_fuel * jetpack_fuel;
+			}
+			else if (hasJetPack && jetpack_fuel >= 0 && jetpack_on)
 			{
-				jetpack_fuel -= elapsed;
-				jump_velocity = 2.0f;
+				jetpack_fuel = 0;
 			}
 			else {
 				// do nothing, later replace with other possibilities
@@ -661,8 +666,6 @@ void PlayMode::update(float elapsed)
 		{
 			jump_signal = true;
 		}
-
-		float gravity = -4.0f;
 
 		// print the jetpack fuel
 		std::cout << jetpack_fuel << "\n";
@@ -692,6 +695,8 @@ void PlayMode::update(float elapsed)
 			second_jump = false;
 			jump_velocity = 0;
 			jump_signal = false;
+
+			jetpack_on = false;
 			if (jetpack_fuel < jetpack_max_fuel) {
 				jetpack_fuel += 2 * elapsed;
 			}
