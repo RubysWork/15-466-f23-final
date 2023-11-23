@@ -68,6 +68,7 @@ Load<Sound::Sample> dusty_floor_sample(LoadTagDefault, []() -> Sound::Sample con
 
 PlayMode::PlayMode() : scene(*hexapod_scene)
 {
+	/*
 	Platform platform1 = {(glm::vec3{-11.5f, 0, -2.0f}), 3.7f, 4.4f};
 	platforms.emplace_back(platform1);
 	Platform platform2 = {(glm::vec3{-12.6f, 0, 1.0f}), 5.0f, 3.0f};
@@ -142,14 +143,14 @@ PlayMode::PlayMode() : scene(*hexapod_scene)
 	platforms.emplace_back(platform36);
 	Platform platform37 = {(glm::vec3{-13.3f, 0, 7.0f}), 12.0f, 1.4f};
 	platforms.emplace_back(platform37);
-
+*/
 	for (auto &transform : scene.transforms)
 	{
 		if (transform.name == "Player")
 		{
 			player = &transform;
-			player->position = glm::vec3{-11.0f, 0.0f, -0.15f};
-			player->scale = glm::vec3{0.15f, 0.15f, 0.15f};
+			// player->position = glm::vec3{-11.0f, 0.0f, -0.15f};
+			// player->scale = glm::vec3{0.15f, 0.15f, 0.15f};
 			start_point = player->position;
 			player_origin_scale = player->scale;
 		}
@@ -223,6 +224,14 @@ PlayMode::PlayMode() : scene(*hexapod_scene)
 			boots_scale = component_boots->scale;
 			component_boots->scale = glm::vec4(0);
 		}
+		else if (transform.name.find("Ground") != std::string::npos)
+		{
+			Platform platform;
+			platform.pos = transform.make_local_to_world() * glm::vec4(transform.position, 1.0f);
+			platform.width = (float)abs((transform.make_local_to_world() * glm::vec4(transform.max, 1.0f)).x - (transform.make_local_to_world() * glm::vec4(transform.min, 1.0f)).x);
+			platform.height = (float)abs((transform.make_local_to_world() * glm::vec4(transform.max, 1.0f)).z - (transform.make_local_to_world() * glm::vec4(transform.min, 1.0f)).z);
+			platforms.emplace_back(platform);
+		}
 	}
 
 	for (auto &bullet : bullets)
@@ -237,7 +246,7 @@ PlayMode::PlayMode() : scene(*hexapod_scene)
 	if (scene.cameras.size() != 1)
 		throw std::runtime_error("Expecting scene to have exactly one camera, but it has " + std::to_string(scene.cameras.size()));
 	camera = &scene.cameras.front();
-	camera->transform->position = glm::vec3{-9.0f, -28.0f, 0.8f};
+	// camera->transform->position = glm::vec3{-9.0f, -28.0f, 0.8f};
 
 	// start music loop playing:
 	//  (note: position will be over-ridden in update())
@@ -368,7 +377,8 @@ void PlayMode::update(float elapsed)
 		cages.begin()->transform->scale = glm::vec4(0);
 	}
 	//  get boots
-	if (!hasBoots && cages.begin()->isDestroied && (boots->make_local_to_world() * glm::vec4(boots->position, 1.0f)).x < player->position.x && (boots->make_local_to_world() * glm::vec4(boots->position, 1.0f)).x > player->position.x - 0.5f && (boots->make_local_to_world() * glm::vec4(boots->position, 1.0f)).z < player->position.z && (boots->make_local_to_world() * glm::vec4(boots->position, 1.0f)).z > player->position.z - 0.6f)
+
+	if (!hasBoots && cages.begin()->isDestroied && hit_detect(player, boots).overlapped)
 	{
 		hasBoots = true;
 		boots->scale = glm::vec4(0);
@@ -397,7 +407,7 @@ void PlayMode::update(float elapsed)
 		for (auto &bullet : current_bullets)
 		{
 
-			if (!bullet.hit_player && bullet.transform->position.x < player->position.x + 0.3f && bullet.transform->position.x > player->position.x && bullet.transform->position.z < player->position.z + 0.3f && bullet.transform->position.z > player->position.z - 0.3f)
+			if (!bullet.hit_player && hit_detect(player, bullet.transform).overlapped)
 			{
 				hit_player();
 				bullet.hit_player = true;
@@ -405,7 +415,7 @@ void PlayMode::update(float elapsed)
 			}
 		}
 		// Weapon attack
-		if (player->position.x > (boss_weapon->make_local_to_world() * glm::vec4(boss_weapon->position, 1.0f)).x + 0.4f && player->position.x < (boss_weapon->make_local_to_world() * glm::vec4(boss_weapon->position, 1.0f)).x + 1 && (boss_weapon->make_local_to_world() * glm::vec4(boss_weapon->position, 1.0f)).z < player->position.z + 0.5f && (boss_weapon->make_local_to_world() * glm::vec4(boss_weapon->position, 1.0f)).x > player->position.x - 1 && (boss_weapon->make_local_to_world() * glm::vec4(boss_weapon->position, 1.0f)).z > player->position.z - 0.5f)
+		if (hit_detect(player, boss_weapon).overlapped)
 		{
 			if (weapon_timer == 0)
 			{
@@ -984,6 +994,99 @@ void PlayMode::land_on_platform(glm::vec3 expected_position)
 
 PlayMode::HitObject PlayMode::hit_detect(Scene::Transform *obj, Scene::Transform *hit_obj)
 {
+	float obj_max_x = (obj->make_local_to_world() * glm::vec4(obj->max, 1.0f)).x;
+	float obj_min_x = (obj->make_local_to_world() * glm::vec4(obj->min, 1.0f)).x;
+	float obj_max_z = (obj->make_local_to_world() * glm::vec4(obj->max, 1.0f)).z;
+	float obj_min_z = (obj->make_local_to_world() * glm::vec4(obj->min, 1.0f)).z;
+	float hit_obj_max_x = (hit_obj->make_local_to_world() * glm::vec4(hit_obj->max, 1.0f)).x;
+	float hit_obj_min_x = (hit_obj->make_local_to_world() * glm::vec4(hit_obj->min, 1.0f)).x;
+	float hit_obj_max_z = (hit_obj->make_local_to_world() * glm::vec4(hit_obj->max, 1.0f)).z;
+	float hit_obj_min_z = (hit_obj->make_local_to_world() * glm::vec4(hit_obj->min, 1.0f)).z;
+
+	float minMax = 0;
+	float maxMin = 0;
+	if (face_right)
+	{
+		if (obj_max_x < hit_obj_max_x)
+		{
+			minMax = obj_max_x;
+			maxMin = hit_obj_min_x;
+		}
+		else
+		{
+			minMax = hit_obj_max_x;
+			maxMin = obj_min_x;
+		}
+	}
+	else
+	{
+		if (obj_max_x < hit_obj_max_x)
+		{
+			minMax = obj_min_x;
+			maxMin = hit_obj_min_x;
+		}
+		else
+		{
+			minMax = hit_obj_max_x;
+			maxMin = obj_max_x;
+		}
+	}
+
+	bool TouchX = false;
+	if (face_right)
+	{
+		if (maxMin - minMax < 0.26f)
+		{
+			TouchX = true;
+		}
+		else
+		{
+			TouchX = false;
+		}
+	}
+	else
+	{
+		if (maxMin - minMax < 0.5f)
+		{
+			TouchX = true;
+		}
+		else
+		{
+			TouchX = false;
+		}
+	}
+
+	if (obj_max_z < hit_obj_max_z)
+	{
+		minMax = obj_max_z;
+		maxMin = hit_obj_min_z;
+	}
+	else
+	{
+		minMax = hit_obj_max_z;
+		maxMin = obj_min_z;
+	}
+
+	bool TouchZ = false;
+	if (maxMin - minMax < 0.26f)
+	{
+		TouchZ = true;
+	}
+	else
+	{
+		TouchZ = false;
+	}
+	PlayMode::HitObject hit_object_result;
+	if (TouchX && TouchZ)
+	{
+		hit_object_result.name = hit_obj->name;
+		hit_object_result.overlapped = true;
+	}
+	return hit_object_result;
+}
+/*
+PlayMode::HitObject PlayMode::hit_detect(Scene::Transform *obj, Scene::Transform *hit_obj)
+{
 
 	std::cout << "max:" << obj->max.z << ", min:" << obj->min.z << std::endl;
 	float obj_dis_x = (obj->max.x - obj->min.x) / 2;
@@ -1011,7 +1114,7 @@ PlayMode::HitObject PlayMode::hit_detect(Scene::Transform *obj, Scene::Transform
 
 	return hit_detect_obj;
 }
-
+*/
 /*
 void PlayMode::show_dialogue()
 {
