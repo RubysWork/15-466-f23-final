@@ -57,7 +57,6 @@ struct PlayMode : Mode
 	int cage_index = 0;
 	std::vector<Cage> cages;
 
-	bool player_die = false;
 	// boots
 	Scene::Transform *boots = nullptr;
 	bool hasBoots = false;
@@ -142,8 +141,18 @@ struct PlayMode : Mode
 		Dead
 	};
 
+	enum class PlayerStage
+	{
+		InitialStage,
+		JumpGame,
+		BossTeleport
+	};
+
+	PlayerStage player_stage = PlayerStage::InitialStage;
+
 	SubUV subuv;
 	PlayerStatus player_status = PlayerStatus::Idle;
+	bool player_die = false;
 
 	// boss status
 	enum BattleStatus
@@ -158,11 +167,13 @@ struct PlayMode : Mode
 	/// boss
 	Scene::Transform *boss = nullptr;
 	float boss_speed = 1.0f;
+	bool boss_die = false;
 
 	/// bosshp
 	Scene::Transform *boss_hp = nullptr;
 	float max_boss_hp = 1.0f;
 	float current_boss_hp = 1.0f;
+
 	/// playerhp
 	Scene::Transform *player_hp = nullptr;
 	float max_player_hp = 1.0f;

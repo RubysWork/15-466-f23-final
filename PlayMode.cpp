@@ -407,6 +407,7 @@ void PlayMode::update(float elapsed)
 			hasJetPack = true;
 			hasBoots = false;
 		}
+		boss_die = true;
 	}
 	else
 	{
@@ -664,7 +665,7 @@ void PlayMode::update(float elapsed)
 		float gravity = -4.0f;
 
 		// print the jetpack fuel
-		//std::cout << jetpack_fuel << "\n";
+		std::cout << jetpack_fuel << "\n";
 		
 		// if (down.pressed && !up.pressed)
 		// 	move.y = -1.0f;
@@ -701,7 +702,21 @@ void PlayMode::update(float elapsed)
 			jump_velocity = 0;
 		}
 
+
 		glm::vec3 expected_position = player->position + hori_move * frame_right + vert_move * frame_up;
+
+		if (player_stage == PlayerStage::InitialStage && boss_die) {
+			if (player->position.x > 18.0f && player->position.z > 7.5f) {
+				player_stage = PlayerStage::JumpGame;
+				camera->transform->position.x += 40.0f - player->position.x;
+				camera->transform->position.z += 2.64f - player->position.z;
+				player->position.x = 40.0f;
+				player->position.z = 2.64f;
+				expected_position.x = 40.0f;
+				expected_position.z = 2.64f;
+			}
+		}
+
 		land_on_platform(expected_position);
 	}
 
@@ -932,7 +947,7 @@ bool PlayMode::hit_platform()
 void PlayMode::land_on_platform(glm::vec3 expected_position)
 {
 	// std::cout << "\n"
-	// 		  << player->position.x << " ," << player->position.y << " ," << player->position.z;
+	//  		  << player->position.x << " ," << player->position.y << " ," << player->position.z;
 	// std::cout << "\n"
 	// 		  << camera->transform->position.x << " ," << camera->transform->position.y << " ," << camera->transform->position.z;
 	for (auto platform : platforms)
