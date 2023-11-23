@@ -64,14 +64,21 @@ struct PlayMode : Mode
 	Scene::Transform *component_boots = nullptr;
 	glm::vec3 boots_scale;
 
-	glm::vec3 start_point;
-
 	bool first_jump;
 	bool second_jump;
 
 	float jump_velocity = 0.0f;
 	bool jump_signal = false;
 
+	// jet pack
+	Scene::Transform *jetPack = nullptr;
+	bool hasJetPack = false;
+	Scene::Transform *component_jetpack = nullptr;
+	glm::vec3 jetpack_scale;
+	float jetpack_max_fuel = 1.5f;
+	float jetpack_fuel = 0.0f;
+
+	glm::vec3 start_point;
 	glm::vec3 player_origin_scale;
 	bool face_right = true;
 

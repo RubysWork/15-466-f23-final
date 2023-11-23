@@ -232,6 +232,8 @@ PlayMode::PlayMode() : scene(*hexapod_scene)
 			platform.height = (float)abs((transform.make_local_to_world() * glm::vec4(transform.max, 1.0f)).z - (transform.make_local_to_world() * glm::vec4(transform.min, 1.0f)).z);
 			platforms.emplace_back(platform);
 		}
+
+		// add a real component jetpack
 	}
 
 	for (auto &bullet : bullets)
@@ -399,6 +401,11 @@ void PlayMode::update(float elapsed)
 		for (auto &bullet : current_bullets)
 		{
 			put_away_bullet(bullet);
+		}
+		// get jet pack and replace boots
+		if (!hasJetPack) {
+			hasJetPack = true;
+			hasBoots = false;
 		}
 	}
 	else
@@ -639,9 +646,13 @@ void PlayMode::update(float elapsed)
 				second_jump = true;
 				jump_velocity = 3.0f;
 			}
-			else
+			else if (hasJetPack && jetpack_fuel >= 0)
 			{
-				// do nothing
+				jetpack_fuel -= elapsed;
+				jump_velocity = 2.0f;
+			}
+			else {
+				// do nothing, later replace with other possibilities
 			}
 		}
 
@@ -652,6 +663,9 @@ void PlayMode::update(float elapsed)
 
 		float gravity = -4.0f;
 
+		// print the jetpack fuel
+		//std::cout << jetpack_fuel << "\n";
+		
 		// if (down.pressed && !up.pressed)
 		// 	move.y = -1.0f;
 		// if (!down.pressed && up.pressed)
@@ -677,6 +691,9 @@ void PlayMode::update(float elapsed)
 			second_jump = false;
 			jump_velocity = 0;
 			jump_signal = false;
+			if (jetpack_fuel < jetpack_max_fuel) {
+				jetpack_fuel += 2 * elapsed;
+			}
 		}
 
 		if (hit_platform())
