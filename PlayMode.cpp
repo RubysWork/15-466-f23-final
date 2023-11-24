@@ -15,7 +15,7 @@
 GLuint meshes_for_lit_color_texture_program = 0;
 Load<MeshBuffer> meshes(LoadTagDefault, []() -> MeshBuffer const *
 						{
-	MeshBuffer const *ret = new MeshBuffer(data_path("cube.pnct"));
+	MeshBuffer const *ret = new MeshBuffer(data_path("cube_BossTest.pnct"));
 	meshes_for_lit_color_texture_program = ret->make_vao_for_program(lit_color_texture_program->program);
 	return ret; });
 Load<GLuint> scene_texture(LoadTagEarly, []() -> GLuint const *
@@ -42,7 +42,7 @@ Load<GLuint> scene_texture(LoadTagEarly, []() -> GLuint const *
 
 Load<Scene> hexapod_scene(LoadTagDefault, []() -> Scene const *
 						  { return new Scene(
-								data_path("cube.scene"), [&](Scene &scene, Scene::Transform *transform, std::string const &mesh_name)
+								data_path("cube_BossTest.scene"), [&](Scene &scene, Scene::Transform *transform, std::string const &mesh_name)
 								{
 									
 									Mesh const mesh = meshes->lookup(mesh_name);
