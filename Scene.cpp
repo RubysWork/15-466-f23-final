@@ -103,7 +103,7 @@ void Scene::draw(glm::mat4 const &world_to_clip, glm::mat4x3 const &world_to_lig
 	for (auto const &drawable : drawables)
 	{
 		// Reference to drawable's pipeline for convenience:
-		if (drawable.transform->name == "Ground99")
+		if (drawable.transform->name == "Frame01" || drawable.transform->name == "Frame03" || drawable.transform->name == "Frame05")
 			continue;
 
 		Scene::Drawable::Pipeline const &pipeline = drawable.pipeline;
@@ -186,7 +186,7 @@ void Scene::draw(glm::mat4 const &world_to_clip, glm::mat4x3 const &world_to_lig
 	for (auto const &drawable : drawables)
 	{
 		// Reference to drawable's pipeline for convenience:
-		if (drawable.transform->name == "Ground99")
+		if (drawable.transform->name == "Frame01" || drawable.transform->name == "Frame03" || drawable.transform->name == "Frame05")
 		{
 			Scene::Drawable::Pipeline const &pipeline = drawable.pipeline;
 
