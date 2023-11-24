@@ -224,7 +224,7 @@ PlayMode::PlayMode() : scene(*hexapod_scene)
 			boots_scale = component_boots->scale;
 			component_boots->scale = glm::vec4(0);
 		}
-		else if (transform.name.find("Ground") != std::string::npos)
+		else if (transform.name.find("Collider") != std::string::npos)
 		{
 			Platform platform;
 			platform.pos = transform.make_local_to_world() * glm::vec4(transform.position, 1.0f);
@@ -403,7 +403,8 @@ void PlayMode::update(float elapsed)
 			put_away_bullet(bullet);
 		}
 		// get jet pack and replace boots
-		if (!hasJetPack) {
+		if (!hasJetPack)
+		{
 			hasJetPack = true;
 			hasBoots = false;
 		}
@@ -634,7 +635,8 @@ void PlayMode::update(float elapsed)
 		}
 
 		float gravity = -4.0f;
-		if (jetpack_on && jetpack_fuel > 0) {
+		if (jetpack_on && jetpack_fuel > 0)
+		{
 			gravity = -1.0f;
 		}
 
@@ -652,12 +654,14 @@ void PlayMode::update(float elapsed)
 				second_jump = true;
 				jump_velocity = 3.0f;
 			}
-			else if (hasJetPack && !jetpack_on) {
+			else if (hasJetPack && !jetpack_on)
+			{
 				jetpack_on = true;
 				jump_velocity = jetpack_max_speed;
 				hover_max_time = hover_full_fuel_time / jetpack_max_fuel * jetpack_fuel;
 			}
-			else {
+			else
+			{
 				// do nothing, later replace with other possibilities
 			}
 		}
@@ -673,7 +677,7 @@ void PlayMode::update(float elapsed)
 		}
 		// print the jetpack fuel
 		std::cout << jetpack_fuel << "\n";
-		
+
 		// if (down.pressed && !up.pressed)
 		// 	move.y = -1.0f;
 		// if (!down.pressed && up.pressed)
@@ -685,7 +689,8 @@ void PlayMode::update(float elapsed)
 		jump_velocity += gravity * elapsed;
 		float vert_move = jump_velocity * elapsed;
 
-		if (jetpack_on && hover_time < hover_max_time && jump_velocity < 0) {
+		if (jetpack_on && hover_time < hover_max_time && jump_velocity < 0)
+		{
 			jump_velocity = 0;
 			vert_move = 0;
 			hover_time += elapsed;
@@ -710,7 +715,8 @@ void PlayMode::update(float elapsed)
 			jump_signal = false;
 
 			jetpack_on = false;
-			if (jetpack_fuel < jetpack_max_fuel) {
+			if (jetpack_fuel < jetpack_max_fuel)
+			{
 				jetpack_fuel += 2 * elapsed;
 			}
 		}
@@ -720,11 +726,12 @@ void PlayMode::update(float elapsed)
 			jump_velocity = 0;
 		}
 
-
 		glm::vec3 expected_position = player->position + hori_move * frame_right + vert_move * frame_up;
 
-		if (player_stage == PlayerStage::InitialStage && boss_die) {
-			if (player->position.x > 18.0f && player->position.z > 7.5f) {
+		if (player_stage == PlayerStage::InitialStage && boss_die)
+		{
+			if (player->position.x > 18.0f && player->position.z > 7.5f)
+			{
 				player_stage = PlayerStage::JumpGame;
 				camera->transform->position.x += 40.0f - player->position.x;
 				camera->transform->position.z += 2.64f - player->position.z;
