@@ -634,6 +634,9 @@ void PlayMode::update(float elapsed)
 		}
 
 		float gravity = -4.0f;
+		if (jetpack_on && jetpack_fuel > 0) {
+			gravity = -1.0f;
+		}
 
 		if (space.pressed)
 		{
@@ -649,13 +652,10 @@ void PlayMode::update(float elapsed)
 				second_jump = true;
 				jump_velocity = 3.0f;
 			}
-			else if (hasJetPack && jetpack_fuel >= 0 && !jetpack_on) {
+			else if (hasJetPack && !jetpack_on) {
 				jetpack_on = true;
-				jump_velocity = jetpack_max_speed / jetpack_max_fuel * jetpack_fuel;
-			}
-			else if (hasJetPack && jetpack_fuel >= 0 && jetpack_on)
-			{
-				jetpack_fuel = 0;
+				jump_velocity = jetpack_max_speed;
+				hover_max_time = hover_full_fuel_time / jetpack_max_fuel * jetpack_fuel;
 			}
 			else {
 				// do nothing, later replace with other possibilities
@@ -667,6 +667,10 @@ void PlayMode::update(float elapsed)
 			jump_signal = true;
 		}
 
+		if (hasJetPack && jetpack_fuel > 0 && jetpack_on)
+		{
+			jetpack_fuel -= elapsed;
+		}
 		// print the jetpack fuel
 		std::cout << jetpack_fuel << "\n";
 		
@@ -681,6 +685,14 @@ void PlayMode::update(float elapsed)
 		jump_velocity += gravity * elapsed;
 		float vert_move = jump_velocity * elapsed;
 
+		if (jetpack_on && hover_time < hover_max_time && jump_velocity < 0) {
+			jump_velocity = 0;
+			vert_move = 0;
+			hover_time += elapsed;
+		}
+
+		std::cout << "hover time" << hover_time << "\n";
+
 		// std::cout << first_jump << ", " << second_jump << ", " << jump_interval << "\n";
 		// std::cout << jump_velocity << "\n";
 
@@ -694,6 +706,7 @@ void PlayMode::update(float elapsed)
 			first_jump = false;
 			second_jump = false;
 			jump_velocity = 0;
+			hover_time = 0;
 			jump_signal = false;
 
 			jetpack_on = false;
