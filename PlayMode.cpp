@@ -194,10 +194,8 @@ PlayMode::PlayMode() : scene(*hexapod_scene)
 		{
 			component = &transform;
 			component_scale = component->scale;
-			std::cout << "component min1" << component->min.z << std::endl;
 			component->scale = glm::vec4(0);
-			std::cout << "component min2" << component->min.z << std::endl;
-		}
+				}
 		else if (transform.name == "BossAttack")
 		{
 			boss_weapon = &transform;
@@ -227,7 +225,9 @@ PlayMode::PlayMode() : scene(*hexapod_scene)
 		else if (transform.name.find("Collider") != std::string::npos)
 		{
 			Platform platform;
-			platform.pos = transform.make_local_to_world() * glm::vec4(transform.position, 1.0f);
+			platform.name = transform.name;
+			platform.pos = transform.position;
+			// platform.pos = transform.make_local_to_world() * glm::vec4(transform.position, 1.0f);
 			platform.width = (float)abs((transform.make_local_to_world() * glm::vec4(transform.max, 1.0f)).x - (transform.make_local_to_world() * glm::vec4(transform.min, 1.0f)).x);
 			platform.height = (float)abs((transform.make_local_to_world() * glm::vec4(transform.max, 1.0f)).z - (transform.make_local_to_world() * glm::vec4(transform.min, 1.0f)).z);
 			platforms.emplace_back(platform);
@@ -355,7 +355,6 @@ void PlayMode::update(float elapsed)
 
 	// show dialogue
 	// show_dialogue();
-
 	// get weapon
 	if (!get_weapon && player_atk_cpnt->position.x < player->position.x + 0.3f && player_atk_cpnt->position.x > player->position.x - 0.3f && player_atk_cpnt->position.z < player->position.z + 0.3f && player_atk_cpnt->position.z > player->position.z - 0.3f)
 	{
@@ -696,7 +695,7 @@ void PlayMode::update(float elapsed)
 			hover_time += elapsed;
 		}
 
-		std::cout << "hover time" << hover_time << "\n";
+		// std::cout << "hover time" << hover_time << "\n";
 
 		// std::cout << first_jump << ", " << second_jump << ", " << jump_interval << "\n";
 		// std::cout << jump_velocity << "\n";
@@ -975,15 +974,24 @@ void PlayMode::land_on_platform(glm::vec3 expected_position)
 	//  		  << player->position.x << " ," << player->position.y << " ," << player->position.z;
 	// std::cout << "\n"
 	// 		  << camera->transform->position.x << " ," << camera->transform->position.y << " ," << camera->transform->position.z;
+	// std::cout << "player pos:" << player->position.z << std::endl;
+	// std::cout << "expected pos:" << expected_position.z << std::endl;
+	// std::cout << "distance:" << expected_position.z - collider7->position.z << std::endl;
+
+	// std::cout << "collider7 pos:" << collider7->position.z << ",min:" << (float)abs(collider7->make_local_to_world() * glm::vec4(collider7->min, 1.0f)).z << "height min:" << collider7->position.z - ((float)abs((collider7->make_local_to_world() * glm::vec4(collider7->max, 1.0f)).z - (collider7->make_local_to_world() * glm::vec4(collider7->min, 1.0f)).z) / 2) << std::endl;
+
 	for (auto platform : platforms)
 	{
 		// std::cout << "\n" << outer_block -> name << "position z " << world_coords(outer_block).z ;
 		// std::cout << "\n" << outer_block -> name << "scale x" << outer_block->scale.x;
 		// std::cout << "\n" << expected_position.z << "z";
-
+		// std::cout << "name:" << platform.name << ",expected pos:" << expected_position.z << ",plat pos:" << platform.pos.z << ",3:" << std::abs(expected_position.z - platform.pos.z) << "4:" << platform.height / 2 << std::endl;
 		if (std::abs(expected_position.x - platform.pos.x) < platform.width / 2 &&
 			std::abs(expected_position.z - platform.pos.z) < platform.height / 2)
 		{
+			// std::cout << "hit pos:" << platform.pos.x << ", hit min:" << platform.pos.x - platform.width / 2 << ", hit max:" << platform.pos.x + platform.width / 2 << "hit name:" << platform.name << std::endl;
+			// std::cout << "player pos:" << player->position.x << std::endl;
+
 			if (player->position.z >= platform.pos.z + platform.height / 2)
 			{
 				if (expected_position.z < platform.pos.z + platform.height / 2)

@@ -188,6 +188,7 @@ struct PlayMode : Mode
 
 	typedef struct Platform
 	{
+		std::string name = "";
 		glm::vec3 pos = glm::vec3(0, 0, 0);
 		float height = 0;
 		float width = 0;
