@@ -752,6 +752,20 @@ void PlayMode::update(float elapsed)
 			}
 		}
 
+		if (player_stage == PlayerStage::JumpGame)
+		{
+			if (player->position.x > 49.0f && player->position.z > 55.0f)
+			{
+				player_stage = PlayerStage::BossTeleport;
+				camera->transform->position.x = 63.0f;
+				camera->transform->position.z = 5.0f;
+				player->position.x = 63.0f;
+				player->position.z = 5.0f;
+				expected_position.x = 63.0f;
+				expected_position.z = 5.0f;
+			}
+		}
+
 		land_on_platform(expected_position);
 	}
 
@@ -982,9 +996,9 @@ bool PlayMode::hit_platform()
 void PlayMode::land_on_platform(glm::vec3 expected_position)
 {
 	// std::cout << "\n"
-	//  		  << player->position.x << " ," << player->position.y << " ," << player->position.z;
+	//   << player->position.x << " ," << player->position.y << " ," << player->position.z;
 	// std::cout << "\n"
-	// 		  << camera->transform->position.x << " ," << camera->transform->position.y << " ," << camera->transform->position.z;
+	//   << camera->transform->position.x << " ," << camera->transform->position.y << " ," << camera->transform->position.z;
 	// std::cout << "player pos:" << player->position.z << std::endl;
 	// std::cout << "expected pos:" << expected_position.z << std::endl;
 	// std::cout << "distance:" << expected_position.z - collider7->position.z << std::endl;
