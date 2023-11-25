@@ -152,6 +152,7 @@ PlayMode::PlayMode() : scene(*hexapod_scene)
 			// player->position = glm::vec3{-11.0f, 0.0f, -0.15f};
 			// player->scale = glm::vec3{0.15f, 0.15f, 0.15f};
 			start_point = player->position;
+			start_point.z -= 1.0f;
 			player_origin_scale = player->scale;
 		}
 
@@ -195,7 +196,7 @@ PlayMode::PlayMode() : scene(*hexapod_scene)
 			component = &transform;
 			component_scale = component->scale;
 			component->scale = glm::vec4(0);
-				}
+		}
 		else if (transform.name == "BossAttack")
 		{
 			boss_weapon = &transform;
@@ -228,6 +229,16 @@ PlayMode::PlayMode() : scene(*hexapod_scene)
 			platform.name = transform.name;
 			platform.pos = transform.position;
 			// platform.pos = transform.make_local_to_world() * glm::vec4(transform.position, 1.0f);
+			platform.width = (float)abs((transform.make_local_to_world() * glm::vec4(transform.max, 1.0f)).x - (transform.make_local_to_world() * glm::vec4(transform.min, 1.0f)).x);
+			platform.height = (float)abs((transform.make_local_to_world() * glm::vec4(transform.max, 1.0f)).z - (transform.make_local_to_world() * glm::vec4(transform.min, 1.0f)).z);
+			platforms.emplace_back(platform);
+		}
+		else if (transform.name.find("Fragile") != std::string::npos)
+		{
+			Platform platform;
+			platform.name = transform.name;
+			// platform.pos = transform.position;
+			platform.pos = transform.make_local_to_world() * glm::vec4(transform.position, 1.0f);
 			platform.width = (float)abs((transform.make_local_to_world() * glm::vec4(transform.max, 1.0f)).x - (transform.make_local_to_world() * glm::vec4(transform.min, 1.0f)).x);
 			platform.height = (float)abs((transform.make_local_to_world() * glm::vec4(transform.max, 1.0f)).z - (transform.make_local_to_world() * glm::vec4(transform.min, 1.0f)).z);
 			platforms.emplace_back(platform);
@@ -636,7 +647,7 @@ void PlayMode::update(float elapsed)
 		float gravity = -4.0f;
 		if (jetpack_on && jetpack_fuel > 0)
 		{
-			gravity = -1.0f;
+			gravity = -2.0f;
 		}
 
 		if (space.pressed)
