@@ -244,11 +244,11 @@ PlayMode::PlayMode() : scene(*hexapod_scene)
 			platforms.emplace_back(platform);
 			// std::cout << transform.name << "platform pos:" << platform.pos.x << "," << platform.pos.z << std::endl;
 
-			if (transform.name == "Fragile5")
-			{
-				fragile5 = &transform;
-				// std::cout << "fragile5 pos:" << fragile5->position.x << "," << fragile5->position.z << std::endl;
-			}
+			// if (transform.name == "Fragile5")
+			// {
+			// 	fragile5 = &transform;
+			// 	// std::cout << "fragile5 pos:" << fragile5->position.x << "," << fragile5->position.z << std::endl;
+			// }
 		}
 
 		// add a real component jetpack
@@ -745,8 +745,7 @@ void PlayMode::update(float elapsed)
 
 		glm::vec3 expected_position = player->position + hori_move * frame_right + vert_move * frame_up;
 
-		// if (player_stage == PlayerStage::InitialStage && boss_die)
-		if (player_stage == PlayerStage::InitialStage)
+		if (player_stage == PlayerStage::InitialStage && boss_die)
 		{
 			if (player->position.x > 18.0f && player->position.z > 7.5f)
 			{
