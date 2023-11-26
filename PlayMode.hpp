@@ -71,7 +71,7 @@ struct PlayMode : Mode
 
 	// jet pack
 	Scene::Transform *jetPack = nullptr;
-	bool hasJetPack = false;
+	bool hasJetPack = true;
 	bool jetpack_on = false;
 	Scene::Transform *component_jetpack = nullptr;
 	glm::vec3 jetpack_scale;
@@ -216,4 +216,7 @@ struct PlayMode : Mode
 	void update_player_status();
 
 	HitObject hit_detect(Scene::Transform *obj, Scene::Transform *hit_obj);
+
+	// test_platform
+	Scene::Transform *fragile5 = nullptr;
 };

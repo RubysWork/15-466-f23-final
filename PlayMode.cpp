@@ -237,11 +237,18 @@ PlayMode::PlayMode() : scene(*hexapod_scene)
 		{
 			Platform platform;
 			platform.name = transform.name;
-			// platform.pos = transform.position;
-			platform.pos = transform.make_local_to_world() * glm::vec4(transform.position, 1.0f);
+			platform.pos = transform.position;
+			// platform.pos = transform.make_local_to_world() * glm::vec4(transform.position, 1.0f);
 			platform.width = (float)abs((transform.make_local_to_world() * glm::vec4(transform.max, 1.0f)).x - (transform.make_local_to_world() * glm::vec4(transform.min, 1.0f)).x);
 			platform.height = (float)abs((transform.make_local_to_world() * glm::vec4(transform.max, 1.0f)).z - (transform.make_local_to_world() * glm::vec4(transform.min, 1.0f)).z);
 			platforms.emplace_back(platform);
+			// std::cout << transform.name << "platform pos:" << platform.pos.x << "," << platform.pos.z << std::endl;
+
+			if (transform.name == "Fragile5")
+			{
+				fragile5 = &transform;
+				// std::cout << "fragile5 pos:" << fragile5->position.x << "," << fragile5->position.z << std::endl;
+			}
 		}
 
 		// add a real component jetpack
@@ -738,7 +745,8 @@ void PlayMode::update(float elapsed)
 
 		glm::vec3 expected_position = player->position + hori_move * frame_right + vert_move * frame_up;
 
-		if (player_stage == PlayerStage::InitialStage && boss_die)
+		// if (player_stage == PlayerStage::InitialStage && boss_die)
+		if (player_stage == PlayerStage::InitialStage)
 		{
 			if (player->position.x > 18.0f && player->position.z > 7.5f)
 			{
@@ -1010,7 +1018,7 @@ void PlayMode::land_on_platform(glm::vec3 expected_position)
 		// std::cout << "\n" << outer_block -> name << "position z " << world_coords(outer_block).z ;
 		// std::cout << "\n" << outer_block -> name << "scale x" << outer_block->scale.x;
 		// std::cout << "\n" << expected_position.z << "z";
-		// std::cout << "name:" << platform.name << ",expected pos:" << expected_position.z << ",plat pos:" << platform.pos.z << ",3:" << std::abs(expected_position.z - platform.pos.z) << "4:" << platform.height / 2 << std::endl;
+		// std::cout << "name:" << platform.name << ",expected pos:" << expected_position.x << ",plat pos:" << platform.pos.x << ",3:" << std::abs(expected_position.x - platform.pos.x) << "4:" << platform.width / 2 << std::endl;
 		if (std::abs(expected_position.x - platform.pos.x) < platform.width / 2 &&
 			std::abs(expected_position.z - platform.pos.z) < platform.height / 2)
 		{
