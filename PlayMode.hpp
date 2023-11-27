@@ -72,7 +72,7 @@ struct PlayMode : Mode
 
 	// jet pack
 	Scene::Transform *jetPack = nullptr;
-	bool hasJetPack = false;
+	bool hasJetPack = true;
 	bool jetpack_on = false;
 	Scene::Transform *component_jetpack = nullptr;
 	glm::vec3 jetpack_scale;
@@ -86,42 +86,6 @@ struct PlayMode : Mode
 	glm::vec3 start_point;
 	glm::vec3 player_origin_scale;
 	bool face_right = true;
-
-	// boss weapon
-	Scene::Transform *boss_weapon = nullptr;
-	int weapon_timer = 0;
-	// bullet
-	typedef struct Bullet
-	{
-		int index = 0;
-		Scene::Transform *transform = nullptr;
-
-		glm::vec3 original_pos = glm::vec3(0, 0, 0);
-		glm::vec3 final_pos = glm::vec3(0, 0, 0);
-
-		glm::vec3 player_pos = glm::vec3(0, 0, 0);
-
-		float bullet_current_time = 0;
-		bool hit_player = false;
-	} Bullet;
-
-	std::vector<Bullet> bullets;
-	Bullet current_bullet;
-
-	float bullet_total_time = 0;
-	std::list<Bullet> current_bullets; // each three bullets in a group
-	int current_bullets_index = 0;	   // the index in the current_bullets
-	int bullet_index = 0;			   // all bullet index
-	int bullet_current_index = 0;	   // put next index
-	int bullet_count = 3;
-	float bullet_speed = 3.0f;
-
-	bool shooting1 = true;
-	bool shooting2 = true;
-	bool shooting3 = true;
-	bool hit1 = false;
-	bool hit2 = false;
-	bool hit3 = false;
 
 	struct SubUV
 	{
@@ -169,16 +133,75 @@ struct PlayMode : Mode
 	};
 	bool finish_bullet = false;
 	BattleStatus boss_status = Shoot;
+	bool detect_boss_status = true; // if false, boss status won't change
+
+	// boss weapon
+	typedef struct BossWeapon
+	{
+		Scene::Transform *transform = nullptr;
+		int timer = 0;
+	} BossWeapon;
+
+	BossWeapon current_boss_weapon;
+	BossWeapon level1_boss_weapon;
+	BossWeapon final_boss_weapon;
+
+	// bullet
+	typedef struct Bullet
+	{
+		int index = 0;
+		Scene::Transform *transform = nullptr;
+
+		glm::vec3 original_pos = glm::vec3(0, 0, 0);
+		glm::vec3 final_pos = glm::vec3(0, 0, 0);
+
+		glm::vec3 player_pos = glm::vec3(0, 0, 0);
+
+		float bullet_current_time = 0;
+		bool hit_player = false;
+	} Bullet;
+
+	std::vector<Bullet> bullets;
+	Bullet current_bullet;
+
+	float bullet_total_time = 0;
+	std::list<Bullet> current_bullets; // each three bullets in a group
+	int current_bullets_index = 0;	   // the index in the current_bullets
+	int bullet_index = 0;			   // all bullet index
+	int bullet_current_index = 0;	   // put next index
+	int bullet_count = 3;
+	float bullet_speed = 3.0f;
+
+	bool shooting1 = true; // first bullet is shooting
+	bool shooting2 = true;
+	bool shooting3 = true;
+	bool hit1 = false;
+	bool hit2 = false;
+	bool hit3 = false;
 
 	/// boss
-	Scene::Transform *boss = nullptr;
-	float boss_speed = 1.0f;
-	bool boss_die = false;
+	typedef struct Boss
+	{
+		Scene::Transform *transform;
+		float speed = 1.0f;
+		float max_hp = 1.0f;
+		float current_hp = 1.0f;
+		bool die = false;
+	} Boss;
+
+	Boss current_boss;
+	Boss level1_boss;
+	Boss final_boss;
 
 	/// bosshp
 	Scene::Transform *boss_hp = nullptr;
-	float max_boss_hp = 1.0f;
-	float current_boss_hp = 1.0f;
+
+	// boss teleport
+	std::list<Scene::Transform *> teleportPos;
+	int count_for_teleport = 0; // if this count reaches 2, start teleport
+	bool ready_to_teleport = false;
+	float teleport_timer = 0.3f; // scale cange timer
+	bool arrive_new_pos = false; // start scale
 
 	/// playerhp
 	Scene::Transform *player_hp = nullptr;
@@ -216,7 +239,16 @@ struct PlayMode : Mode
 
 	void update_player_status();
 
+	glm::vec3 nearest_teleport();
+
+	void update_boss_status();
+
+	void teleport();
+
 	HitObject hit_detect(Scene::Transform *obj, Scene::Transform *hit_obj);
 	HitObject hit_detect_SAT(Scene::Transform *obj, Scene::Transform *hit_obj);
-	std::pair<float,float> ProjectAlongVector(Scene::Transform *obj, const glm::vec3& projectionVector);
+	std::pair<float, float> ProjectAlongVector(Scene::Transform *obj, const glm::vec3 &projectionVector);
+
+	// test_platform
+	// Scene::Transform *fragile5 = nullptr;
 };

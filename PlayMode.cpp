@@ -73,8 +73,8 @@ PlayMode::PlayMode() : scene(*hexapod_scene)
 		if (transform.name == "Player")
 		{
 			player = &transform;
-			// player->position = glm::vec3{-11.0f, 0.0f, -0.15f};
-			// player->scale = glm::vec3{0.15f, 0.15f, 0.15f};
+			// player->position = glm::vec3{76.828f, 5.8671f, 1.4484f};
+			//  player->scale = glm::vec3{0.15f, 0.15f, 0.15f};
 			start_point = player->position;
 			start_point.z -= 1.0f;
 			player_origin_scale = player->scale;
@@ -82,7 +82,8 @@ PlayMode::PlayMode() : scene(*hexapod_scene)
 
 		else if (transform.name == "Boss")
 		{
-			boss = &transform;
+			level1_boss.transform = &transform;
+			// current_boss = level1_boss;
 		}
 
 		else if (transform.name.find("SubUV") != std::string::npos)
@@ -123,7 +124,8 @@ PlayMode::PlayMode() : scene(*hexapod_scene)
 		}
 		else if (transform.name == "BossAttack")
 		{
-			boss_weapon = &transform;
+			level1_boss_weapon.transform = &transform;
+			// current_boss_weapon=level1_boss_weapon;
 		}
 		else if (transform.name == "PlayerAttack")
 		{
@@ -166,8 +168,25 @@ PlayMode::PlayMode() : scene(*hexapod_scene)
 			platform.width = (float)abs((transform.make_local_to_world() * glm::vec4(transform.max, 1.0f)).x - (transform.make_local_to_world() * glm::vec4(transform.min, 1.0f)).x);
 			platform.height = (float)abs((transform.make_local_to_world() * glm::vec4(transform.max, 1.0f)).z - (transform.make_local_to_world() * glm::vec4(transform.min, 1.0f)).z);
 			platforms.emplace_back(platform);
+			// 			if (transform.name == "Fragile5")
+			// {
+			// 	fragile5 = &transform;
+			// }
 		}
-
+		else if (transform.name == "Final_Boss")
+		{
+			final_boss.transform = &transform;
+			current_boss = final_boss;
+		}
+		else if (transform.name == "FinalBossAttack")
+		{
+			final_boss_weapon.transform = &transform;
+			current_boss_weapon = final_boss_weapon;
+		}
+		else if (transform.name.find("Teleport") != std::string::npos)
+		{
+			teleportPos.emplace_back(&transform);
+		}
 		// add a real component jetpack
 	}
 
@@ -183,7 +202,7 @@ PlayMode::PlayMode() : scene(*hexapod_scene)
 	if (scene.cameras.size() != 1)
 		throw std::runtime_error("Expecting scene to have exactly one camera, but it has " + std::to_string(scene.cameras.size()));
 	camera = &scene.cameras.front();
-	// camera->transform->position = glm::vec3{-9.0f, -28.0f, 0.8f};
+	camera->transform->position = glm::vec3{player->position.x + 2.5722f, -30.0f, player->position.z + 1.3373f};
 
 	// start music loop playing:
 	//  (note: position will be over-ridden in update())
@@ -287,11 +306,9 @@ bool PlayMode::handle_event(SDL_Event const &evt, glm::uvec2 const &window_size)
 void PlayMode::update(float elapsed)
 {
 	update_player_status();
-	
-	// show dialogue
-	// show_dialogue();
+
 	// get weapon
-	if (!get_weapon && player_atk_cpnt->position.x < player->position.x + 0.3f && player_atk_cpnt->position.x > player->position.x - 0.3f && player_atk_cpnt->position.z < player->position.z + 0.3f && player_atk_cpnt->position.z > player->position.z - 0.3f)
+	if (!get_weapon && hit_detect_SAT(player, player_atk_cpnt).overlapped)
 	{
 		get_weapon = true;
 		component->scale = component_scale;
@@ -299,23 +316,17 @@ void PlayMode::update(float elapsed)
 	}
 
 	// hit cage
-	// if (hit_detect(component, cages.begin()->transform).overlapped)
-	// {
-	// attack = true;
-	// cages.begin()->isDestroied = true;
-	// cages.begin()->transform->scale = glm::vec4(0);
-	//}
-	// get_weapon && !cages.begin()->isDestroied && keyatk.pressed && !attack &&
 	if (get_weapon && !cages.begin()->isDestroied && keyatk.pressed && !attack && hit_detect_SAT(component, cages.begin()->transform).overlapped)
 	{
 		attack = true;
 		cages.begin()->isDestroied = true;
 		cages.begin()->transform->scale = glm::vec4(0);
 	}
+
 	//  get boots
-	
-	if(get_weapon && !cages.begin()->isDestroied && keyatk.pressed && !attack && hit_detect_SAT(player, cages.begin()->transform).overlapped){
-		std::cout<< "test collider : overlapped ......................................"  << std::endl;
+	if (get_weapon && !cages.begin()->isDestroied && keyatk.pressed && !attack && hit_detect_SAT(player, cages.begin()->transform).overlapped)
+	{
+		std::cout << "test collider : overlapped ......................................" << std::endl;
 	}
 
 	if (!hasBoots && cages.begin()->isDestroied && hit_detect(player, boots).overlapped)
@@ -335,7 +346,7 @@ void PlayMode::update(float elapsed)
 	// boss die
 	if (boss_hp->scale.x <= 0.0001f)
 	{
-		boss->scale = glm::vec3(0);
+		current_boss.transform->scale = glm::vec3(0);
 		for (auto &bullet : current_bullets)
 		{
 			put_away_bullet(bullet);
@@ -346,7 +357,7 @@ void PlayMode::update(float elapsed)
 			hasJetPack = true;
 			hasBoots = false;
 		}
-		boss_die = true;
+		current_boss.die = true;
 	}
 	else
 	{
@@ -361,42 +372,31 @@ void PlayMode::update(float elapsed)
 				put_away_bullet(bullet);
 			}
 		}
-		// Weapon attack
-		if (hit_detect(player, boss_weapon).overlapped)
+		// boss weapon attack
+		if (hit_detect(player, current_boss_weapon.transform).overlapped)
 		{
-			if (weapon_timer == 0)
+			if (current_boss_weapon.timer == 0)
 			{
 				hit_player();
-				weapon_timer++;
+				current_boss_weapon.timer++;
 			}
-			if (weapon_timer > 50)
+			if (current_boss_weapon.timer > 50)
 			{
-				weapon_timer = 1;
+				current_boss_weapon.timer = 1;
 				hit_player();
 			}
 			else
 			{
-				weapon_timer++;
+				current_boss_weapon.timer++;
 			}
 		}
 		else
 		{
-			weapon_timer = 0;
+			current_boss_weapon.timer = 0;
 		}
-		// Boss switch status
-		if (boss->position.x < player->position.x + 2.5f && boss->position.x > player->position.x - 2.5f && boss->position.z < player->position.z + 5.0f && boss->position.z > player->position.z - 5.0f)
-		{
+		// update boss status
+		update_boss_status();
 
-			boss_status = Melee;
-		}
-		else if (boss->position.x < player->position.x + 6.5f && boss->position.x > player->position.x - 6.5f && boss->position.z < player->position.z + 6.5f && boss->position.z > player->position.z - 6.5f)
-		{
-			boss_status = Shoot;
-		}
-		else
-		{
-			boss_status = Idle;
-		}
 		// boss status
 		switch (boss_status)
 		{
@@ -431,17 +431,13 @@ void PlayMode::update(float elapsed)
 				finish_bullet = true;
 			}
 			// boss move towards to the player
-			glm::vec3 dir = glm::normalize(player->position - boss->position);
-			boss->position.x += dir.x * boss_speed * elapsed;
-			if ((boss_weapon->make_local_to_world() * glm::vec4(boss_weapon->position, 1.0f)).x < player->position.x + 0.2f && (boss_weapon->make_local_to_world() * glm::vec4(boss_weapon->position, 1.0f)).x > player->position.x - 1 && (boss_weapon->make_local_to_world() * glm::vec4(boss_weapon->position, 1.0f)).x > player->position.x - 1)
-			{
-				// close to player,stop move, attack player
-			}
+			glm::vec3 dir = glm::normalize(player->position - current_boss.transform->position);
+			current_boss.transform->position.x += dir.x * current_boss.speed * elapsed;
 			break;
 		}
 		case Shoot:
 		{
-			// shoot
+			// timer
 			if (finish_bullet)
 			{
 				for (auto bullet : current_bullets)
@@ -451,7 +447,7 @@ void PlayMode::update(float elapsed)
 			}
 			current_bullets_index = 0;
 			bullet_total_time += bullet_speed * elapsed;
-
+			// start new round
 			if (bullet_total_time > 15)
 			{
 				bullet_total_time = 0;
@@ -461,13 +457,36 @@ void PlayMode::update(float elapsed)
 				hit1 = false;
 				hit2 = false;
 				hit3 = false;
+
+				// count for teleport
+				if (current_boss.transform->name == final_boss.transform->name)
+				{
+					if (count_for_teleport > 1)
+					{
+						// start teleport
+						count_for_teleport = 0;
+						ready_to_teleport = true;
+					}
+					else
+					{
+						if (!ready_to_teleport)
+						{
+							count_for_teleport++;
+						}
+					}
+				}
 			}
-			break;
-		}
-		default:
 
 			break;
 		}
+		default:
+		{
+			break;
+		}
+		}
+
+		// teleport, the judgment of whether teleport is in this function
+		teleport();
 		// shoot, for deal with the last bullets before switch the attack mode, the bullets can't write in the shooting status
 		if (shooting1 && !hit1 && bullet_total_time > 0)
 		{
@@ -478,7 +497,7 @@ void PlayMode::update(float elapsed)
 				bi->transform->scale = glm::vec3(0.1f);
 				bi->transform->position.y = player->position.y;
 				bi->bullet_current_time += bullet_speed * elapsed;
-				bi->transform->position = bullet_current_Pos(boss->position, current_bullets.begin()->player_pos, current_bullets.begin()->bullet_current_time);
+				bi->transform->position = bullet_current_Pos(current_boss.transform->position, current_bullets.begin()->player_pos, current_bullets.begin()->bullet_current_time);
 			}
 			else
 			{
@@ -496,7 +515,7 @@ void PlayMode::update(float elapsed)
 				bi->transform->scale = glm::vec3(0.1f);
 				bi->transform->position.y = player->position.y;
 				bi->bullet_current_time += bullet_speed * elapsed;
-				bi->transform->position = bullet_current_Pos(boss->position, bi->player_pos, bi->bullet_current_time);
+				bi->transform->position = bullet_current_Pos(current_boss.transform->position, bi->player_pos, bi->bullet_current_time);
 			}
 			else
 			{
@@ -515,7 +534,7 @@ void PlayMode::update(float elapsed)
 				bi->transform->scale = glm::vec3(0.1f);
 				bi->transform->position.y = player->position.y;
 				bi->bullet_current_time += bullet_speed * elapsed;
-				bi->transform->position = bullet_current_Pos(boss->position, bi->player_pos, bi->bullet_current_time);
+				bi->transform->position = bullet_current_Pos(current_boss.transform->position, bi->player_pos, bi->bullet_current_time);
 			}
 			else
 			{
@@ -524,7 +543,7 @@ void PlayMode::update(float elapsed)
 				bi->bullet_current_time = 0;
 			}
 		}
-
+		// clear 1st bullet
 		if (!hit1 && bullet_total_time > 10)
 		{
 			put_away_bullet(*current_bullets.begin());
@@ -546,16 +565,10 @@ void PlayMode::update(float elapsed)
 		}
 	}
 	// player attack
-	if (get_weapon && 
-	keyatk.pressed && 
-	!attack 
-	&& (component->make_local_to_world() * glm::vec4(component->position, 1.0f)).z < boss->position.z + 0.4f 
-	&& (component->make_local_to_world() * glm::vec4(component->position, 1.0f)).z > boss->position.z - 0.4f 
-	&& ((face_right && (component->make_local_to_world() * glm::vec4(component->position, 1.0f)).x < boss->position.x + 0.8f && (component->make_local_to_world() * glm::vec4(component->position, 1.0f)).x > boss->position.x) 
-		|| (!face_right && (component->make_local_to_world() * glm::vec4(component->position, 1.0f)).x < boss->position.x && (component->make_local_to_world() * glm::vec4(component->position, 1.0f)).x > boss->position.x - 0.8f))
-		)
+	if (get_weapon &&
+		keyatk.pressed &&
+		!attack && hit_detect_SAT(component, current_boss.transform).overlapped)
 	{
-		//std::cout << "hit!" << std::endl;
 		attack = true;
 		hit_boss();
 	}
@@ -621,7 +634,7 @@ void PlayMode::update(float elapsed)
 			jetpack_fuel -= elapsed;
 		}
 		// print the jetpack fuel
-		//std::cout << jetpack_fuel << "\n";
+		// std::cout << jetpack_fuel << "\n";
 
 		// if (down.pressed && !up.pressed)
 		// 	move.y = -1.0f;
@@ -673,7 +686,7 @@ void PlayMode::update(float elapsed)
 
 		glm::vec3 expected_position = player->position + hori_move * frame_right + vert_move * frame_up;
 
-		if (player_stage == PlayerStage::InitialStage && boss_die)
+		if (player_stage == PlayerStage::InitialStage && level1_boss.die)
 		{
 			if (player->position.x > 18.0f && player->position.z > 7.5f)
 			{
@@ -686,6 +699,21 @@ void PlayMode::update(float elapsed)
 				expected_position.z = 2.64f;
 			}
 		}
+
+		if (player_stage == PlayerStage::JumpGame)
+		{
+			if (player->position.x > 49.0f && player->position.z > 55.0f)
+			{
+				player_stage = PlayerStage::BossTeleport;
+				camera->transform->position.x = 63.0f;
+				camera->transform->position.z = 5.0f;
+				player->position.x = 63.0f;
+				player->position.z = 5.0f;
+				expected_position.x = 63.0f;
+				expected_position.z = 5.0f;
+			}
+		}
+
 		/*
 		Mesh const &playermesh = meshes->lookup(player->name);
 		for(GLuint i=0; i< playermesh.count; i++){
@@ -732,14 +760,6 @@ void PlayMode::draw(glm::uvec2 const &drawable_size)
 
 	scene.draw(*camera);
 
-	// {
-	// 	text.Draw(text_program, base_line, 100.0f, 480.0f, drawable_size, glm::vec3(1.0f, 1.0f, 1.0f), 0.4f);
-	// 	text.Draw(text_program, choice_lines[0], 100.0f, 250.0f, drawable_size, glm::vec3(1.0f, 1.0f, 0.3f), 0.4f);
-	// 	text.Draw(text_program, choice_lines[1], 100.0f, 210.0f, drawable_size, glm::vec3(1.0f, 1.0f, 0.3f), 0.4f);
-	// 	text.Draw(text_program, choice_lines[2], 100.0f, 170.0f, drawable_size, glm::vec3(1.0f, 1.0f, 0.3f), 0.4f);
-	// 	text.Draw(text_program, "Next - Space; Choices - 1/2/3", 250.0f, 0.0f, drawable_size, glm::vec3(0.4f, 0.4f, 0.4f), 0.4f);
-	// }
-
 	GL_ERRORS();
 }
 
@@ -777,7 +797,7 @@ void PlayMode::put_away_bullet(Bullet bullet)
 
 			bi->index = new_bullet.index;
 			bi->transform = new_bullet.transform;
-			bi->transform->position = boss->position;
+			bi->transform->position = current_boss.transform->position;
 			bi->original_pos = new_bullet.original_pos;
 			bi->final_pos = player->position;
 			bi->bullet_current_time = 0;
@@ -801,15 +821,6 @@ void PlayMode::put_away_bullet(Bullet bullet)
 	default:
 		break;
 	}
-	// generate new one
-	// bullet_current_index++;
-	// bullet_current_index %= 6;
-	// // bullet.bullet_current_time = 0;
-	// current_bullets.emplace_back(*(bullets.begin() + bullet_current_index));
-	// auto bi = current_bullets.begin();
-	// std::advance(bi, 2);
-	// bi->player_pos = player->position;
-	// bi->hit_player = false;
 }
 
 void PlayMode::update_player_status()
@@ -891,7 +902,7 @@ void PlayMode::hit_boss()
 {
 	if (boss_hp->scale.x > 0.0001f)
 	{
-		boss_hp->scale.x -= max_boss_hp * 0.1f;
+		boss_hp->scale.x -= current_boss.max_hp * 0.1f;
 	}
 }
 
@@ -921,27 +932,12 @@ bool PlayMode::hit_platform()
 
 void PlayMode::land_on_platform(glm::vec3 expected_position)
 {
-	// std::cout << "\n"
-	//  		  << player->position.x << " ," << player->position.y << " ," << player->position.z;
-	// std::cout << "\n"
-	// 		  << camera->transform->position.x << " ," << camera->transform->position.y << " ," << camera->transform->position.z;
-	// std::cout << "player pos:" << player->position.z << std::endl;
-	// std::cout << "expected pos:" << expected_position.z << std::endl;
-	// std::cout << "distance:" << expected_position.z - collider7->position.z << std::endl;
-
-	// std::cout << "collider7 pos:" << collider7->position.z << ",min:" << (float)abs(collider7->make_local_to_world() * glm::vec4(collider7->min, 1.0f)).z << "height min:" << collider7->position.z - ((float)abs((collider7->make_local_to_world() * glm::vec4(collider7->max, 1.0f)).z - (collider7->make_local_to_world() * glm::vec4(collider7->min, 1.0f)).z) / 2) << std::endl;
-
 	for (auto platform : platforms)
 	{
-		// std::cout << "\n" << outer_block -> name << "position z " << world_coords(outer_block).z ;
-		// std::cout << "\n" << outer_block -> name << "scale x" << outer_block->scale.x;
-		// std::cout << "\n" << expected_position.z << "z";
 		// std::cout << "name:" << platform.name << ",expected pos:" << expected_position.z << ",plat pos:" << platform.pos.z << ",3:" << std::abs(expected_position.z - platform.pos.z) << "4:" << platform.height / 2 << std::endl;
 		if (std::abs(expected_position.x - platform.pos.x) < platform.width / 2 &&
 			std::abs(expected_position.z - platform.pos.z) < platform.height / 2)
 		{
-			// std::cout << "hit pos:" << platform.pos.x << ", hit min:" << platform.pos.x - platform.width / 2 << ", hit max:" << platform.pos.x + platform.width / 2 << "hit name:" << platform.name << std::endl;
-			// std::cout << "player pos:" << player->position.x << std::endl;
 
 			if (player->position.z >= platform.pos.z + platform.height / 2)
 			{
@@ -1010,64 +1006,71 @@ void PlayMode::land_on_platform(glm::vec3 expected_position)
 PlayMode::HitObject PlayMode::hit_detect_SAT(Scene::Transform *obj, Scene::Transform *hit_obj)
 {
 	bool is_collide = true;
-	std::cout<<"look for obj "<< obj->name <<std::endl;
+	std::cout << "look for obj " << obj->name << std::endl;
 	Mesh const &objmesh = meshes->lookup(obj->name);
-	std::cout<<"look for hit obj "<< hit_obj->name <<std::endl;
+	std::cout << "look for hit obj " << hit_obj->name << std::endl;
 
-	for(auto &p:objmesh.points){
-		std::cout<< glm::to_string(obj->make_local_to_world() * glm::vec4(p.position, 1.0f))<<std::endl;
+	for (auto &p : objmesh.points)
+	{
+		std::cout << glm::to_string(obj->make_local_to_world() * glm::vec4(p.position, 1.0f)) << std::endl;
 	}
 	Mesh const &hit_objmesh = meshes->lookup(hit_obj->name);
-	for(GLuint i=0; i< objmesh.halfEdges.size(); i++){
-		if(objmesh.halfEdges[i].twin == -1){
-			glm::vec3 p0 = obj->make_local_to_world() * glm::vec4(objmesh.points[objmesh.halfEdges[i].p0].position,1.0f);
-			glm::vec3 p1 = obj->make_local_to_world() * glm::vec4(objmesh.points[objmesh.halfEdges[i].p1].position,1.0f);
-			std::cout<<"p0 is  "<< glm::to_string(p0)<<std::endl;
-			std::cout<<"p1 is  "<< glm::to_string(p1)<<std::endl;
+	for (GLuint i = 0; i < objmesh.halfEdges.size(); i++)
+	{
+		if (objmesh.halfEdges[i].twin == -1)
+		{
+			glm::vec3 p0 = obj->make_local_to_world() * glm::vec4(objmesh.points[objmesh.halfEdges[i].p0].position, 1.0f);
+			glm::vec3 p1 = obj->make_local_to_world() * glm::vec4(objmesh.points[objmesh.halfEdges[i].p1].position, 1.0f);
+			std::cout << "p0 is  " << glm::to_string(p0) << std::endl;
+			std::cout << "p1 is  " << glm::to_string(p1) << std::endl;
 
-			glm::vec3 edge = glm::normalize(p1-p0);
-			glm::vec3 axis = glm::normalize(glm::cross(edge, glm::vec3(0.0f,1.0f,0.0f)));
-			std::cout<<"we have edges "<< glm::to_string(edge)<<std::endl;
-			std::cout<<"we have axis "<< glm::to_string(axis)<<std::endl;
+			glm::vec3 edge = glm::normalize(p1 - p0);
+			glm::vec3 axis = glm::normalize(glm::cross(edge, glm::vec3(0.0f, 1.0f, 0.0f)));
+			std::cout << "we have edges " << glm::to_string(edge) << std::endl;
+			std::cout << "we have axis " << glm::to_string(axis) << std::endl;
 
 			std::pair<float, float> result0, result1;
 			result0 = ProjectAlongVector(obj, axis);
 			result1 = ProjectAlongVector(hit_obj, axis);
-			std::cout<<"result0 min : "<< result0.first << " , max :" << result0.second <<std::endl;
-			std::cout<<"result1 min : "<< result1.first << " , max :" << result1.second <<std::endl;
+			std::cout << "result0 min : " << result0.first << " , max :" << result0.second << std::endl;
+			std::cout << "result1 min : " << result1.first << " , max :" << result1.second << std::endl;
 
-			if((result0.first > result1.second)||(result1.first > result0.second)){
+			if ((result0.first > result1.second) || (result1.first > result0.second))
+			{
 				is_collide = false;
 				break;
 			}
-
 		}
-		//std::cout<<glm::to_string(playermesh.verticesList[i]) <<std::endl;
+		// std::cout<<glm::to_string(playermesh.verticesList[i]) <<std::endl;
 	}
-	std::cout<< "then    "<<std::endl;
-	if(is_collide){
-		for(GLuint i=0; i< hit_objmesh.halfEdges.size(); i++){
-			if(hit_objmesh.halfEdges[i].twin == -1){
-				glm::vec3 p0 = obj->make_local_to_world() * glm::vec4(objmesh.points[objmesh.halfEdges[i].p0].position,1.0f);
-				glm::vec3 p1 = obj->make_local_to_world() * glm::vec4(objmesh.points[objmesh.halfEdges[i].p1].position,1.0f);
-				glm::vec3 edge = glm::normalize(p1-p0);
-				glm::vec3 axis = glm::normalize(glm::cross(edge, glm::vec3(0.0f,1.0f,0.0f)));
-				//std::cout<<"we have eges "<< glm::to_string(axis)<<std::endl;
+	std::cout << "then    " << std::endl;
+	if (is_collide)
+	{
+		for (GLuint i = 0; i < hit_objmesh.halfEdges.size(); i++)
+		{
+			if (hit_objmesh.halfEdges[i].twin == -1)
+			{
+				glm::vec3 p0 = obj->make_local_to_world() * glm::vec4(objmesh.points[objmesh.halfEdges[i].p0].position, 1.0f);
+				glm::vec3 p1 = obj->make_local_to_world() * glm::vec4(objmesh.points[objmesh.halfEdges[i].p1].position, 1.0f);
+				glm::vec3 edge = glm::normalize(p1 - p0);
+				glm::vec3 axis = glm::normalize(glm::cross(edge, glm::vec3(0.0f, 1.0f, 0.0f)));
+				// std::cout<<"we have eges "<< glm::to_string(axis)<<std::endl;
 				std::pair<float, float> result0, result1;
 				result0 = ProjectAlongVector(obj, axis);
 				result1 = ProjectAlongVector(hit_obj, axis);
-				std::cout<<"result0 min : "<< result0.first << " , max :" << result0.second <<std::endl;
-				std::cout<<"result1 min : "<< result1.first << " , max :" << result1.second <<std::endl;
-				if((result0.first > result1.second)||(result1.first > result0.second)){
+				std::cout << "result0 min : " << result0.first << " , max :" << result0.second << std::endl;
+				std::cout << "result1 min : " << result1.first << " , max :" << result1.second << std::endl;
+				if ((result0.first > result1.second) || (result1.first > result0.second))
+				{
 					is_collide = false;
 					break;
 				}
 			}
-			//std::cout<<glm::to_string(playermesh.verticesList[i]) <<std::endl;
+			// std::cout<<glm::to_string(playermesh.verticesList[i]) <<std::endl;
 		}
 	}
-	
-	//std::cout<<"end<<<<<<<<<" << std::endl;
+
+	// std::cout<<"end<<<<<<<<<" << std::endl;
 
 	PlayMode::HitObject hit_object_result;
 	hit_object_result.name = hit_obj->name;
@@ -1167,182 +1170,138 @@ PlayMode::HitObject PlayMode::hit_detect(Scene::Transform *obj, Scene::Transform
 	return hit_object_result;
 }
 
-
-
-
-
-std::pair<float,float> PlayMode::ProjectAlongVector(Scene::Transform *obj, const glm::vec3& projectionVector) {
-    std::vector<float> projectedPositions;
+std::pair<float, float> PlayMode::ProjectAlongVector(Scene::Transform *obj, const glm::vec3 &projectionVector)
+{
+	std::vector<float> projectedPositions;
 	Mesh const &objmesh = meshes->lookup(obj->name);
 	float min = std::numeric_limits<float>::infinity();
 	float max = -std::numeric_limits<float>::infinity();
 	std::cout << "doing projection" << std::endl;
-    for (const auto& point : objmesh.points) {
-        // Calculate the projection
-		glm::vec3 position = obj->make_local_to_world() * glm::vec4(point.position,1.0f);
-		//std::cout << glm::to_string(position) <<std::endl;
-        float dotProduct = glm::dot(position, projectionVector);
-		//std::cout << dotProduct << std::endl;
-        float projectionLength = glm::length(projectionVector); // squared length to avoid square root
-        float projection = dotProduct / projectionLength;
+	for (const auto &point : objmesh.points)
+	{
+		// Calculate the projection
+		glm::vec3 position = obj->make_local_to_world() * glm::vec4(point.position, 1.0f);
+		// std::cout << glm::to_string(position) <<std::endl;
+		float dotProduct = glm::dot(position, projectionVector);
+		// std::cout << dotProduct << std::endl;
+		float projectionLength = glm::length(projectionVector); // squared length to avoid square root
+		float projection = dotProduct / projectionLength;
 
-        //projectedPositions.push_back(projection);
-		//projectedPositions.push_back(projectionLength);
-		if(projection < min){
+		// projectedPositions.push_back(projection);
+		// projectedPositions.push_back(projectionLength);
+		if (projection < min)
+		{
 			min = projection;
 		}
-		if(projection > max){
+		if (projection > max)
+		{
 			max = projection;
 		}
-    }
+	}
 	std::pair<float, float> result;
 
 	result.first = min;
 	result.second = max;
-	//std::cout << result.first <<"  and  " << result.second << std::endl;
-    return result;
+	// std::cout << result.first <<"  and  " << result.second << std::endl;
+	return result;
 }
-
-
-/*
-PlayMode::HitObject PlayMode::hit_detect(Scene::Transform *obj, Scene::Transform *hit_obj)
+glm::vec3 PlayMode::nearest_teleport()
 {
+	float mindis = INFINITY;
 
-	std::cout << "max:" << obj->max.z << ", min:" << obj->min.z << std::endl;
-	float obj_dis_x = (obj->max.x - obj->min.x) / 2;
-	float obj_dis_z = (obj->max.z - obj->min.z) / 2;
-	float hit_obj_dis_x = (hit_obj->max.x - hit_obj->min.x) / 2;
-	float hit_obj_dis_z = (hit_obj->max.z - hit_obj->min.z) / 2;
+	glm::vec3 minpos;
 
-	glm::vec3 obj_pos = obj->make_local_to_world() * glm::vec4(obj->position, 1.0f);
-	glm::vec3 hit_obj_pos = hit_obj->make_local_to_world() * glm::vec4(hit_obj->position, 1.0f);
-
-	std::cout << "component x:" << obj_pos.x - obj_dis_x << ", " << obj_pos.x + obj_dis_x << "; "
-			  << "component z:" << obj_pos.z - obj_dis_z << ", " << obj_pos.z + obj_dis_z << std::endl;
-
-	std::cout << "cage min x:" << hit_obj_pos.x - hit_obj_dis_x << ", " << hit_obj_pos.x + hit_obj_dis_x << "; "
-			  << "cage max z:" << hit_obj_pos.z - hit_obj_dis_z << ", " << hit_obj_pos.z + hit_obj_dis_z << std::endl;
-
-	std::cout << "x:" << ((obj_pos.x + obj_dis_x < hit_obj_pos.x + hit_obj_dis_x && obj_pos.x + obj_dis_x > hit_obj_pos.x - hit_obj_dis_x) || (obj_pos.x - obj_dis_x < hit_obj_pos.x + hit_obj_dis_x && obj_pos.x - obj_dis_x > hit_obj_pos.x - hit_obj_dis_x)) << "; z:" << ((obj_pos.z + obj_dis_z < hit_obj_pos.z + hit_obj_dis_z && obj_pos.z + obj_dis_z > hit_obj_pos.z - hit_obj_dis_z) || (obj_pos.z - obj_dis_z < hit_obj_pos.z + hit_obj_dis_z && obj_pos.z - obj_dis_z > hit_obj_pos.z - hit_obj_dis_z)) << std::endl;
-
-	if (((obj_pos.x + obj_dis_x < hit_obj_pos.x + hit_obj_dis_x && obj_pos.x + obj_dis_x > hit_obj_pos.x - hit_obj_dis_x) || (obj_pos.x - obj_dis_x < hit_obj_pos.x + hit_obj_dis_x && obj_pos.x - obj_dis_x > hit_obj_pos.x - hit_obj_dis_x)) && ((obj_pos.z + obj_dis_z < hit_obj_pos.z + hit_obj_dis_z && obj_pos.z + obj_dis_z > hit_obj_pos.z - hit_obj_dis_z) || (obj_pos.z - obj_dis_z < hit_obj_pos.z + hit_obj_dis_z && obj_pos.z - obj_dis_z > hit_obj_pos.z - hit_obj_dis_z)))
+	for (auto &telepos : teleportPos)
 	{
-		hit_detect_obj.overlapped = true;
-		hit_detect_obj.name = hit_obj->name;
-		std::cout << "hit name:" << hit_detect_obj.name << std::endl;
+
+		float dis = glm::distance(player->position, telepos->position);
+		minpos = dis < mindis ? telepos->position : minpos;
+		mindis = dis < mindis ? dis : mindis;
 	}
-
-	return hit_detect_obj;
+	return minpos;
 }
-*/
-/*
-void PlayMode::show_dialogue()
+
+void PlayMode::update_boss_status()
 {
-	if (line_index <= choices.choiceLibrary.size() && line_index >= 0)
+	if (detect_boss_status)
 	{
-		// wait until player input, then show next text
-		if (showtext)
+		if (current_boss.transform->name == final_boss.transform->name)
 		{
-			//  type:1-single line
-
-			base_line = choices.GetChoice(line_index).baseChoice.context;
-			if (choices.GetChoice(line_index).dataPath.length() > 1)
+			if (glm::distance(player->position, current_boss.transform->position) < 2.5f)
 			{
-				Sound::stop_all_samples();
-				voiceover = Sound::play_3D(*choices.GetChoice(line_index).voice, 1.0f, glm::vec3(0, 0, 0), 10.0f);
-			}
 
-			if (choices.GetChoice(line_index).type == 1)
-			{
-				for (auto &line : choice_lines)
-				{
-					line = "";
-				}
+				boss_status = Melee;
 			}
-			// 2-choose
-			if (choices.GetChoice(line_index).type == 2)
+			else if (glm::distance(player->position, current_boss.transform->position) < 8.0f)
 			{
-				// show all choice
-				for (int i = 0; i < 3; i++)
-				{
-					if (i < choices.GetChoice(line_index).choiceCount)
-					{
-						if (choices.GetChoice(line_index).choiceCount > i)
-							choice_lines[i] = std::to_string(i + 1) + ": " + choices.GetChoice(line_index).potentialChoice[i].context;
-					}
-					else
-					{
-						choice_lines[i] = "";
-					}
-				}
+				boss_status = Shoot;
 			}
-
-			// reset player input
-			showtext = false;
-			space_downcount = 0;
-			choice1_downcount = 0;
-			choice2_downcount = 0;
-			choice3_downcount = 0;
+			else
+			{
+				boss_status = Idle;
+			}
 		}
-
-		// detect player input
-		if (space.released && space_downcount == 0)
+		else
 		{
-			if (choices.GetChoice(line_index).type == 1)
+			if (current_boss.transform->position.x < player->position.x + 2.5f && current_boss.transform->position.x > player->position.x - 2.5f && current_boss.transform->position.z < player->position.z + 5.0f && current_boss.transform->position.z > player->position.z - 5.0f)
 			{
-				if (choices.GetChoice(line_index).baseChoice.choiceNext > 0)
-				{
-					space_downcount++;
-					// std::cout << "next is:" << choices.GetChoice(line_index).baseChoice.choiceNext << std::endl;
-					line_index = choices.GetChoice(line_index).baseChoice.choiceNext;
 
-					showtext = true;
-				}
-				else
-				{
-					std::cout << "no next line!!" << std::endl;
-				}
+				boss_status = Melee;
 			}
-			space.released = false;
-		}
-
-		if (choices.GetChoice(line_index).type == 2)
-		{
-			int choiceNum = -1;
-			if (choice1.released && choice1_downcount == 0)
+			else if (current_boss.transform->position.x < player->position.x + 6.5f && current_boss.transform->position.x > player->position.x - 6.5f && current_boss.transform->position.z < player->position.z + 6.5f && current_boss.transform->position.z > player->position.z - 6.5f)
 			{
-				choice1_downcount++;
-				choiceNum = 0;
-				choice1.released = false;
+				boss_status = Shoot;
 			}
-			if (choice2.released && choice2_downcount == 0 && choices.GetChoice(line_index).choiceCount > 1)
+			else
 			{
-				choice2_downcount++;
-				choiceNum = 1;
-				choice2.released = false;
-			}
-
-			if (choice3.released && choice3_downcount == 0 && choices.GetChoice(line_index).choiceCount > 2)
-			{
-				choice3_downcount++;
-				choiceNum = 2;
-				choice3.released = false;
-			}
-
-			// show next line
-			if (choiceNum >= 0)
-			{
-				if (choices.GetChoice(line_index).potentialChoice[choiceNum].choiceNext > 0)
-				{
-					line_index = choices.GetChoice(line_index).potentialChoice[choiceNum].choiceNext;
-					showtext = true;
-				}
-				else
-				{
-					// std::cout << "no choose content!!" << std::endl;
-				}
+				boss_status = Idle;
 			}
 		}
 	}
 }
-*/
+
+void PlayMode::teleport()
+{
+	if (current_boss.transform->name == final_boss.transform->name)
+	{
+		if (ready_to_teleport)
+		{
+			if (!arrive_new_pos)
+			{
+				if (teleport_timer > 0)
+				{
+					detect_boss_status = false;
+					boss_status = Idle;
+					teleport_timer -= 0.03f;
+					current_boss.transform->scale = glm::vec3(teleport_timer, current_boss.transform->scale.y, current_boss.transform->scale.z);
+				}
+				else
+				{
+					teleport_timer = 0;
+					current_boss.transform->scale = glm::vec3(teleport_timer, current_boss.transform->scale.y, current_boss.transform->scale.z);
+					glm::vec3 nearest_tel = nearest_teleport();
+					current_boss.transform->position = glm::vec3(nearest_tel.x, player->position.y, nearest_tel.z);
+					arrive_new_pos = true;
+				}
+			}
+			else
+			{
+				if (teleport_timer < 0.3f)
+				{
+					teleport_timer += 0.03f;
+					current_boss.transform->scale = glm::vec3(teleport_timer, current_boss.transform->scale.y, current_boss.transform->scale.z);
+				}
+				else
+				{
+					teleport_timer = 0.3f;
+					current_boss.transform->scale = glm::vec3(teleport_timer, current_boss.transform->scale.y, current_boss.transform->scale.z);
+					arrive_new_pos = false;
+					detect_boss_status = true;
+					ready_to_teleport = false;
+				}
+			}
+
+			// }
+		}
+	}
+}
