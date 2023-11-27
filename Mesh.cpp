@@ -10,6 +10,29 @@
 #include <string>
 #include <set>
 #include <cstddef>
+#include "glm/gtx/string_cast.hpp"
+
+Point::Point(glm::vec3 &pos){
+	position = pos;
+}
+TriFace::TriFace(Point *point0, Point *point1, Point *point2){
+	p0 = point0;
+	p1 = point1;
+	p2 = point2;
+}
+Edge::Edge(Point *point0, Point *point1){
+	p0 = point0;
+	p1 = point1;
+}
+
+HalfEdge::HalfEdge(int point0, int point1, int idx){
+	id = idx;
+	p0 = point0;
+	p1 = point1;
+	next = -1;
+	twin = -1;
+}
+
 
 MeshBuffer::MeshBuffer(std::string const &filename)
 {
@@ -81,10 +104,67 @@ MeshBuffer::MeshBuffer(std::string const &filename)
 			mesh.type = GL_TRIANGLES;
 			mesh.start = entry.vertex_begin;
 			mesh.count = entry.vertex_end - entry.vertex_begin;
+			mesh.points = std::vector<Point>();
+			mesh.faces = std::vector<TriFace>();
+			mesh.edges = std::vector<Edge>();
+			mesh.halfEdges = std::vector<HalfEdge>();
+			//std::cout << mesh.count << std::endl;
 			for (uint32_t v = entry.vertex_begin; v < entry.vertex_end; ++v)
 			{
+
+
 				mesh.min = glm::min(mesh.min, data[v].Position);
 				mesh.max = glm::max(mesh.max, data[v].Position);
+			}
+			
+			for (uint32_t v = entry.vertex_begin; v < entry.vertex_end; v+=3){
+				std::cout<< "v is "<< v <<std::endl;
+				int vxid = v-entry.vertex_begin;
+				Point p0 = Point(data[v].Position);
+				Point p1 = Point(data[v+1].Position);
+				Point p2 = Point(data[v+2].Position);
+
+				mesh.points.push_back(p0);
+				mesh.points.push_back(p1);
+				mesh.points.push_back(p2);
+				/*
+				TriFace face = TriFace(&mesh.points[vxid], &mesh.points[vxid+1], &mesh.points[vxid+2]);
+				mesh.faces.push_back(face);
+				//
+				Edge e0 = Edge(&mesh.points[vxid], &mesh.points[vxid+1]);
+				Edge e1 = Edge(&mesh.points[vxid+1], &mesh.points[vxid+2]);
+				Edge e2 = Edge(&mesh.points[vxid+2], &mesh.points[vxid]);
+				mesh.edges.push_back(e0);
+				mesh.edges.push_back(e1);
+				mesh.edges.push_back(e2);
+				//
+				*/
+				HalfEdge he0 = HalfEdge(vxid, vxid+1, vxid);
+				HalfEdge he1 = HalfEdge(vxid+1, vxid+2, vxid+1);
+				HalfEdge he2 = HalfEdge(vxid+2, vxid, vxid+2);
+				//std::cout << " p0 is :" << glm::to_string(mesh.points[vxid].position) <<std::endl;
+				//std::cout << " p1 is :" << glm::to_string(mesh.points[vxid].position) <<std::endl;
+				//std::cout << " p2 is :" << glm::to_string(mesh.points[vxid].position) <<std::endl;
+
+				he0.next = vxid+1;
+				he1.next = vxid+2;
+				he2.next = vxid;
+				mesh.halfEdges.push_back(he0);
+				mesh.halfEdges.push_back(he1);
+				mesh.halfEdges.push_back(he2);
+				//std::cout<< " end this face" <<std::endl;
+			}		
+			//std::cout << "++++++++++++++++          +++++++++++++++++++"<<std::endl;	
+
+			std::cout<< "load halfEdges" <<mesh.halfEdges.size()<< std::endl;
+			for(auto &he : mesh.halfEdges){
+				for(auto &he2 : mesh.halfEdges){
+					if((mesh.points[he.p0].position == mesh.points[he2.p1].position) && (mesh.points[he.p1].position == mesh.points[he2.p0].position)){
+						he.twin = he2.id;
+						he2.twin = he.id;
+						std::cout<<"find pair" <<std::endl;
+					}
+				}
 			}
 			bool inserted = meshes.insert(std::make_pair(name, mesh)).second;
 			if (!inserted)

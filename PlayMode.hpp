@@ -9,6 +9,7 @@
 #include <vector>
 #include <deque>
 #include <list>
+#include "glm/gtx/string_cast.hpp"
 
 struct PlayMode : Mode
 {
@@ -216,4 +217,6 @@ struct PlayMode : Mode
 	void update_player_status();
 
 	HitObject hit_detect(Scene::Transform *obj, Scene::Transform *hit_obj);
+	HitObject hit_detect_SAT(Scene::Transform *obj, Scene::Transform *hit_obj);
+	std::pair<float,float> ProjectAlongVector(Scene::Transform *obj, const glm::vec3& projectionVector);
 };

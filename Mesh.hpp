@@ -14,7 +14,31 @@
 #include <map>
 #include <limits>
 #include <string>
+#include <vector>
 
+struct Point{
+	glm::vec3 position;
+	Point(glm::vec3 &pos);
+};
+struct TriFace{
+	Point* p0;
+	Point* p1;
+	Point* p2;
+	TriFace(Point *point0, Point *point1, Point *point2);
+};
+struct Edge{
+	Point* p0;
+	Point* p1;
+	Edge(Point *point0, Point *point1);
+};
+struct HalfEdge{
+	int twin;
+	int next;
+	int p0;
+	int p1;
+	int id;
+	HalfEdge(int point0, int point1, int idx);
+};
 
 struct Mesh {
 	//Meshes are vertex ranges (and primitive types) in their MeshBuffer:
@@ -22,7 +46,10 @@ struct Mesh {
 	GLenum type = GL_TRIANGLES; //type of primitives in mesh
 	GLuint start = 0; //index of first vertex
 	GLuint count = 0; //count of vertices
-
+	std::vector< Point > points;
+	std::vector< HalfEdge > halfEdges;
+	std::vector< Edge > edges;
+	std::vector< TriFace > faces;
 	//Bounding box.
 	//useful for debug visualization and (perhaps, eventually) collision detection:
 	glm::vec3 min = glm::vec3( std::numeric_limits< float >::infinity());

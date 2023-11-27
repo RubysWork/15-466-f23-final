@@ -68,82 +68,6 @@ Load<Sound::Sample> dusty_floor_sample(LoadTagDefault, []() -> Sound::Sample con
 
 PlayMode::PlayMode() : scene(*hexapod_scene)
 {
-	/*
-	Platform platform1 = {(glm::vec3{-11.5f, 0, -2.0f}), 3.7f, 4.4f};
-	platforms.emplace_back(platform1);
-	Platform platform2 = {(glm::vec3{-12.6f, 0, 1.0f}), 5.0f, 3.0f};
-	platforms.emplace_back(platform2);
-	Platform platform3 = {(glm::vec3{-9.85f, 0, 0.85f}), 0.6f, 0.9f};
-	platforms.emplace_back(platform3);
-	Platform platform4 = {(glm::vec3{-8.55f, 0, -0.25f}), 0.6f, 0.9f};
-	platforms.emplace_back(platform4);
-	Platform platform5 = {(glm::vec3{-6.85f, 0, -5.16f}), 10.0f, 2.1f};
-	platforms.emplace_back(platform5);
-	Platform platform6 = {(glm::vec3{-5.25f, 0, 0.15f}), 0.4f, 0.9f};
-	platforms.emplace_back(platform6);
-	Platform platform7 = {(glm::vec3{-6.95f, 0, 0.8f}), 0.5f, 1.9f};
-	platforms.emplace_back(platform7);
-	Platform platform8 = {(glm::vec3{-8.7f, 0, 1.3f}), 0.3f, 1.0f};
-	platforms.emplace_back(platform8);
-	Platform platform9 = {(glm::vec3{-8.65f, 0, 2.05f}), 0.52f, 1.8f};
-	platforms.emplace_back(platform9);
-	Platform platform10 = {(glm::vec3{-10.75f, 0, 1.52f}), 0.4f, 0.9f};
-	platforms.emplace_back(platform10);
-	Platform platform11 = {(glm::vec3{-9.75f, 0, 3.65f}), 1.2f, 3.1f};
-	platforms.emplace_back(platform11);
-	Platform platform12 = {(glm::vec3{-7.05f, 0, 2.6f}), 0.4f, 0.9f};
-	platforms.emplace_back(platform12);
-	Platform platform13 = {(glm::vec3{-6.55f, 0, 2.75f}), 0.4f, 0.3f};
-	platforms.emplace_back(platform13);
-	Platform platform14 = {(glm::vec3{-6.1f, 0, 2.88f}), 0.4f, 0.75f};
-	platforms.emplace_back(platform14);
-	Platform platform15 = {(glm::vec3{-4.35f, 0, 0.0f}), 4.0f, 1.1f};
-	platforms.emplace_back(platform15);
-	Platform platform16 = {(glm::vec3{-4.35f, 0, 3.4f}), 5.0f, 2.1f};
-	platforms.emplace_back(platform16);
-	Platform platform17 = {(glm::vec3{-7.05f, 0, 4.6f}), 0.8f, 1.3f};
-	platforms.emplace_back(platform17);
-	Platform platform18 = {(glm::vec3{-9.5f, 0, 4.4f}), 0.5f, 1.1f};
-	platforms.emplace_back(platform18);
-	Platform platform19 = {(glm::vec3{-10.15f, 0, 4.3f}), 0.3f, 0.4f};
-	platforms.emplace_back(platform19);
-	Platform platform20 = {(glm::vec3{-8.9f, 0, 4.3f}), 0.3f, 0.4f};
-	platforms.emplace_back(platform20);
-	Platform platform21 = {(glm::vec3{-8.55f, 0, 5.75f}), 0.6f, 2.3f};
-	platforms.emplace_back(platform21);
-	Platform platform22 = {(glm::vec3{-4.35f, 0, 5.7f}), 0.8f, 4.1f};
-	platforms.emplace_back(platform22);
-	Platform platform23 = {(glm::vec3{-2.7f, 0, 3.3f}), 0.5f, 1.2f};
-	platforms.emplace_back(platform23);
-	Platform platform24 = {(glm::vec3{-0.9f, 0, 2.15f}), 0.8f, 0.8f};
-	platforms.emplace_back(platform24);
-	Platform platform25 = {(glm::vec3{-1.1f, 0, 1.95f}), 0.6f, 0.8f};
-	platforms.emplace_back(platform25);
-	Platform platform26 = {(glm::vec3{-0.7f, 0, 1.95f}), 0.6f, 0.8f};
-	platforms.emplace_back(platform26);
-	Platform platform27 = {(glm::vec3{-4.45f, 0, -2.575f}), 4.85f, 1.3f};
-	platforms.emplace_back(platform27);
-	Platform platform28 = {(glm::vec3{2.4f, 0, -2.925f}), 6.3f, 5.8f};
-	platforms.emplace_back(platform28);
-	Platform platform29 = {(glm::vec3{3.1f, 0, 3.48f}), 0.6f, 2.0f};
-	platforms.emplace_back(platform29);
-	Platform platform30 = {(glm::vec3{6.25f, 0, 2.0f}), 14.2f, 2.32f};
-	platforms.emplace_back(platform30);
-	Platform platform31 = {(glm::vec3{3.05f, 0, 5.3f}), 1.2f, 8.7f};
-	platforms.emplace_back(platform31);
-	Platform platform32 = {(glm::vec3{3.05f, 0, 5.3f}), 1.2f, 8.7f};
-	platforms.emplace_back(platform32);
-	Platform platform33 = {(glm::vec3{-0.5f, 0, 5.9f}), 0.8f, 1.0f};
-	platforms.emplace_back(platform33);
-	Platform platform34 = {(glm::vec3{-0.5f, 0, 5.8f}), 0.6f, 1.8f};
-	platforms.emplace_back(platform34);
-	Platform platform35 = {(glm::vec3{1.4f, 0, 7.0f}), 4.0f, 0.6f};
-	platforms.emplace_back(platform35);
-	Platform platform36 = {(glm::vec3{-12.35f, 0, 4.1f}), 1.4f, 2.7f};
-	platforms.emplace_back(platform36);
-	Platform platform37 = {(glm::vec3{-13.3f, 0, 7.0f}), 12.0f, 1.4f};
-	platforms.emplace_back(platform37);
-*/
 	for (auto &transform : scene.transforms)
 	{
 		if (transform.name == "Player")
@@ -363,7 +287,7 @@ bool PlayMode::handle_event(SDL_Event const &evt, glm::uvec2 const &window_size)
 void PlayMode::update(float elapsed)
 {
 	update_player_status();
-
+	
 	// show dialogue
 	// show_dialogue();
 	// get weapon
@@ -382,13 +306,17 @@ void PlayMode::update(float elapsed)
 	// cages.begin()->transform->scale = glm::vec4(0);
 	//}
 	// get_weapon && !cages.begin()->isDestroied && keyatk.pressed && !attack &&
-	if (get_weapon && !cages.begin()->isDestroied && keyatk.pressed && !attack && hit_detect(component, cages.begin()->transform).overlapped)
+	if (get_weapon && !cages.begin()->isDestroied && keyatk.pressed && !attack && hit_detect_SAT(component, cages.begin()->transform).overlapped)
 	{
 		attack = true;
 		cages.begin()->isDestroied = true;
 		cages.begin()->transform->scale = glm::vec4(0);
 	}
 	//  get boots
+	
+	if(get_weapon && !cages.begin()->isDestroied && keyatk.pressed && !attack && hit_detect_SAT(player, cages.begin()->transform).overlapped){
+		std::cout<< "test collider : overlapped ......................................"  << std::endl;
+	}
 
 	if (!hasBoots && cages.begin()->isDestroied && hit_detect(player, boots).overlapped)
 	{
@@ -618,9 +546,16 @@ void PlayMode::update(float elapsed)
 		}
 	}
 	// player attack
-	if (get_weapon && keyatk.pressed && !attack && (component->make_local_to_world() * glm::vec4(component->position, 1.0f)).z < boss->position.z + 0.4f && (component->make_local_to_world() * glm::vec4(component->position, 1.0f)).z > boss->position.z - 0.4f && ((face_right && (component->make_local_to_world() * glm::vec4(component->position, 1.0f)).x < boss->position.x + 0.8f && (component->make_local_to_world() * glm::vec4(component->position, 1.0f)).x > boss->position.x) || (!face_right && (component->make_local_to_world() * glm::vec4(component->position, 1.0f)).x < boss->position.x && (component->make_local_to_world() * glm::vec4(component->position, 1.0f)).x > boss->position.x - 0.8f)))
+	if (get_weapon && 
+	keyatk.pressed && 
+	!attack 
+	&& (component->make_local_to_world() * glm::vec4(component->position, 1.0f)).z < boss->position.z + 0.4f 
+	&& (component->make_local_to_world() * glm::vec4(component->position, 1.0f)).z > boss->position.z - 0.4f 
+	&& ((face_right && (component->make_local_to_world() * glm::vec4(component->position, 1.0f)).x < boss->position.x + 0.8f && (component->make_local_to_world() * glm::vec4(component->position, 1.0f)).x > boss->position.x) 
+		|| (!face_right && (component->make_local_to_world() * glm::vec4(component->position, 1.0f)).x < boss->position.x && (component->make_local_to_world() * glm::vec4(component->position, 1.0f)).x > boss->position.x - 0.8f))
+		)
 	{
-		std::cout << "hit!" << std::endl;
+		//std::cout << "hit!" << std::endl;
 		attack = true;
 		hit_boss();
 	}
@@ -686,7 +621,7 @@ void PlayMode::update(float elapsed)
 			jetpack_fuel -= elapsed;
 		}
 		// print the jetpack fuel
-		std::cout << jetpack_fuel << "\n";
+		//std::cout << jetpack_fuel << "\n";
 
 		// if (down.pressed && !up.pressed)
 		// 	move.y = -1.0f;
@@ -751,7 +686,12 @@ void PlayMode::update(float elapsed)
 				expected_position.z = 2.64f;
 			}
 		}
-
+		/*
+		Mesh const &playermesh = meshes->lookup(player->name);
+		for(GLuint i=0; i< playermesh.count; i++){
+			std::cout<<glm::to_string(playermesh.verticesList[i]) <<std::endl;
+		}
+		std::cout<<"end<<<<<<<<<" << std::endl; */
 		land_on_platform(expected_position);
 	}
 
@@ -1067,7 +1007,73 @@ void PlayMode::land_on_platform(glm::vec3 expected_position)
 		player->position = expected_position;
 	}
 }
+PlayMode::HitObject PlayMode::hit_detect_SAT(Scene::Transform *obj, Scene::Transform *hit_obj)
+{
+	bool is_collide = true;
+	std::cout<<"look for obj "<< obj->name <<std::endl;
+	Mesh const &objmesh = meshes->lookup(obj->name);
+	std::cout<<"look for hit obj "<< hit_obj->name <<std::endl;
 
+	for(auto &p:objmesh.points){
+		std::cout<< glm::to_string(obj->make_local_to_world() * glm::vec4(p.position, 1.0f))<<std::endl;
+	}
+	Mesh const &hit_objmesh = meshes->lookup(hit_obj->name);
+	for(GLuint i=0; i< objmesh.halfEdges.size(); i++){
+		if(objmesh.halfEdges[i].twin == -1){
+			glm::vec3 p0 = obj->make_local_to_world() * glm::vec4(objmesh.points[objmesh.halfEdges[i].p0].position,1.0f);
+			glm::vec3 p1 = obj->make_local_to_world() * glm::vec4(objmesh.points[objmesh.halfEdges[i].p1].position,1.0f);
+			std::cout<<"p0 is  "<< glm::to_string(p0)<<std::endl;
+			std::cout<<"p1 is  "<< glm::to_string(p1)<<std::endl;
+
+			glm::vec3 edge = glm::normalize(p1-p0);
+			glm::vec3 axis = glm::normalize(glm::cross(edge, glm::vec3(0.0f,1.0f,0.0f)));
+			std::cout<<"we have edges "<< glm::to_string(edge)<<std::endl;
+			std::cout<<"we have axis "<< glm::to_string(axis)<<std::endl;
+
+			std::pair<float, float> result0, result1;
+			result0 = ProjectAlongVector(obj, axis);
+			result1 = ProjectAlongVector(hit_obj, axis);
+			std::cout<<"result0 min : "<< result0.first << " , max :" << result0.second <<std::endl;
+			std::cout<<"result1 min : "<< result1.first << " , max :" << result1.second <<std::endl;
+
+			if((result0.first > result1.second)||(result1.first > result0.second)){
+				is_collide = false;
+				break;
+			}
+
+		}
+		//std::cout<<glm::to_string(playermesh.verticesList[i]) <<std::endl;
+	}
+	std::cout<< "then    "<<std::endl;
+	if(is_collide){
+		for(GLuint i=0; i< hit_objmesh.halfEdges.size(); i++){
+			if(hit_objmesh.halfEdges[i].twin == -1){
+				glm::vec3 p0 = obj->make_local_to_world() * glm::vec4(objmesh.points[objmesh.halfEdges[i].p0].position,1.0f);
+				glm::vec3 p1 = obj->make_local_to_world() * glm::vec4(objmesh.points[objmesh.halfEdges[i].p1].position,1.0f);
+				glm::vec3 edge = glm::normalize(p1-p0);
+				glm::vec3 axis = glm::normalize(glm::cross(edge, glm::vec3(0.0f,1.0f,0.0f)));
+				//std::cout<<"we have eges "<< glm::to_string(axis)<<std::endl;
+				std::pair<float, float> result0, result1;
+				result0 = ProjectAlongVector(obj, axis);
+				result1 = ProjectAlongVector(hit_obj, axis);
+				std::cout<<"result0 min : "<< result0.first << " , max :" << result0.second <<std::endl;
+				std::cout<<"result1 min : "<< result1.first << " , max :" << result1.second <<std::endl;
+				if((result0.first > result1.second)||(result1.first > result0.second)){
+					is_collide = false;
+					break;
+				}
+			}
+			//std::cout<<glm::to_string(playermesh.verticesList[i]) <<std::endl;
+		}
+	}
+	
+	//std::cout<<"end<<<<<<<<<" << std::endl;
+
+	PlayMode::HitObject hit_object_result;
+	hit_object_result.name = hit_obj->name;
+	hit_object_result.overlapped = is_collide;
+	return hit_object_result;
+}
 PlayMode::HitObject PlayMode::hit_detect(Scene::Transform *obj, Scene::Transform *hit_obj)
 {
 	float obj_max_x = (obj->make_local_to_world() * glm::vec4(obj->max, 1.0f)).x;
@@ -1160,6 +1166,44 @@ PlayMode::HitObject PlayMode::hit_detect(Scene::Transform *obj, Scene::Transform
 	}
 	return hit_object_result;
 }
+
+
+
+
+
+std::pair<float,float> PlayMode::ProjectAlongVector(Scene::Transform *obj, const glm::vec3& projectionVector) {
+    std::vector<float> projectedPositions;
+	Mesh const &objmesh = meshes->lookup(obj->name);
+	float min = std::numeric_limits<float>::infinity();
+	float max = -std::numeric_limits<float>::infinity();
+	std::cout << "doing projection" << std::endl;
+    for (const auto& point : objmesh.points) {
+        // Calculate the projection
+		glm::vec3 position = obj->make_local_to_world() * glm::vec4(point.position,1.0f);
+		//std::cout << glm::to_string(position) <<std::endl;
+        float dotProduct = glm::dot(position, projectionVector);
+		//std::cout << dotProduct << std::endl;
+        float projectionLength = glm::length(projectionVector); // squared length to avoid square root
+        float projection = dotProduct / projectionLength;
+
+        //projectedPositions.push_back(projection);
+		//projectedPositions.push_back(projectionLength);
+		if(projection < min){
+			min = projection;
+		}
+		if(projection > max){
+			max = projection;
+		}
+    }
+	std::pair<float, float> result;
+
+	result.first = min;
+	result.second = max;
+	//std::cout << result.first <<"  and  " << result.second << std::endl;
+    return result;
+}
+
+
 /*
 PlayMode::HitObject PlayMode::hit_detect(Scene::Transform *obj, Scene::Transform *hit_obj)
 {

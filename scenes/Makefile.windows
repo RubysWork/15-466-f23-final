@@ -1,5 +1,5 @@
 
-BLENDER="C:\Program Files\Blender Foundation\Blender 3.6\blender.exe"
+BLENDER="C:\Program Files\Blender Foundation\Blender 3.3\blender.exe"
 DIST=../dist
 
 all : \
