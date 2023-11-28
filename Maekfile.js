@@ -72,6 +72,7 @@ if (maek.OS === "windows") {
 } else if (maek.OS === "macos") {
 	maek.options.CPPFlags.push(
 		`-O2`, //optimize
+		'-Wno-deprecated-declarations',
 		//include paths for nest libraries:
 		`-I${NEST_LIBS}/SDL2/include/SDL2`, `-D_THREAD_SAFE`, //the output of sdl-config --cflags
 		`-I${NEST_LIBS}/glm/include`,
@@ -87,7 +88,7 @@ if (maek.OS === "windows") {
 		`-L${NEST_LIBS}/zlib/lib`, `-lz`,
 		`-L${NEST_LIBS}/opusfile/lib`, `-lopusfile`,
 		`-L${NEST_LIBS}/libopus/lib`, `-lopus`,
-		`-L${NEST_LIBS}/libogg/lib`, `-logg`,
+		`-L${NEST_LIBS}/libogg/lib`, `-logg`
 	);
 }
 //use COPY to copy a file
