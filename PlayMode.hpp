@@ -129,6 +129,7 @@ struct PlayMode : Mode
 
 	SubUV subuv;
 	SubUV weapon_subuv;
+	SubUV boss_subuv;
 	PlayerStatus player_status = PlayerStatus::Idle;
 	WeaponStatus weapon_status = WeaponStatus::Idle;
 	bool player_die = false;
@@ -138,7 +139,9 @@ struct PlayMode : Mode
 	{
 		Melee,
 		Shoot,
-		Idle
+		Idle,
+		Attacked,
+		Dead
 	};
 	bool finish_bullet = false;
 	BattleStatus boss_status = Shoot;
