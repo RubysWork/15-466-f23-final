@@ -958,7 +958,7 @@ void PlayMode::update_weapon_status()
 	case WeaponStatus::NormalAttack:
 		weapon_subuv.start_index = 0;
 		weapon_subuv.range = 6;
-		weapon_subuv.speed = 2.0f;
+		weapon_subuv.speed = 2.2f;
 		break;
 	default:
 		weapon_subuv.start_index = 7;
@@ -975,6 +975,7 @@ void PlayMode::update_weapon_status()
 			// bit = subuv.start_index + 1;
 			bit = 1;
 			weapon_status = WeaponStatus::Idle;
+			weapon_subuv.subtransforms[6]->scale = glm::vec3(1.5f);
 		}
 		else
 		{
