@@ -63,6 +63,7 @@ struct PlayMode : Mode
 	bool hasBoots = false;
 	Scene::Transform *component_boots = nullptr;
 	glm::vec3 boots_scale;
+	float boots_timer = 0.0f;
 
 	bool first_jump;
 	bool second_jump;
@@ -238,7 +239,8 @@ struct PlayMode : Mode
 	HitObject hit_detect_obj;
 
 	// music coming from the tip of the leg (as a demonstration):
-	std::shared_ptr<Sound::PlayingSample> leg_tip_loop;
+	std::shared_ptr<Sound::PlayingSample> music;
+	std::shared_ptr<Sound::PlayingSample> sound;
 
 	// camera:
 	Scene::Camera *camera = nullptr;

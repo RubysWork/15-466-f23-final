@@ -66,6 +66,15 @@ Load<Scene> hexapod_scene(LoadTagDefault, []() -> Scene const *
 Load<Sound::Sample> dusty_floor_sample(LoadTagDefault, []() -> Sound::Sample const *
 									   { return new Sound::Sample(data_path("dusty-floor.opus")); });
 
+Load<Sound::Sample> voice_01_sample(LoadTagDefault, []() -> Sound::Sample const *
+									{ return new Sound::Sample(data_path("Voice01.wav")); });
+
+Load<Sound::Sample> voice_02_sample(LoadTagDefault, []() -> Sound::Sample const *
+									{ return new Sound::Sample(data_path("Voice02.wav")); });
+
+Load<Sound::Sample> sound_01_sample(LoadTagDefault, []() -> Sound::Sample const *
+									{ return new Sound::Sample(data_path("Sound01.wav")); });
+
 PlayMode::PlayMode() : scene(*hexapod_scene)
 {
 	for (auto &transform : scene.transforms)
@@ -334,6 +343,7 @@ void PlayMode::update(float elapsed)
 		attack = true;
 		cages.begin()->isDestroied = true;
 		cages.begin()->transform->scale = glm::vec4(0);
+		sound = Sound::play_3D(*sound_01_sample, 1.0f, cages.begin()->transform->position);
 	}
 
 	//  get boots
@@ -346,7 +356,14 @@ void PlayMode::update(float elapsed)
 	{
 		hasBoots = true;
 		boots->scale = glm::vec4(0);
-		component_boots->scale = boots_scale;
+		// component_boots->scale = boots_scale;
+		sound = Sound::play_3D(*voice_01_sample, 1.0f, cages.begin()->transform->position);
+	}
+
+	if (second_jump && hasBoots)
+	{
+		boots_timer = std::min(1.0f, boots_timer + elapsed * 5);
+		component_boots->scale = boots_scale * boots_timer;
 	}
 
 	// player die
@@ -624,6 +641,8 @@ void PlayMode::update(float elapsed)
 				jump_signal = false;
 				second_jump = true;
 				jump_velocity = 3.0f;
+				// add dog and sound
+				sound = Sound::play_3D(*voice_02_sample, 1.0f, player->position);
 			}
 			else if (hasJetPack && !jetpack_on)
 			{
@@ -1033,6 +1052,10 @@ void PlayMode::land_on_platform(glm::vec3 expected_position)
 				{
 					// from higher position
 					player_status = PlayerStatus::JumpEnd;
+					// shrink the dog
+					second_jump = false;
+					component_boots->scale = glm::vec3(0);
+					boots_timer = 0.0f;
 				}
 			}
 			// This is real collision detection
