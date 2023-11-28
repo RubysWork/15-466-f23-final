@@ -147,6 +147,12 @@ struct PlayMode : Mode
 		Dead
 	};
 
+	enum class WeaponStatus
+	{
+		Idle,
+		NormalAttack
+	};
+
 	enum class PlayerStage
 	{
 		InitialStage,
@@ -157,7 +163,9 @@ struct PlayMode : Mode
 	PlayerStage player_stage = PlayerStage::InitialStage;
 
 	SubUV subuv;
+	SubUV weapon_subuv;
 	PlayerStatus player_status = PlayerStatus::Idle;
+	WeaponStatus weapon_status = WeaponStatus::Idle;
 	bool player_die = false;
 
 	// boss status
@@ -215,8 +223,9 @@ struct PlayMode : Mode
 	void put_away_bullet(Bullet bullet);
 
 	void update_player_status();
+	void update_weapon_status();
 
 	HitObject hit_detect(Scene::Transform *obj, Scene::Transform *hit_obj);
 	HitObject hit_detect_SAT(Scene::Transform *obj, Scene::Transform *hit_obj);
-	std::pair<float,float> ProjectAlongVector(Scene::Transform *obj, const glm::vec3& projectionVector);
+	std::pair<float, float> ProjectAlongVector(Scene::Transform *obj, const glm::vec3 &projectionVector);
 };

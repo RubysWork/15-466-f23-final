@@ -30,7 +30,7 @@ Load<GLuint> scene_texture(LoadTagEarly, []() -> GLuint const *
 	//glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 1, 1, 0, GL_RGBA, GL_UNSIGNED_BYTE, tex_data.data());
 	std::vector< glm::u8vec4 > tex_data;
 	glm::uvec2 size;
-	load_png("Tileset_demo.png", &size, &tex_data, OriginLocation::LowerLeftOrigin);
+	load_png("Tileset.png", &size, &tex_data, OriginLocation::LowerLeftOrigin);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, size.x, size.y, 0, GL_RGBA, GL_UNSIGNED_BYTE, tex_data.data());
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
@@ -89,6 +89,12 @@ PlayMode::PlayMode() : scene(*hexapod_scene)
 		{
 			transform.scale = glm::vec3(0.0f);
 			subuv.subtransforms.emplace_back(&transform);
+		}
+
+		else if (transform.name.find("SwordAttack") != std::string::npos)
+		{
+			transform.scale = glm::vec3(0.0f);
+			weapon_subuv.subtransforms.emplace_back(&transform);
 		}
 
 		else if (transform.name.find("Bullet") != std::string::npos)
@@ -234,6 +240,7 @@ bool PlayMode::handle_event(SDL_Event const &evt, glm::uvec2 const &window_size)
 		{
 			keyatk.downs += 1;
 			keyatk.pressed = true;
+			weapon_status = WeaponStatus::NormalAttack;
 			return true;
 		}
 		else if (evt.key.keysym.sym == SDLK_SPACE)
@@ -287,7 +294,9 @@ bool PlayMode::handle_event(SDL_Event const &evt, glm::uvec2 const &window_size)
 void PlayMode::update(float elapsed)
 {
 	update_player_status();
-	
+	if (get_weapon)
+		update_weapon_status();
+
 	// show dialogue
 	// show_dialogue();
 	// get weapon
@@ -313,9 +322,10 @@ void PlayMode::update(float elapsed)
 		cages.begin()->transform->scale = glm::vec4(0);
 	}
 	//  get boots
-	
-	if(get_weapon && !cages.begin()->isDestroied && keyatk.pressed && !attack && hit_detect_SAT(player, cages.begin()->transform).overlapped){
-		std::cout<< "test collider : overlapped ......................................"  << std::endl;
+
+	if (get_weapon && !cages.begin()->isDestroied && keyatk.pressed && !attack && hit_detect_SAT(player, cages.begin()->transform).overlapped)
+	{
+		std::cout << "test collider : overlapped ......................................" << std::endl;
 	}
 
 	if (!hasBoots && cages.begin()->isDestroied && hit_detect(player, boots).overlapped)
@@ -546,16 +556,11 @@ void PlayMode::update(float elapsed)
 		}
 	}
 	// player attack
-	if (get_weapon && 
-	keyatk.pressed && 
-	!attack 
-	&& (component->make_local_to_world() * glm::vec4(component->position, 1.0f)).z < boss->position.z + 0.4f 
-	&& (component->make_local_to_world() * glm::vec4(component->position, 1.0f)).z > boss->position.z - 0.4f 
-	&& ((face_right && (component->make_local_to_world() * glm::vec4(component->position, 1.0f)).x < boss->position.x + 0.8f && (component->make_local_to_world() * glm::vec4(component->position, 1.0f)).x > boss->position.x) 
-		|| (!face_right && (component->make_local_to_world() * glm::vec4(component->position, 1.0f)).x < boss->position.x && (component->make_local_to_world() * glm::vec4(component->position, 1.0f)).x > boss->position.x - 0.8f))
-		)
+	if (get_weapon &&
+		keyatk.pressed &&
+		!attack && (component->make_local_to_world() * glm::vec4(component->position, 1.0f)).z < boss->position.z + 0.4f && (component->make_local_to_world() * glm::vec4(component->position, 1.0f)).z > boss->position.z - 0.4f && ((face_right && (component->make_local_to_world() * glm::vec4(component->position, 1.0f)).x < boss->position.x + 0.8f && (component->make_local_to_world() * glm::vec4(component->position, 1.0f)).x > boss->position.x) || (!face_right && (component->make_local_to_world() * glm::vec4(component->position, 1.0f)).x < boss->position.x && (component->make_local_to_world() * glm::vec4(component->position, 1.0f)).x > boss->position.x - 0.8f)))
 	{
-		//std::cout << "hit!" << std::endl;
+		// std::cout << "hit!" << std::endl;
 		attack = true;
 		hit_boss();
 	}
@@ -621,7 +626,7 @@ void PlayMode::update(float elapsed)
 			jetpack_fuel -= elapsed;
 		}
 		// print the jetpack fuel
-		//std::cout << jetpack_fuel << "\n";
+		// std::cout << jetpack_fuel << "\n";
 
 		// if (down.pressed && !up.pressed)
 		// 	move.y = -1.0f;
@@ -879,6 +884,67 @@ void PlayMode::update_player_status()
 	}
 }
 
+void PlayMode::update_weapon_status()
+{
+	weapon_subuv.anim_timer += 0.1f * weapon_subuv.speed;
+
+	uint32_t bit = 1;
+	while (true)
+	{
+		if (weapon_subuv.bitmask >> bit == 0)
+			break;
+		bit++;
+	}
+
+	switch (weapon_status)
+	{
+	case WeaponStatus::Idle:
+		weapon_subuv.start_index = 7;
+		weapon_subuv.range = 0;
+		weapon_subuv.speed = 1.25f;
+		break;
+	case WeaponStatus::NormalAttack:
+		weapon_subuv.start_index = 0;
+		weapon_subuv.range = 6;
+		weapon_subuv.speed = 1.5f;
+		break;
+	default:
+		weapon_subuv.start_index = 7;
+		weapon_subuv.range = 0;
+	}
+
+	if (weapon_status != WeaponStatus::Idle && weapon_subuv.anim_timer > 1)
+	{
+		weapon_subuv.subtransforms[6]->scale = glm::vec3(0.0f);
+		weapon_subuv.subtransforms[bit - 1]->scale = glm::vec3(0.0f);
+		bit++;
+		if (bit - 1 > weapon_subuv.start_index + weapon_subuv.range)
+		{
+			// bit = subuv.start_index + 1;
+			bit = 1;
+			weapon_status = WeaponStatus::Idle;
+		}
+		else
+		{
+			weapon_subuv.subtransforms[bit - 1]->scale = glm::vec3(1.0f);
+		}
+		weapon_subuv.bitmask = 1 << (bit - 1);
+		weapon_subuv.anim_timer = 0.0f;
+	}
+	else if (weapon_status == WeaponStatus::Idle)
+	{
+		weapon_subuv.subtransforms[6]->scale = glm::vec3(1.0f);
+	}
+	// else if (bit - 1 >= subuv.start_index + subuv.range || bit - 1 < subuv.start_index)
+	// {
+	// 	subuv.subtransforms[bit - 1]->scale = glm::vec3(0.0f);
+	// 	bit = subuv.start_index + 1;
+	// 	subuv.bitmask = 1 << (bit - 1);
+	// 	subuv.subtransforms[bit - 1]->scale = glm::vec3(1.0f);
+	// 	subuv.anim_timer = 0.0f;
+	// }
+}
+
 void PlayMode::hit_player()
 {
 	if (player_hp->scale.x > 0.0001f)
@@ -1010,64 +1076,71 @@ void PlayMode::land_on_platform(glm::vec3 expected_position)
 PlayMode::HitObject PlayMode::hit_detect_SAT(Scene::Transform *obj, Scene::Transform *hit_obj)
 {
 	bool is_collide = true;
-	std::cout<<"look for obj "<< obj->name <<std::endl;
+	std::cout << "look for obj " << obj->name << std::endl;
 	Mesh const &objmesh = meshes->lookup(obj->name);
-	std::cout<<"look for hit obj "<< hit_obj->name <<std::endl;
+	std::cout << "look for hit obj " << hit_obj->name << std::endl;
 
-	for(auto &p:objmesh.points){
-		std::cout<< glm::to_string(obj->make_local_to_world() * glm::vec4(p.position, 1.0f))<<std::endl;
+	for (auto &p : objmesh.points)
+	{
+		std::cout << glm::to_string(obj->make_local_to_world() * glm::vec4(p.position, 1.0f)) << std::endl;
 	}
 	Mesh const &hit_objmesh = meshes->lookup(hit_obj->name);
-	for(GLuint i=0; i< objmesh.halfEdges.size(); i++){
-		if(objmesh.halfEdges[i].twin == -1){
-			glm::vec3 p0 = obj->make_local_to_world() * glm::vec4(objmesh.points[objmesh.halfEdges[i].p0].position,1.0f);
-			glm::vec3 p1 = obj->make_local_to_world() * glm::vec4(objmesh.points[objmesh.halfEdges[i].p1].position,1.0f);
-			std::cout<<"p0 is  "<< glm::to_string(p0)<<std::endl;
-			std::cout<<"p1 is  "<< glm::to_string(p1)<<std::endl;
+	for (GLuint i = 0; i < objmesh.halfEdges.size(); i++)
+	{
+		if (objmesh.halfEdges[i].twin == -1)
+		{
+			glm::vec3 p0 = obj->make_local_to_world() * glm::vec4(objmesh.points[objmesh.halfEdges[i].p0].position, 1.0f);
+			glm::vec3 p1 = obj->make_local_to_world() * glm::vec4(objmesh.points[objmesh.halfEdges[i].p1].position, 1.0f);
+			std::cout << "p0 is  " << glm::to_string(p0) << std::endl;
+			std::cout << "p1 is  " << glm::to_string(p1) << std::endl;
 
-			glm::vec3 edge = glm::normalize(p1-p0);
-			glm::vec3 axis = glm::normalize(glm::cross(edge, glm::vec3(0.0f,1.0f,0.0f)));
-			std::cout<<"we have edges "<< glm::to_string(edge)<<std::endl;
-			std::cout<<"we have axis "<< glm::to_string(axis)<<std::endl;
+			glm::vec3 edge = glm::normalize(p1 - p0);
+			glm::vec3 axis = glm::normalize(glm::cross(edge, glm::vec3(0.0f, 1.0f, 0.0f)));
+			std::cout << "we have edges " << glm::to_string(edge) << std::endl;
+			std::cout << "we have axis " << glm::to_string(axis) << std::endl;
 
 			std::pair<float, float> result0, result1;
 			result0 = ProjectAlongVector(obj, axis);
 			result1 = ProjectAlongVector(hit_obj, axis);
-			std::cout<<"result0 min : "<< result0.first << " , max :" << result0.second <<std::endl;
-			std::cout<<"result1 min : "<< result1.first << " , max :" << result1.second <<std::endl;
+			std::cout << "result0 min : " << result0.first << " , max :" << result0.second << std::endl;
+			std::cout << "result1 min : " << result1.first << " , max :" << result1.second << std::endl;
 
-			if((result0.first > result1.second)||(result1.first > result0.second)){
+			if ((result0.first > result1.second) || (result1.first > result0.second))
+			{
 				is_collide = false;
 				break;
 			}
-
 		}
-		//std::cout<<glm::to_string(playermesh.verticesList[i]) <<std::endl;
+		// std::cout<<glm::to_string(playermesh.verticesList[i]) <<std::endl;
 	}
-	std::cout<< "then    "<<std::endl;
-	if(is_collide){
-		for(GLuint i=0; i< hit_objmesh.halfEdges.size(); i++){
-			if(hit_objmesh.halfEdges[i].twin == -1){
-				glm::vec3 p0 = obj->make_local_to_world() * glm::vec4(objmesh.points[objmesh.halfEdges[i].p0].position,1.0f);
-				glm::vec3 p1 = obj->make_local_to_world() * glm::vec4(objmesh.points[objmesh.halfEdges[i].p1].position,1.0f);
-				glm::vec3 edge = glm::normalize(p1-p0);
-				glm::vec3 axis = glm::normalize(glm::cross(edge, glm::vec3(0.0f,1.0f,0.0f)));
-				//std::cout<<"we have eges "<< glm::to_string(axis)<<std::endl;
+	std::cout << "then    " << std::endl;
+	if (is_collide)
+	{
+		for (GLuint i = 0; i < hit_objmesh.halfEdges.size(); i++)
+		{
+			if (hit_objmesh.halfEdges[i].twin == -1)
+			{
+				glm::vec3 p0 = obj->make_local_to_world() * glm::vec4(objmesh.points[objmesh.halfEdges[i].p0].position, 1.0f);
+				glm::vec3 p1 = obj->make_local_to_world() * glm::vec4(objmesh.points[objmesh.halfEdges[i].p1].position, 1.0f);
+				glm::vec3 edge = glm::normalize(p1 - p0);
+				glm::vec3 axis = glm::normalize(glm::cross(edge, glm::vec3(0.0f, 1.0f, 0.0f)));
+				// std::cout<<"we have eges "<< glm::to_string(axis)<<std::endl;
 				std::pair<float, float> result0, result1;
 				result0 = ProjectAlongVector(obj, axis);
 				result1 = ProjectAlongVector(hit_obj, axis);
-				std::cout<<"result0 min : "<< result0.first << " , max :" << result0.second <<std::endl;
-				std::cout<<"result1 min : "<< result1.first << " , max :" << result1.second <<std::endl;
-				if((result0.first > result1.second)||(result1.first > result0.second)){
+				std::cout << "result0 min : " << result0.first << " , max :" << result0.second << std::endl;
+				std::cout << "result1 min : " << result1.first << " , max :" << result1.second << std::endl;
+				if ((result0.first > result1.second) || (result1.first > result0.second))
+				{
 					is_collide = false;
 					break;
 				}
 			}
-			//std::cout<<glm::to_string(playermesh.verticesList[i]) <<std::endl;
+			// std::cout<<glm::to_string(playermesh.verticesList[i]) <<std::endl;
 		}
 	}
-	
-	//std::cout<<"end<<<<<<<<<" << std::endl;
+
+	// std::cout<<"end<<<<<<<<<" << std::endl;
 
 	PlayMode::HitObject hit_object_result;
 	hit_object_result.name = hit_obj->name;
@@ -1167,42 +1240,41 @@ PlayMode::HitObject PlayMode::hit_detect(Scene::Transform *obj, Scene::Transform
 	return hit_object_result;
 }
 
-
-
-
-
-std::pair<float,float> PlayMode::ProjectAlongVector(Scene::Transform *obj, const glm::vec3& projectionVector) {
-    std::vector<float> projectedPositions;
+std::pair<float, float> PlayMode::ProjectAlongVector(Scene::Transform *obj, const glm::vec3 &projectionVector)
+{
+	std::vector<float> projectedPositions;
 	Mesh const &objmesh = meshes->lookup(obj->name);
 	float min = std::numeric_limits<float>::infinity();
 	float max = -std::numeric_limits<float>::infinity();
 	std::cout << "doing projection" << std::endl;
-    for (const auto& point : objmesh.points) {
-        // Calculate the projection
-		glm::vec3 position = obj->make_local_to_world() * glm::vec4(point.position,1.0f);
-		//std::cout << glm::to_string(position) <<std::endl;
-        float dotProduct = glm::dot(position, projectionVector);
-		//std::cout << dotProduct << std::endl;
-        float projectionLength = glm::length(projectionVector); // squared length to avoid square root
-        float projection = dotProduct / projectionLength;
+	for (const auto &point : objmesh.points)
+	{
+		// Calculate the projection
+		glm::vec3 position = obj->make_local_to_world() * glm::vec4(point.position, 1.0f);
+		// std::cout << glm::to_string(position) <<std::endl;
+		float dotProduct = glm::dot(position, projectionVector);
+		// std::cout << dotProduct << std::endl;
+		float projectionLength = glm::length(projectionVector); // squared length to avoid square root
+		float projection = dotProduct / projectionLength;
 
-        //projectedPositions.push_back(projection);
-		//projectedPositions.push_back(projectionLength);
-		if(projection < min){
+		// projectedPositions.push_back(projection);
+		// projectedPositions.push_back(projectionLength);
+		if (projection < min)
+		{
 			min = projection;
 		}
-		if(projection > max){
+		if (projection > max)
+		{
 			max = projection;
 		}
-    }
+	}
 	std::pair<float, float> result;
 
 	result.first = min;
 	result.second = max;
-	//std::cout << result.first <<"  and  " << result.second << std::endl;
-    return result;
+	// std::cout << result.first <<"  and  " << result.second << std::endl;
+	return result;
 }
-
 
 /*
 PlayMode::HitObject PlayMode::hit_detect(Scene::Transform *obj, Scene::Transform *hit_obj)
