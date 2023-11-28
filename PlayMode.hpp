@@ -73,7 +73,7 @@ struct PlayMode : Mode
 
 	// jet pack
 	Scene::Transform *jetPack = nullptr;
-	bool hasJetPack = true;
+	bool hasJetPack = false;
 	bool jetpack_on = false;
 	Scene::Transform *component_jetpack = nullptr;
 	glm::vec3 jetpack_scale;
@@ -151,7 +151,7 @@ struct PlayMode : Mode
 		int timer = 0;
 	} BossWeapon;
 
-	BossWeapon current_boss_weapon;
+	BossWeapon *current_boss_weapon;
 	BossWeapon level1_boss_weapon;
 	BossWeapon final_boss_weapon;
 
@@ -198,7 +198,7 @@ struct PlayMode : Mode
 		bool die = false;
 	} Boss;
 
-	Boss current_boss;
+	Boss *current_boss;
 	Boss level1_boss;
 	Boss final_boss;
 

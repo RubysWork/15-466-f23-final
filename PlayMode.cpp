@@ -92,7 +92,7 @@ PlayMode::PlayMode() : scene(*hexapod_scene)
 		else if (transform.name == "Boss")
 		{
 			level1_boss.transform = &transform;
-			// current_boss = level1_boss;
+			current_boss = &level1_boss;
 		}
 
 		else if (transform.name.find("SubUV") != std::string::npos)
@@ -140,7 +140,7 @@ PlayMode::PlayMode() : scene(*hexapod_scene)
 		else if (transform.name == "BossAttack")
 		{
 			level1_boss_weapon.transform = &transform;
-			// current_boss_weapon=level1_boss_weapon;
+			current_boss_weapon = &level1_boss_weapon;
 		}
 		else if (transform.name == "PlayerAttack")
 		{
@@ -191,12 +191,12 @@ PlayMode::PlayMode() : scene(*hexapod_scene)
 		else if (transform.name == "Final_Boss")
 		{
 			final_boss.transform = &transform;
-			current_boss = final_boss;
+			// current_boss = &final_boss;
 		}
 		else if (transform.name == "FinalBossAttack")
 		{
 			final_boss_weapon.transform = &transform;
-			current_boss_weapon = final_boss_weapon;
+			// current_boss_weapon = &final_boss_weapon;
 		}
 		else if (transform.name.find("Teleport") != std::string::npos)
 		{
@@ -376,7 +376,7 @@ void PlayMode::update(float elapsed)
 	// boss die
 	if (boss_hp->scale.x <= 0.0001f)
 	{
-		current_boss.transform->scale = glm::vec3(0);
+		current_boss->transform->scale = glm::vec3(0);
 		for (auto &bullet : current_bullets)
 		{
 			put_away_bullet(bullet);
@@ -387,7 +387,7 @@ void PlayMode::update(float elapsed)
 			hasJetPack = true;
 			hasBoots = false;
 		}
-		current_boss.die = true;
+		current_boss->die = true;
 	}
 	else
 	{
@@ -403,26 +403,26 @@ void PlayMode::update(float elapsed)
 			}
 		}
 		// boss weapon attack
-		if (hit_detect(player, current_boss_weapon.transform).overlapped)
+		if (hit_detect(player, current_boss_weapon->transform).overlapped)
 		{
-			if (current_boss_weapon.timer == 0)
+			if (current_boss_weapon->timer == 0)
 			{
 				hit_player();
-				current_boss_weapon.timer++;
+				current_boss_weapon->timer++;
 			}
-			if (current_boss_weapon.timer > 50)
+			if (current_boss_weapon->timer > 50)
 			{
-				current_boss_weapon.timer = 1;
+				current_boss_weapon->timer = 1;
 				hit_player();
 			}
 			else
 			{
-				current_boss_weapon.timer++;
+				current_boss_weapon->timer++;
 			}
 		}
 		else
 		{
-			current_boss_weapon.timer = 0;
+			current_boss_weapon->timer = 0;
 		}
 		// update boss status
 		update_boss_status();
@@ -461,8 +461,8 @@ void PlayMode::update(float elapsed)
 				finish_bullet = true;
 			}
 			// boss move towards to the player
-			glm::vec3 dir = glm::normalize(player->position - current_boss.transform->position);
-			current_boss.transform->position.x += dir.x * current_boss.speed * elapsed;
+			glm::vec3 dir = glm::normalize(player->position - current_boss->transform->position);
+			current_boss->transform->position.x += dir.x * current_boss->speed * elapsed;
 			break;
 		}
 		case Shoot:
@@ -489,7 +489,7 @@ void PlayMode::update(float elapsed)
 				hit3 = false;
 
 				// count for teleport
-				if (current_boss.transform->name == final_boss.transform->name)
+				if (current_boss->transform->name == final_boss.transform->name)
 				{
 					if (count_for_teleport > 1)
 					{
@@ -527,7 +527,7 @@ void PlayMode::update(float elapsed)
 				bi->transform->scale = glm::vec3(0.1f);
 				bi->transform->position.y = player->position.y;
 				bi->bullet_current_time += bullet_speed * elapsed;
-				bi->transform->position = bullet_current_Pos(current_boss.transform->position, current_bullets.begin()->player_pos, current_bullets.begin()->bullet_current_time);
+				bi->transform->position = bullet_current_Pos(current_boss->transform->position, current_bullets.begin()->player_pos, current_bullets.begin()->bullet_current_time);
 			}
 			else
 			{
@@ -545,7 +545,7 @@ void PlayMode::update(float elapsed)
 				bi->transform->scale = glm::vec3(0.1f);
 				bi->transform->position.y = player->position.y;
 				bi->bullet_current_time += bullet_speed * elapsed;
-				bi->transform->position = bullet_current_Pos(current_boss.transform->position, bi->player_pos, bi->bullet_current_time);
+				bi->transform->position = bullet_current_Pos(current_boss->transform->position, bi->player_pos, bi->bullet_current_time);
 			}
 			else
 			{
@@ -564,7 +564,7 @@ void PlayMode::update(float elapsed)
 				bi->transform->scale = glm::vec3(0.1f);
 				bi->transform->position.y = player->position.y;
 				bi->bullet_current_time += bullet_speed * elapsed;
-				bi->transform->position = bullet_current_Pos(current_boss.transform->position, bi->player_pos, bi->bullet_current_time);
+				bi->transform->position = bullet_current_Pos(current_boss->transform->position, bi->player_pos, bi->bullet_current_time);
 			}
 			else
 			{
@@ -597,7 +597,7 @@ void PlayMode::update(float elapsed)
 	// player attack
 	if (get_weapon &&
 		keyatk.pressed &&
-		!attack && hit_detect_SAT(component, current_boss.transform).overlapped)
+		!attack && hit_detect_SAT(component, current_boss->transform).overlapped)
 	{
 		attack = true;
 		hit_boss();
@@ -743,6 +743,8 @@ void PlayMode::update(float elapsed)
 				player->position.z = 5.0f;
 				expected_position.x = 63.0f;
 				expected_position.z = 5.0f;
+				boss_hp->scale.x = 1;
+				current_boss = &final_boss;
 			}
 		}
 
@@ -829,8 +831,7 @@ void PlayMode::put_away_bullet(Bullet bullet)
 
 			bi->index = new_bullet.index;
 			bi->transform = new_bullet.transform;
-			bi->transform->position = current_boss.transform->position;
-			bi->original_pos = new_bullet.original_pos;
+			bi->transform->position = current_boss->transform->position;
 			bi->final_pos = player->position;
 			bi->bullet_current_time = 0;
 			bi->player_pos = player->position;
@@ -1010,7 +1011,7 @@ void PlayMode::hit_boss()
 {
 	if (boss_hp->scale.x > 0.0001f)
 	{
-		boss_hp->scale.x -= current_boss.max_hp * 0.1f;
+		boss_hp->scale.x -= current_boss->max_hp * 0.1f;
 	}
 }
 
@@ -1341,19 +1342,18 @@ glm::vec3 PlayMode::nearest_teleport()
 	}
 	return minpos;
 }
-
 void PlayMode::update_boss_status()
 {
 	if (detect_boss_status)
 	{
-		if (current_boss.transform->name == final_boss.transform->name)
+		if (current_boss->transform->name == final_boss.transform->name)
 		{
-			if (glm::distance(player->position, current_boss.transform->position) < 2.5f)
+			if (glm::distance(player->position, current_boss->transform->position) < 2.5f)
 			{
 
 				boss_status = Melee;
 			}
-			else if (glm::distance(player->position, current_boss.transform->position) < 8.0f)
+			else if (glm::distance(player->position, current_boss->transform->position) < 8.0f)
 			{
 				boss_status = Shoot;
 			}
@@ -1364,12 +1364,12 @@ void PlayMode::update_boss_status()
 		}
 		else
 		{
-			if (current_boss.transform->position.x < player->position.x + 2.5f && current_boss.transform->position.x > player->position.x - 2.5f && current_boss.transform->position.z < player->position.z + 5.0f && current_boss.transform->position.z > player->position.z - 5.0f)
+			if (glm::distance(player->position, current_boss->transform->position) < 2.5f)
 			{
 
 				boss_status = Melee;
 			}
-			else if (current_boss.transform->position.x < player->position.x + 6.5f && current_boss.transform->position.x > player->position.x - 6.5f && current_boss.transform->position.z < player->position.z + 6.5f && current_boss.transform->position.z > player->position.z - 6.5f)
+			else if (glm::distance(player->position, current_boss->transform->position) < 6.0f)
 			{
 				boss_status = Shoot;
 			}
@@ -1380,10 +1380,9 @@ void PlayMode::update_boss_status()
 		}
 	}
 }
-
 void PlayMode::teleport()
 {
-	if (current_boss.transform->name == final_boss.transform->name)
+	if (current_boss->transform->name == final_boss.transform->name)
 	{
 		if (ready_to_teleport)
 		{
@@ -1394,14 +1393,14 @@ void PlayMode::teleport()
 					detect_boss_status = false;
 					boss_status = Idle;
 					teleport_timer -= 0.03f;
-					current_boss.transform->scale = glm::vec3(teleport_timer, current_boss.transform->scale.y, current_boss.transform->scale.z);
+					current_boss->transform->scale = glm::vec3(teleport_timer, current_boss->transform->scale.y, current_boss->transform->scale.z);
 				}
 				else
 				{
 					teleport_timer = 0;
-					current_boss.transform->scale = glm::vec3(teleport_timer, current_boss.transform->scale.y, current_boss.transform->scale.z);
+					current_boss->transform->scale = glm::vec3(teleport_timer, current_boss->transform->scale.y, current_boss->transform->scale.z);
 					glm::vec3 nearest_tel = nearest_teleport();
-					current_boss.transform->position = glm::vec3(nearest_tel.x, player->position.y, nearest_tel.z);
+					current_boss->transform->position = glm::vec3(nearest_tel.x, player->position.y, nearest_tel.z);
 					arrive_new_pos = true;
 				}
 			}
@@ -1410,12 +1409,12 @@ void PlayMode::teleport()
 				if (teleport_timer < 0.3f)
 				{
 					teleport_timer += 0.03f;
-					current_boss.transform->scale = glm::vec3(teleport_timer, current_boss.transform->scale.y, current_boss.transform->scale.z);
+					current_boss->transform->scale = glm::vec3(teleport_timer, current_boss->transform->scale.y, current_boss->transform->scale.z);
 				}
 				else
 				{
 					teleport_timer = 0.3f;
-					current_boss.transform->scale = glm::vec3(teleport_timer, current_boss.transform->scale.y, current_boss.transform->scale.z);
+					current_boss->transform->scale = glm::vec3(teleport_timer, current_boss->transform->scale.y, current_boss->transform->scale.z);
 					arrive_new_pos = false;
 					detect_boss_status = true;
 					ready_to_teleport = false;
