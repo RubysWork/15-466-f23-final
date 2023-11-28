@@ -659,6 +659,7 @@ void PlayMode::update(float elapsed)
 		if (!space.pressed)
 		{
 			jump_signal = true;
+			jetpack_on = false;
 		}
 
 		if (hasJetPack && jetpack_fuel > 0 && jetpack_on)
