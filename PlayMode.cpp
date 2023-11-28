@@ -647,7 +647,7 @@ void PlayMode::update(float elapsed)
 			else if (hasJetPack && !jetpack_on)
 			{
 				jetpack_on = true;
-				jump_velocity = jetpack_max_speed;
+				// jump_velocity = jetpack_max_speed;
 				hover_max_time = hover_full_fuel_time / jetpack_max_fuel * jetpack_fuel;
 			}
 			else
@@ -659,14 +659,20 @@ void PlayMode::update(float elapsed)
 		if (!space.pressed)
 		{
 			jump_signal = true;
+			jetpack_on = false;
 		}
 
 		if (hasJetPack && jetpack_fuel > 0 && jetpack_on)
 		{
 			jetpack_fuel -= elapsed;
 		}
+
+		if (jetpack_fuel <= 0)
+		{
+			jetpack_on = false;
+		}
 		// print the jetpack fuel
-		// std::cout << jetpack_fuel << "\n";
+		std::cout << jetpack_fuel << "\n";
 
 		// if (down.pressed && !up.pressed)
 		// 	move.y = -1.0f;
@@ -678,13 +684,16 @@ void PlayMode::update(float elapsed)
 
 		jump_velocity += gravity * elapsed;
 		float vert_move = jump_velocity * elapsed;
-
-		if (jetpack_on && hover_time < hover_max_time && jump_velocity < 0)
+		if (jetpack_on)
 		{
-			jump_velocity = 0;
-			vert_move = 0;
-			hover_time += elapsed;
+			vert_move += jetpack_max_speed * elapsed;
 		}
+		// if (jetpack_on && hover_time < hover_max_time && jump_velocity < 0)
+		// {
+		// 	jump_velocity = 0;
+		// 	vert_move = 0;
+		// 	hover_time += elapsed;
+		// }
 
 		// std::cout << "hover time" << hover_time << "\n";
 
@@ -720,15 +729,15 @@ void PlayMode::update(float elapsed)
 
 		if (player_stage == PlayerStage::InitialStage && level1_boss.die)
 		{
-			if (player->position.x > 18.0f && player->position.z > 7.5f)
+			if (player->position.x > 17.5f && player->position.z > 7.0f)
 			{
 				player_stage = PlayerStage::JumpGame;
-				camera->transform->position.x += 40.0f - player->position.x;
-				camera->transform->position.z += 2.64f - player->position.z;
-				player->position.x = 40.0f;
-				player->position.z = 2.64f;
-				expected_position.x = 40.0f;
-				expected_position.z = 2.64f;
+				camera->transform->position.x += 37.0f - player->position.x;
+				camera->transform->position.z += 5.0f - player->position.z;
+				player->position.x = 37.0f;
+				player->position.z = 5.0f;
+				expected_position.x = 37.0f;
+				expected_position.z = 5.0f;
 			}
 		}
 
@@ -778,7 +787,7 @@ void PlayMode::draw(glm::uvec2 const &drawable_size)
 	// update camera aspect ratio for drawable:
 	camera->aspect = float(drawable_size.x) / float(drawable_size.y);
 
-	// set up light type and position for lit_color_texture_program:
+	// set up light type and position for lit_color_texture_program:w
 	//  TODO: consider using the Light(s) in the scene to do this
 	glUseProgram(lit_color_texture_program->program);
 	glUniform1i(lit_color_texture_program->LIGHT_TYPE_int, 1);
