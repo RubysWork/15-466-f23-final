@@ -30,7 +30,7 @@ Load<GLuint> scene_texture(LoadTagEarly, []() -> GLuint const *
 	//glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 1, 1, 0, GL_RGBA, GL_UNSIGNED_BYTE, tex_data.data());
 	std::vector< glm::u8vec4 > tex_data;
 	glm::uvec2 size;
-	load_png("Tileset.png", &size, &tex_data, OriginLocation::LowerLeftOrigin);
+	load_png("Tileset_demo.png", &size, &tex_data, OriginLocation::LowerLeftOrigin);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, size.x, size.y, 0, GL_RGBA, GL_UNSIGNED_BYTE, tex_data.data());
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
@@ -233,14 +233,16 @@ bool PlayMode::handle_event(SDL_Event const &evt, glm::uvec2 const &window_size)
 		{
 			keya.downs += 1;
 			keya.pressed = true;
-			player_status = PlayerStatus::MoveLeft;
+			if (player_status != PlayerStatus::JumpLoop && player_status != PlayerStatus::JumpStart)
+				player_status = PlayerStatus::MoveLeft;
 			return true;
 		}
 		else if (evt.key.keysym.sym == SDLK_d)
 		{
 			keyd.downs += 1;
 			keyd.pressed = true;
-			player_status = PlayerStatus::MoveRight;
+			if (player_status != PlayerStatus::JumpLoop && player_status != PlayerStatus::JumpStart)
+				player_status = PlayerStatus::MoveRight;
 			return true;
 		}
 		else if (evt.key.keysym.sym == SDLK_w)
@@ -275,13 +277,15 @@ bool PlayMode::handle_event(SDL_Event const &evt, glm::uvec2 const &window_size)
 		if (evt.key.keysym.sym == SDLK_a)
 		{
 			keya.pressed = false;
-			player_status = PlayerStatus::Idle;
+			if (player_status != PlayerStatus::JumpLoop && player_status != PlayerStatus::JumpStart)
+				player_status = PlayerStatus::Idle;
 			return true;
 		}
 		else if (evt.key.keysym.sym == SDLK_d)
 		{
 			keyd.pressed = false;
-			player_status = PlayerStatus::Idle;
+			if (player_status != PlayerStatus::JumpLoop && player_status != PlayerStatus::JumpStart)
+				player_status = PlayerStatus::Idle;
 			return true;
 		}
 		else if (evt.key.keysym.sym == SDLK_w)
@@ -316,8 +320,6 @@ void PlayMode::update(float elapsed)
 	if (get_weapon)
 		update_weapon_status();
 
-	// show dialogue
-	// show_dialogue();
 	// get weapon
 	if (!get_weapon && hit_detect_SAT(player, player_atk_cpnt).overlapped)
 	{
@@ -335,7 +337,6 @@ void PlayMode::update(float elapsed)
 	}
 
 	//  get boots
-
 	if (get_weapon && !cages.begin()->isDestroied && keyatk.pressed && !attack && hit_detect_SAT(player, cages.begin()->transform).overlapped)
 	{
 		std::cout << "test collider : overlapped ......................................" << std::endl;
@@ -867,15 +868,16 @@ void PlayMode::update_player_status()
 	case PlayerStatus::JumpStart:
 		subuv.start_index = 24;
 		subuv.range = 4;
-		subuv.speed = 1.0f;
+		subuv.speed = 1.75f;
 		break;
 	case PlayerStatus::JumpLoop:
 		subuv.start_index = 29;
-		subuv.range = 1;
+		subuv.range = 2;
 		break;
 	case PlayerStatus::JumpEnd:
-		subuv.start_index = 31;
-		subuv.range = 4;
+		subuv.start_index = 32;
+		subuv.range = 3;
+		subuv.speed = 1.75f;
 		break;
 	default:
 		subuv.start_index = 0;
@@ -886,9 +888,22 @@ void PlayMode::update_player_status()
 	{
 		subuv.subtransforms[bit - 1]->scale = glm::vec3(0.0f);
 		bit++;
-		if (bit - 1 > subuv.start_index + subuv.range)
-			bit = subuv.start_index + 1;
-		subuv.bitmask = 1 << (bit - 1);
+		if (bit - 1 >= subuv.start_index + subuv.range)
+		{
+			if (player_status == PlayerStatus::JumpStart)
+			{
+				player_status = PlayerStatus::JumpLoop;
+				bit = 30; // 29+1
+			}
+			else if (player_status == PlayerStatus::JumpEnd)
+			{
+				player_status = PlayerStatus::Idle;
+				bit = 1;
+			}
+			else
+				bit = subuv.start_index + 1;
+		}
+		subuv.bitmask = 1ULL << (bit - 1);
 		subuv.subtransforms[bit - 1]->scale = glm::vec3(1.0f);
 		subuv.anim_timer = 0.0f;
 	}
@@ -896,7 +911,7 @@ void PlayMode::update_player_status()
 	{
 		subuv.subtransforms[bit - 1]->scale = glm::vec3(0.0f);
 		bit = subuv.start_index + 1;
-		subuv.bitmask = 1 << (bit - 1);
+		subuv.bitmask = 1ULL << (bit - 1);
 		subuv.subtransforms[bit - 1]->scale = glm::vec3(1.0f);
 		subuv.anim_timer = 0.0f;
 	}
@@ -924,7 +939,7 @@ void PlayMode::update_weapon_status()
 	case WeaponStatus::NormalAttack:
 		weapon_subuv.start_index = 0;
 		weapon_subuv.range = 6;
-		weapon_subuv.speed = 1.5f;
+		weapon_subuv.speed = 2.0f;
 		break;
 	default:
 		weapon_subuv.start_index = 7;
@@ -944,14 +959,14 @@ void PlayMode::update_weapon_status()
 		}
 		else
 		{
-			weapon_subuv.subtransforms[bit - 1]->scale = glm::vec3(1.0f);
+			weapon_subuv.subtransforms[bit - 1]->scale = glm::vec3(1.5f);
 		}
-		weapon_subuv.bitmask = 1 << (bit - 1);
+		weapon_subuv.bitmask = 1ULL << (bit - 1);
 		weapon_subuv.anim_timer = 0.0f;
 	}
 	else if (weapon_status == WeaponStatus::Idle)
 	{
-		weapon_subuv.subtransforms[6]->scale = glm::vec3(1.0f);
+		weapon_subuv.subtransforms[6]->scale = glm::vec3(1.5f);
 	}
 	// else if (bit - 1 >= subuv.start_index + subuv.range || bit - 1 < subuv.start_index)
 	// {
@@ -1011,7 +1026,16 @@ void PlayMode::land_on_platform(glm::vec3 expected_position)
 		if (std::abs(expected_position.x - platform.pos.x) < platform.width / 2 &&
 			std::abs(expected_position.z - platform.pos.z) < platform.height / 2)
 		{
-
+			// This is just for JumpEnd Animation
+			if (player->position.z > platform.pos.z + platform.height / 2)
+			{
+				if (expected_position.z < platform.pos.z + platform.height / 2)
+				{
+					// from higher position
+					player_status = PlayerStatus::JumpEnd;
+				}
+			}
+			// This is real collision detection
 			if (player->position.z >= platform.pos.z + platform.height / 2)
 			{
 				if (expected_position.z < platform.pos.z + platform.height / 2)
@@ -1278,9 +1302,7 @@ std::pair<float, float> PlayMode::ProjectAlongVector(Scene::Transform *obj, cons
 	// std::cout << result.first <<"  and  " << result.second << std::endl;
 	return result;
 }
-
-/*
-PlayMode::HitObject PlayMode::hit_detect(Scene::Transform *obj, Scene::Transform *hit_obj)
+glm::vec3 PlayMode::nearest_teleport()
 {
 	float mindis = INFINITY;
 

@@ -90,7 +90,7 @@ struct PlayMode : Mode
 	struct SubUV
 	{
 		std::vector<Scene::Transform *> subtransforms;
-		uint32_t bitmask = 1;
+		uint64_t bitmask = 1;
 		uint32_t start_index = 0;
 		uint32_t range = 0;
 		float anim_timer = 0.0f;
@@ -246,15 +246,18 @@ struct PlayMode : Mode
 	void put_away_bullet(Bullet bullet);
 
 	void update_player_status();
+	void update_weapon_status();
 
 	glm::vec3 nearest_teleport();
 
 	void update_boss_status();
 
 	void teleport();
-	void update_weapon_status();
 
 	HitObject hit_detect(Scene::Transform *obj, Scene::Transform *hit_obj);
 	HitObject hit_detect_SAT(Scene::Transform *obj, Scene::Transform *hit_obj);
 	std::pair<float, float> ProjectAlongVector(Scene::Transform *obj, const glm::vec3 &projectionVector);
+
+	// test_platform
+	// Scene::Transform *fragile5 = nullptr;
 };
