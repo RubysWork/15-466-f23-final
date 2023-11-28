@@ -745,6 +745,7 @@ void PlayMode::update(float elapsed)
 				expected_position.z = 5.0f;
 				boss_hp->scale.x = 1;
 				current_boss = &final_boss;
+				current_boss_weapon = &final_boss_weapon;
 			}
 		}
 
