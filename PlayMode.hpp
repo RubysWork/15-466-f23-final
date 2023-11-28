@@ -79,7 +79,7 @@ struct PlayMode : Mode
 	glm::vec3 jetpack_scale;
 	float jetpack_max_fuel = 1.5f;
 	float jetpack_fuel = 0.0f;
-	float jetpack_max_speed = 4.5f;
+	float jetpack_max_speed = 1.6f;
 	float hover_full_fuel_time = 0.1f;
 	float hover_max_time = 0.4f;
 	float hover_time = 0.0f;

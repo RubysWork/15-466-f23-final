@@ -355,7 +355,7 @@ void PlayMode::update(float elapsed)
 	//  get boots
 	if (get_weapon && !cages.begin()->isDestroied && keyatk.pressed && !attack && hit_detect_SAT(player, cages.begin()->transform).overlapped)
 	{
-		std::cout << "test collider : overlapped ......................................" << std::endl;
+		// std::cout << "test collider : overlapped ......................................" << std::endl;
 	}
 
 	if (!hasBoots && cages.begin()->isDestroied && hit_detect(player, boots).overlapped)
@@ -653,7 +653,7 @@ void PlayMode::update(float elapsed)
 			else if (hasJetPack && !jetpack_on)
 			{
 				jetpack_on = true;
-				jump_velocity = jetpack_max_speed;
+				// jump_velocity = jetpack_max_speed;
 				hover_max_time = hover_full_fuel_time / jetpack_max_fuel * jetpack_fuel;
 			}
 			else
@@ -665,14 +665,20 @@ void PlayMode::update(float elapsed)
 		if (!space.pressed)
 		{
 			jump_signal = true;
+			jetpack_on = false;
 		}
 
 		if (hasJetPack && jetpack_fuel > 0 && jetpack_on)
 		{
 			jetpack_fuel -= elapsed;
 		}
+
+		if (jetpack_fuel <= 0)
+		{
+			jetpack_on = false;
+		}
 		// print the jetpack fuel
-		// std::cout << jetpack_fuel << "\n";
+		std::cout << jetpack_fuel << "\n";
 
 		// if (down.pressed && !up.pressed)
 		// 	move.y = -1.0f;
@@ -684,13 +690,16 @@ void PlayMode::update(float elapsed)
 
 		jump_velocity += gravity * elapsed;
 		float vert_move = jump_velocity * elapsed;
-
-		if (jetpack_on && hover_time < hover_max_time && jump_velocity < 0)
+		if (jetpack_on)
 		{
-			jump_velocity = 0;
-			vert_move = 0;
-			hover_time += elapsed;
+			vert_move += jetpack_max_speed * elapsed;
 		}
+		// if (jetpack_on && hover_time < hover_max_time && jump_velocity < 0)
+		// {
+		// 	jump_velocity = 0;
+		// 	vert_move = 0;
+		// 	hover_time += elapsed;
+		// }
 
 		// std::cout << "hover time" << hover_time << "\n";
 
@@ -726,15 +735,15 @@ void PlayMode::update(float elapsed)
 
 		if (player_stage == PlayerStage::InitialStage && level1_boss.die)
 		{
-			if (player->position.x > 18.0f && player->position.z > 7.5f)
+			if (player->position.x > 17.5f && player->position.z > 7.0f)
 			{
 				player_stage = PlayerStage::JumpGame;
-				camera->transform->position.x += 40.0f - player->position.x;
-				camera->transform->position.z += 2.64f - player->position.z;
-				player->position.x = 40.0f;
-				player->position.z = 2.64f;
-				expected_position.x = 40.0f;
-				expected_position.z = 2.64f;
+				camera->transform->position.x += 37.0f - player->position.x;
+				camera->transform->position.z += 5.0f - player->position.z;
+				player->position.x = 37.0f;
+				player->position.z = 5.0f;
+				expected_position.x = 37.0f;
+				expected_position.z = 5.0f;
 			}
 		}
 
@@ -784,7 +793,7 @@ void PlayMode::draw(glm::uvec2 const &drawable_size)
 	// update camera aspect ratio for drawable:
 	camera->aspect = float(drawable_size.x) / float(drawable_size.y);
 
-	// set up light type and position for lit_color_texture_program:
+	// set up light type and position for lit_color_texture_program:w
 	//  TODO: consider using the Light(s) in the scene to do this
 	glUseProgram(lit_color_texture_program->program);
 	glUniform1i(lit_color_texture_program->LIGHT_TYPE_int, 1);
@@ -1135,14 +1144,14 @@ void PlayMode::land_on_platform(glm::vec3 expected_position)
 PlayMode::HitObject PlayMode::hit_detect_SAT(Scene::Transform *obj, Scene::Transform *hit_obj)
 {
 	bool is_collide = true;
-	std::cout << "look for obj " << obj->name << std::endl;
+	// std::cout << "look for obj " << obj->name << std::endl;
 	Mesh const &objmesh = meshes->lookup(obj->name);
-	std::cout << "look for hit obj " << hit_obj->name << std::endl;
-
-	for (auto &p : objmesh.points)
-	{
-		std::cout << glm::to_string(obj->make_local_to_world() * glm::vec4(p.position, 1.0f)) << std::endl;
-	}
+	// std::cout << "look for hit obj " << hit_obj->name << std::endl;
+	/*
+		for (auto &p : objmesh.points)
+		{
+			//std::cout << glm::to_string(obj->make_local_to_world() * glm::vec4(p.position, 1.0f)) << std::endl;
+		}*/
 	Mesh const &hit_objmesh = meshes->lookup(hit_obj->name);
 	for (GLuint i = 0; i < objmesh.halfEdges.size(); i++)
 	{
@@ -1150,19 +1159,19 @@ PlayMode::HitObject PlayMode::hit_detect_SAT(Scene::Transform *obj, Scene::Trans
 		{
 			glm::vec3 p0 = obj->make_local_to_world() * glm::vec4(objmesh.points[objmesh.halfEdges[i].p0].position, 1.0f);
 			glm::vec3 p1 = obj->make_local_to_world() * glm::vec4(objmesh.points[objmesh.halfEdges[i].p1].position, 1.0f);
-			std::cout << "p0 is  " << glm::to_string(p0) << std::endl;
-			std::cout << "p1 is  " << glm::to_string(p1) << std::endl;
+			// std::cout << "p0 is  " << glm::to_string(p0) << std::endl;
+			// std::cout << "p1 is  " << glm::to_string(p1) << std::endl;
 
 			glm::vec3 edge = glm::normalize(p1 - p0);
 			glm::vec3 axis = glm::normalize(glm::cross(edge, glm::vec3(0.0f, 1.0f, 0.0f)));
-			std::cout << "we have edges " << glm::to_string(edge) << std::endl;
-			std::cout << "we have axis " << glm::to_string(axis) << std::endl;
+			// std::cout << "we have edges " << glm::to_string(edge) << std::endl;
+			// std::cout << "we have axis " << glm::to_string(axis) << std::endl;
 
 			std::pair<float, float> result0, result1;
 			result0 = ProjectAlongVector(obj, axis);
 			result1 = ProjectAlongVector(hit_obj, axis);
-			std::cout << "result0 min : " << result0.first << " , max :" << result0.second << std::endl;
-			std::cout << "result1 min : " << result1.first << " , max :" << result1.second << std::endl;
+			// std::cout << "result0 min : " << result0.first << " , max :" << result0.second << std::endl;
+			// std::cout << "result1 min : " << result1.first << " , max :" << result1.second << std::endl;
 
 			if ((result0.first > result1.second) || (result1.first > result0.second))
 			{
@@ -1172,7 +1181,7 @@ PlayMode::HitObject PlayMode::hit_detect_SAT(Scene::Transform *obj, Scene::Trans
 		}
 		// std::cout<<glm::to_string(playermesh.verticesList[i]) <<std::endl;
 	}
-	std::cout << "then    " << std::endl;
+	////std::cout << "then    " << std::endl;
 	if (is_collide)
 	{
 		for (GLuint i = 0; i < hit_objmesh.halfEdges.size(); i++)
@@ -1187,8 +1196,8 @@ PlayMode::HitObject PlayMode::hit_detect_SAT(Scene::Transform *obj, Scene::Trans
 				std::pair<float, float> result0, result1;
 				result0 = ProjectAlongVector(obj, axis);
 				result1 = ProjectAlongVector(hit_obj, axis);
-				std::cout << "result0 min : " << result0.first << " , max :" << result0.second << std::endl;
-				std::cout << "result1 min : " << result1.first << " , max :" << result1.second << std::endl;
+				// std::cout << "result0 min : " << result0.first << " , max :" << result0.second << std::endl;
+				// std::cout << "result1 min : " << result1.first << " , max :" << result1.second << std::endl;
 				if ((result0.first > result1.second) || (result1.first > result0.second))
 				{
 					is_collide = false;
@@ -1305,7 +1314,7 @@ std::pair<float, float> PlayMode::ProjectAlongVector(Scene::Transform *obj, cons
 	Mesh const &objmesh = meshes->lookup(obj->name);
 	float min = std::numeric_limits<float>::infinity();
 	float max = -std::numeric_limits<float>::infinity();
-	std::cout << "doing projection" << std::endl;
+	// std::cout << "doing projection" << std::endl;
 	for (const auto &point : objmesh.points)
 	{
 		// Calculate the projection
