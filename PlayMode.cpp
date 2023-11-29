@@ -746,6 +746,9 @@ void PlayMode::update(float elapsed)
 			{
 				player_fuel->scale.x = 0.001f;
 			}
+			else if (jetpack_fuel >= jetpack_max_fuel) {
+				player_fuel->scale.x = max_fuel_scale;
+			}
 			else
 			{
 				player_fuel->scale.x = max_fuel_scale * jetpack_fuel / jetpack_max_fuel;
