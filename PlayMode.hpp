@@ -85,6 +85,9 @@ struct PlayMode : Mode
 	float hover_max_time = 0.4f;
 	float hover_time = 0.0f;
 
+	Scene::Transform *player_fuel = nullptr;
+	float max_fuel_scale = 0.0f;
+
 	glm::vec3 start_point;
 	glm::vec3 player_origin_scale;
 	bool face_right = true;

@@ -137,6 +137,11 @@ PlayMode::PlayMode() : scene(*hexapod_scene)
 			player_hp = &transform;
 			player_hp->position.z += 5;
 		}
+		else if (transform.name == "PlayerFuel")
+		{
+			player_fuel = &transform;
+			max_fuel_scale = player_fuel->scale.x;
+		}
 		else if (transform.name == "Component")
 		{
 			component = &transform;
@@ -728,6 +733,18 @@ void PlayMode::update(float elapsed)
 			if (jetpack_fuel < jetpack_max_fuel)
 			{
 				jetpack_fuel += 2 * elapsed;
+			}
+		}
+
+		if (!hasJetPack) {
+			player_fuel->scale.x = 0.001f;
+		}
+		else {
+			if (jetpack_fuel <= 0) {
+				player_fuel->scale.x = 0.001f;
+			}
+			else {
+				player_fuel->scale.x = max_fuel_scale * jetpack_fuel / jetpack_max_fuel;
 			}
 		}
 
