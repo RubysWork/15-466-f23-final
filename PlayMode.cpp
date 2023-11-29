@@ -107,11 +107,11 @@ PlayMode::PlayMode() : scene(*hexapod_scene)
 			weapon_subuv.subtransforms.emplace_back(&transform);
 		}
 
-		// else if (transform.name.find("Boss1Sub") != std::string::npos)
-		// {
-		// 	transform.scale = glm::vec3(0.0f);
-		// 	boss_subuv.subtransforms.emplace_back(&transform);
-		// }
+		else if (transform.name.find("Boss1Sub") != std::string::npos)
+		{
+			transform.scale = glm::vec3(0.0f);
+			boss_subuv.subtransforms.emplace_back(&transform);
+		}
 
 		else if (transform.name.find("Bullet") != std::string::npos)
 		{
@@ -283,7 +283,8 @@ bool PlayMode::handle_event(SDL_Event const &evt, glm::uvec2 const &window_size)
 		{
 			space.downs += 1;
 			space.pressed = true;
-			player_status = PlayerStatus::JumpStart;
+			if (first_jump == false)
+				player_status = PlayerStatus::JumpStart;
 			return true;
 		}
 	}
@@ -382,7 +383,7 @@ void PlayMode::update(float elapsed)
 	// boss die
 	if (boss_hp->scale.x <= 0.0001f)
 	{
-		current_boss->transform->scale = glm::vec3(0);
+		// current_boss->transform->scale = glm::vec3(0);
 		for (auto &bullet : current_bullets)
 		{
 			put_away_bullet(bullet);
@@ -393,7 +394,11 @@ void PlayMode::update(float elapsed)
 			hasJetPack = true;
 			hasBoots = false;
 		}
-		current_boss->die = true;
+
+		if (!current_boss->die)
+			current_boss->die = level1_boss_dead();
+
+		current_boss_weapon->transform->scale = glm::vec3(0);
 	}
 	else
 	{
@@ -1028,6 +1033,7 @@ void PlayMode::hit_boss()
 	if (boss_hp->scale.x > 0.0001f)
 	{
 		boss_hp->scale.x -= current_boss->max_hp * 0.1f;
+		boss_status = BattleStatus::Attacked;
 	}
 }
 
@@ -1360,106 +1366,144 @@ glm::vec3 PlayMode::nearest_teleport()
 }
 void PlayMode::update_boss_status()
 {
-	// { // Update boss animation
-	// 	boss_subuv.anim_timer += 0.1f * boss_subuv.speed;
+	{ // Update boss animation
+		if (player->position.x > current_boss->transform->position.x)
+			current_boss->transform->scale.x = -0.424f;
+		else
+			current_boss->transform->scale.x = 0.424f;
 
-	// 	uint32_t bit = 1;
-	// 	while (true)
-	// 	{
-	// 		if (boss_subuv.bitmask >> bit == 0)
-	// 			break;
-	// 		bit++;
-	// 	}
+		boss_subuv.anim_timer += 0.1f * boss_subuv.speed;
 
-	// 	switch (boss_status)
-	// 	{
-	// 	case BattleStatus::Attacked:
-	// 		boss_subuv.start_index = 10;
-	// 		boss_subuv.range = 0;
-	// 		boss_subuv.speed = 1.0f;
-	// 		break;
-	// 	case BattleStatus::Dead:
-	// 		boss_subuv.start_index = 6;
-	// 		boss_subuv.range = 3;
-	// 		boss_subuv.speed = 1.5f;
-	// 		break;
-	// 	default:
-	// 		boss_subuv.start_index = 0;
-	// 		boss_subuv.range = 5;
-	// 	}
+		uint32_t bit = 1;
+		while (true)
+		{
+			if (boss_subuv.bitmask >> bit == 0)
+				break;
+			bit++;
+		}
 
-	// 	if (boss_subuv.anim_timer > 1)
-	// 	{
-	// 		boss_subuv.subtransforms[bit - 1]->scale = glm::vec3(0.0f);
-	// 		bit++;
-	// 		if (bit - 1 >= boss_subuv.start_index + boss_subuv.range)
-	// 		{
-	// 			if (boss_status == BattleStatus::Dead)
-	// 			{
-	// 				bit = 11;
-	// 			}
-	// 			else
-	// 				bit = boss_subuv.start_index + 1;
-	// 		}
-	// 		boss_subuv.bitmask = 1ULL << (bit - 1);
-	// 		boss_subuv.subtransforms[bit - 1]->scale = glm::vec3(1.0f);
-	// 		boss_subuv.anim_timer = 0.0f;
-	// 	}
-	// 	else if (bit - 1 >= boss_subuv.start_index + boss_subuv.range || bit - 1 < boss_subuv.start_index)
-	// 	{
-	// 		if (boss_status == BattleStatus::Attacked)
-	// 		{
-	// 			boss_status = BattleStatus::Idle;
-	// 			bit = 1;
-	// 		}
-	// 		boss_subuv.subtransforms[bit - 1]->scale = glm::vec3(0.0f);
-	// 		bit = boss_subuv.start_index + 1;
-	// 		boss_subuv.bitmask = 1ULL << (bit - 1);
-	// 		boss_subuv.subtransforms[bit - 1]->scale = glm::vec3(1.0f);
-	// 		boss_subuv.anim_timer = 0.0f;
-	// 	}
-	// }
+		switch (boss_status)
+		{
+		case BattleStatus::Attacked:
+			boss_subuv.start_index = 10;
+			boss_subuv.range = 0;
+			boss_subuv.speed = 1.0f;
+			break;
+		// case BattleStatus::Dead:
+		// 	boss_subuv.start_index = 6;
+		// 	boss_subuv.range = 3;
+		// 	boss_subuv.speed = 1.5f;
+		// 	break;
+		default:
+			boss_subuv.start_index = 0;
+			boss_subuv.range = 5;
+			boss_subuv.speed = 1.25f;
+		}
+
+		if (boss_status == BattleStatus::Dead)
+			return;
+		else if (boss_status == BattleStatus::Attacked)
+		{
+			boss_subuv.subtransforms[bit - 1]->scale = glm::vec3(0.0f);
+			bit = 11;
+			boss_subuv.bitmask = 1ULL << (bit - 1);
+			boss_subuv.subtransforms[bit - 1]->scale = glm::vec3(1.0f);
+			attacked_timer += 0.1f;
+			if (attacked_timer > 1.25f)
+			{
+				boss_status = BattleStatus::Idle;
+				attacked_timer = 0.0f;
+			}
+		}
+		else if (boss_subuv.anim_timer > 1)
+		{
+			boss_subuv.subtransforms[bit - 1]->scale = glm::vec3(0.0f);
+			bit++;
+			if (bit - 1 >= boss_subuv.start_index + boss_subuv.range)
+				bit = boss_subuv.start_index + 1;
+			boss_subuv.bitmask = 1ULL << (bit - 1);
+			boss_subuv.subtransforms[bit - 1]->scale = glm::vec3(1.0f);
+			boss_subuv.anim_timer = 0.0f;
+		}
+		else if (bit - 1 >= boss_subuv.start_index + boss_subuv.range || bit - 1 < boss_subuv.start_index)
+		{
+			boss_subuv.subtransforms[bit - 1]->scale = glm::vec3(0.0f);
+			bit = boss_subuv.start_index + 1;
+			boss_subuv.bitmask = 1ULL << (bit - 1);
+			boss_subuv.subtransforms[bit - 1]->scale = glm::vec3(1.0f);
+			boss_subuv.anim_timer = 0.0f;
+		}
+	}
 
 	if (detect_boss_status)
 	{
 		if (current_boss->transform->name == final_boss.transform->name)
 		{
-			if (glm::distance(player->position, current_boss->transform->position) < 2.5f)
+			if (glm::distance(player->position, current_boss->transform->position) < 2.5f && boss_status != BattleStatus::Attacked)
 			{
-
 				boss_status = Melee;
 			}
-			else if (glm::distance(player->position, current_boss->transform->position) < 8.0f)
+			else if (glm::distance(player->position, current_boss->transform->position) < 8.0f && boss_status != BattleStatus::Attacked)
 			{
 				boss_status = Shoot;
 			}
-			// else if (boss_hp->scale.x < 0.00001f)
-			// {
-			// 	boss_status = Dead;
-			// }
-			else
+			else if (boss_status != BattleStatus::Attacked || boss_hp->scale.x <= 0.2f)
 			{
 				boss_status = Idle;
 			}
 		}
 		else
 		{
-			if (glm::distance(player->position, current_boss->transform->position) < 2.5f)
+			if (glm::distance(player->position, current_boss->transform->position) < 2.5f && boss_status != BattleStatus::Attacked)
 			{
 
 				boss_status = Melee;
 			}
-			else if (glm::distance(player->position, current_boss->transform->position) < 6.0f)
+			else if (glm::distance(player->position, current_boss->transform->position) < 6.0f && boss_status != BattleStatus::Attacked)
 			{
 				boss_status = Shoot;
 			}
-			else
+			else if (boss_status != BattleStatus::Attacked || boss_hp->scale.x <= 0.2f)
 			{
 				boss_status = Idle;
 			}
 		}
 	}
 }
+
+bool PlayMode::level1_boss_dead()
+{
+	boss_subuv.anim_timer += 0.1f * boss_subuv.speed;
+
+	uint32_t bit = 1;
+	while (true)
+	{
+		if (boss_subuv.bitmask >> bit == 0)
+			break;
+		bit++;
+	}
+
+	if (bit == 10) // last frame of dead
+		return true;
+	else
+	{
+		boss_subuv.start_index = 6;
+		boss_subuv.range = 3;
+		boss_subuv.speed = 0.75f;
+
+		if (boss_subuv.anim_timer > 1)
+		{
+			boss_subuv.subtransforms[bit - 1]->scale = glm::vec3(0.0f);
+			bit++;
+			boss_subuv.bitmask = 1ULL << (bit - 1);
+			boss_subuv.subtransforms[bit - 1]->scale = glm::vec3(1.0f);
+			boss_subuv.anim_timer = 0.0f;
+		}
+
+		return false;
+	}
+}
+
 void PlayMode::teleport()
 {
 	if (current_boss->transform->name == final_boss.transform->name)

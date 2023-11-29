@@ -79,7 +79,7 @@ struct PlayMode : Mode
 	glm::vec3 jetpack_scale;
 	float jetpack_max_fuel = 1.5f;
 	float jetpack_fuel = 0.0f;
-	float jetpack_max_speed = 1.6f;
+	float jetpack_max_speed = 1.625f;
 	float hover_full_fuel_time = 0.1f;
 	float hover_max_time = 0.4f;
 	float hover_time = 0.0f;
@@ -146,6 +146,7 @@ struct PlayMode : Mode
 	bool finish_bullet = false;
 	BattleStatus boss_status = Shoot;
 	bool detect_boss_status = true; // if false, boss status won't change
+	float attacked_timer = 0.0f;
 
 	// boss weapon
 	typedef struct BossWeapon
@@ -256,6 +257,7 @@ struct PlayMode : Mode
 	glm::vec3 nearest_teleport();
 
 	void update_boss_status();
+	bool level1_boss_dead();
 
 	void teleport();
 
