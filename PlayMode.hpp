@@ -20,6 +20,7 @@ struct PlayMode : Mode
 	virtual bool handle_event(SDL_Event const &, glm::uvec2 const &window_size) override;
 	virtual void update(float elapsed) override;
 	virtual void draw(glm::uvec2 const &drawable_size) override;
+	glm::vec3 check_change_stage(glm::vec3 expected_position);
 	glm::vec3 bullet_current_Pos(glm::vec3 origin_Pos, glm::vec3 final_Pos, float time);
 	void hit_player();
 	void hit_boss();
@@ -126,6 +127,9 @@ struct PlayMode : Mode
 	};
 
 	PlayerStage player_stage = PlayerStage::InitialStage;
+	float stage_changing = false;
+	float stage_change_timer = 0.0f;
+
 
 	SubUV subuv;
 	SubUV weapon_subuv;

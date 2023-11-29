@@ -683,7 +683,7 @@ void PlayMode::update(float elapsed)
 			jetpack_on = false;
 		}
 		// print the jetpack fuel
-		std::cout << jetpack_fuel << "\n";
+		// std::cout << jetpack_fuel << "\n";
 
 		// if (down.pressed && !up.pressed)
 		// 	move.y = -1.0f;
@@ -736,38 +736,20 @@ void PlayMode::update(float elapsed)
 			jump_velocity = 0;
 		}
 
+		if (stage_changing) {
+			hori_move = 0;
+			if (vert_move > 0) vert_move = 0;
+			if (jump_velocity > 0) jump_velocity = 0;
+			stage_change_timer += elapsed;
+			if (stage_change_timer > 2.0f) {
+				stage_changing = false;
+			}
+		}
+		
 		glm::vec3 expected_position = player->position + hori_move * frame_right + vert_move * frame_up;
 
-		if (player_stage == PlayerStage::InitialStage && level1_boss.die)
-		{
-			if (player->position.x > 17.5f && player->position.z > 7.0f)
-			{
-				player_stage = PlayerStage::JumpGame;
-				camera->transform->position.x += 37.0f - player->position.x;
-				camera->transform->position.z += 5.0f - player->position.z;
-				player->position.x = 37.0f;
-				player->position.z = 5.0f;
-				expected_position.x = 37.0f;
-				expected_position.z = 5.0f;
-			}
-		}
-
-		if (player_stage == PlayerStage::JumpGame)
-		{
-			if (player->position.x > 49.0f && player->position.z > 55.0f)
-			{
-				player_stage = PlayerStage::BossTeleport;
-				camera->transform->position.x = 63.0f;
-				camera->transform->position.z = 5.0f;
-				player->position.x = 63.0f;
-				player->position.z = 5.0f;
-				expected_position.x = 63.0f;
-				expected_position.z = 5.0f;
-				boss_hp->scale.x = 1;
-				current_boss = &final_boss;
-				current_boss_weapon = &final_boss_weapon;
-			}
-		}
+		// check change stage
+		expected_position = check_change_stage(expected_position);
 
 		/*
 		Mesh const &playermesh = meshes->lookup(player->name);
@@ -776,6 +758,7 @@ void PlayMode::update(float elapsed)
 		}
 		std::cout<<"end<<<<<<<<<" << std::endl; */
 		land_on_platform(expected_position);
+		std::cout << player->position.x << "," << player->position.y << "," << player->position.z << "\n";
 	}
 
 	{ // update listener to camera position:
@@ -824,6 +807,43 @@ glm::vec3 world_coords(Scene::Transform *block)
 	return world_block;
 }
 
+glm::vec3 PlayMode::check_change_stage(glm::vec3 expected_position) {
+	if (player_stage == PlayerStage::InitialStage && level1_boss.die)
+		{
+			if (player->position.x > 19.0f && player->position.z > 7.0f)
+			{
+				player_stage = PlayerStage::JumpGame;
+				camera->transform->position.x += 38.0f - player->position.x;
+				camera->transform->position.z += 5.3f - player->position.z;
+				player->position.x = 38.0f;
+				player->position.z = 5.3f;
+				expected_position.x = 38.0f;
+				expected_position.z = 5.3f;
+				stage_changing = true;
+				stage_change_timer = 0.0f;
+			}
+		}
+
+	if (player_stage == PlayerStage::JumpGame)
+		{
+			if (player->position.x > 49.0f && player->position.z > 55.0f)
+			{
+				player_stage = PlayerStage::BossTeleport;
+				camera->transform->position.x = 63.0f;
+				camera->transform->position.z = 5.0f;
+				player->position.x = 63.0f;
+				player->position.z = 5.0f;
+				expected_position.x = 63.0f;
+				expected_position.z = 5.0f;
+				boss_hp->scale.x = 1;
+				current_boss = &final_boss;
+				current_boss_weapon = &final_boss_weapon;
+				stage_changing = true;
+				stage_change_timer = 0.0f;
+			}
+		}
+		return expected_position;
+}
 glm::vec3 PlayMode::bullet_current_Pos(glm::vec3 origin_Pos, glm::vec3 final_Pos, float time)
 {
 	glm::vec3 dir = glm::normalize(final_Pos - origin_Pos);
