@@ -1367,10 +1367,13 @@ glm::vec3 PlayMode::nearest_teleport()
 void PlayMode::update_boss_status()
 {
 	{ // Update boss animation
-		if (player->position.x > current_boss->transform->position.x)
-			current_boss->transform->scale.x = -0.424f;
-		else
-			current_boss->transform->scale.x = 0.424f;
+		if (current_boss->transform->name == level1_boss.transform->name)
+		{
+			if (player->position.x > current_boss->transform->position.x)
+				current_boss->transform->scale.x = -0.424f;
+			else
+				current_boss->transform->scale.x = 0.424f;
+		}
 
 		boss_subuv.anim_timer += 0.1f * boss_subuv.speed;
 
