@@ -25,6 +25,7 @@ struct PlayMode : Mode
 	void hit_player();
 	void hit_boss();
 	bool on_platform();
+	void on_platform_step(float elapsed);
 	bool hit_platform();
 	void land_on_platform(glm::vec3 expected_position);
 	//----- game state -----
@@ -233,17 +234,25 @@ struct PlayMode : Mode
 	float max_player_hp = 1.0f;
 	float current_player_hp = 1.0f;
 
+	float invincible_time = 1.0f;
+	float invincible = false;
+
 	std::list<Scene::Transform *> outerList;
 
 	typedef struct Platform
 	{
+		Scene::Transform *transform = nullptr;
 		std::string name = "";
 		glm::vec3 pos = glm::vec3(0, 0, 0);
 		float height = 0;
 		float width = 0;
+		bool fragile = false;
+		bool visible = true;
+		float stepping_time = 0.0f;
 	} Platform;
 
 	std::list<Platform> platforms;
+	std::list<Platform> fragiles;
 
 	// hit object
 	typedef struct HitObject

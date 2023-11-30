@@ -178,21 +178,29 @@ PlayMode::PlayMode() : scene(*hexapod_scene)
 		else if (transform.name.find("Collider") != std::string::npos)
 		{
 			Platform platform;
+			platform.transform = &transform;
 			platform.name = transform.name;
 			platform.pos = transform.position;
 			// platform.pos = transform.make_local_to_world() * glm::vec4(transform.position, 1.0f);
 			platform.width = (float)abs((transform.make_local_to_world() * glm::vec4(transform.max, 1.0f)).x - (transform.make_local_to_world() * glm::vec4(transform.min, 1.0f)).x);
 			platform.height = (float)abs((transform.make_local_to_world() * glm::vec4(transform.max, 1.0f)).z - (transform.make_local_to_world() * glm::vec4(transform.min, 1.0f)).z);
+			platform.fragile = false;
+			platform.visible = true;
+			platform.stepping_time = 0.0f;
 			platforms.emplace_back(platform);
 		}
 		else if (transform.name.find("Fragile") != std::string::npos)
 		{
 			Platform platform;
+			platform.transform = &transform;
 			platform.name = transform.name;
 			// platform.pos = transform.position;
 			platform.pos = transform.make_local_to_world() * glm::vec4(transform.position, 1.0f);
 			platform.width = (float)abs((transform.make_local_to_world() * glm::vec4(transform.max, 1.0f)).x - (transform.make_local_to_world() * glm::vec4(transform.min, 1.0f)).x);
 			platform.height = (float)abs((transform.make_local_to_world() * glm::vec4(transform.max, 1.0f)).z - (transform.make_local_to_world() * glm::vec4(transform.min, 1.0f)).z);
+			platform.fragile = true;
+			platform.visible = true;
+			platform.stepping_time = 0.0f;
 			platforms.emplace_back(platform);
 			// 			if (transform.name == "Fragile5")
 			// {
@@ -376,6 +384,14 @@ void PlayMode::update(float elapsed)
 	{
 		boots_timer = std::min(1.0f, boots_timer + elapsed * 5);
 		component_boots->scale = boots_scale * boots_timer;
+	}
+
+	if (invincible) {
+		invincible_time += elapsed;
+	}
+	if (invincible_time > 1.0f) {
+		invincible = false;
+		invincible_time = 0.0f;
 	}
 
 	// player die
@@ -737,6 +753,8 @@ void PlayMode::update(float elapsed)
 			}
 		}
 
+		on_platform_step(elapsed);
+
 		if (!hasJetPack)
 		{
 			player_fuel->scale.x = 0.001f;
@@ -787,7 +805,7 @@ void PlayMode::update(float elapsed)
 		}
 		std::cout<<"end<<<<<<<<<" << std::endl; */
 		land_on_platform(expected_position);
-		std::cout << player->position.x << "," << player->position.y << "," << player->position.z << "\n";
+		//std::cout << player->position.x << "," << player->position.y << "," << player->position.z << "\n";
 	}
 
 	{ // update listener to camera position:
@@ -928,6 +946,7 @@ void PlayMode::put_away_bullet(Bullet bullet)
 		break;
 	}
 }
+
 
 void PlayMode::update_player_status()
 {
@@ -1074,9 +1093,11 @@ void PlayMode::update_weapon_status()
 
 void PlayMode::hit_player()
 {
-	if (player_hp->scale.x > 0.0001f)
-	{
-		player_hp->scale.x -= max_player_hp * 0.05f;
+	if (!invincible) {
+		if (player_hp->scale.x > 0.0001f) {
+			player_hp->scale.x -= max_player_hp * 0.05f;
+		}
+		invincible = true;
 	}
 }
 
@@ -1093,21 +1114,49 @@ bool PlayMode::on_platform()
 {
 	for (auto platform : platforms)
 	{
+		if (platform.visible) {
 		if (player->position.z == platform.pos.z + platform.height / 2)
 		{
-			return true;
+			if (!platform.fragile) {
+				return true;
+			}
+			if (platform.fragile && platform.visible) {
+				return true;
+		}
+		}
 		}
 	}
 	return player->position.z == start_point.z;
+}
+
+void PlayMode::on_platform_step(float elapsed) {
+	for (auto platform : platforms)
+	{
+		if (platform.visible) {
+		if (player->position.z == platform.pos.z + platform.height / 2)
+		{
+			if (platform.fragile && platform.stepping_time < 2.0f) {
+				platform.stepping_time += elapsed;
+			}
+			if (platform.fragile && platform.stepping_time >= 2.0f) {
+				std::cout << "become invisible";
+				platform.visible = false;
+				platform.transform->scale.x = 0.01f;
+			}
+		}
+		}
+	}
 }
 
 bool PlayMode::hit_platform()
 {
 	for (auto platform : platforms)
 	{
+		if (platform.visible) {
 		if (player->position.z == platform.pos.z - platform.height / 2)
 		{
 			return true;
+		}
 		}
 	}
 	return false;
@@ -1117,6 +1166,7 @@ void PlayMode::land_on_platform(glm::vec3 expected_position)
 {
 	for (auto platform : platforms)
 	{
+		if (platform.visible) {
 		// std::cout << "name:" << platform.name << ",expected pos:" << expected_position.z << ",plat pos:" << platform.pos.z << ",3:" << std::abs(expected_position.z - platform.pos.z) << "4:" << platform.height / 2 << std::endl;
 		if (std::abs(expected_position.x - platform.pos.x) < platform.width / 2 &&
 			std::abs(expected_position.z - platform.pos.z) < platform.height / 2)
@@ -1178,6 +1228,7 @@ void PlayMode::land_on_platform(glm::vec3 expected_position)
 					}
 				}
 			}
+		}
 		}
 	}
 	// camera->transform->position += move.x * frame_right + move.y * frame_forward;
