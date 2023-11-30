@@ -207,6 +207,14 @@ PlayMode::PlayMode() : scene(*hexapod_scene)
 			// 	fragile5 = &transform;
 			// }
 		}
+		else if (transform.name.find("Spike") != std::string::npos)
+		{
+			Spike spike;
+			spike.pos = transform.make_local_to_world() * glm::vec4(transform.position, 1.0f);
+			spike.width = (float)abs((transform.make_local_to_world() * glm::vec4(transform.max, 1.0f)).x - (transform.make_local_to_world() * glm::vec4(transform.min, 1.0f)).x);
+			spike.height = (float)abs((transform.make_local_to_world() * glm::vec4(transform.max, 1.0f)).z - (transform.make_local_to_world() * glm::vec4(transform.min, 1.0f)).z);
+			spikes.emplace_back(spike);
+		}
 		else if (transform.name == "Final_Boss")
 		{
 			final_boss.transform = &transform;
@@ -684,8 +692,10 @@ void PlayMode::update(float elapsed)
 			}
 			else if (hasWings)
 			{
-				jump_velocity = 2.2f;
-
+				if (wings_energy >= 0) {
+					jump_velocity = 2.2f;
+					flying = true;
+				}
 			}
 		}
 
@@ -698,6 +708,11 @@ void PlayMode::update(float elapsed)
 		if (hasJetPack && jetpack_fuel > 0 && jetpack_on)
 		{
 			jetpack_fuel -= elapsed;
+		}
+
+		if (hasWings && jetpack_fuel > 0 && flying)
+		{
+			wings_energy -= elapsed;
 		}
 
 		if (jetpack_fuel <= 0)
@@ -747,19 +762,25 @@ void PlayMode::update(float elapsed)
 			jump_signal = false;
 
 			jetpack_on = false;
-			if (jetpack_fuel < jetpack_max_fuel)
+			flying = false;
+			if (hasJetPack && jetpack_fuel < jetpack_max_fuel)
 			{
 				jetpack_fuel += 2 * elapsed;
+			}
+			if (hasWings && wings_energy < wings_max_energy)
+			{
+				wings_energy += 2 * elapsed;
 			}
 		}
 
 		on_platform_step(elapsed);
+		hit_spike();
 
-		if (!hasJetPack)
+		if (!hasJetPack && !hasWings)
 		{
 			player_fuel->scale.x = 0.001f;
 		}
-		else
+		else if (hasJetPack)
 		{
 			if (jetpack_fuel <= 0)
 			{
@@ -772,6 +793,20 @@ void PlayMode::update(float elapsed)
 			{
 				player_fuel->scale.x = max_fuel_scale * jetpack_fuel / jetpack_max_fuel;
 			}
+		}
+		else if (hasWings)
+		{
+			if (wings_energy <= 0)
+			{
+				player_fuel->scale.x = 0.001f;
+			}
+			else if (wings_energy >= wings_max_energy) {
+				player_fuel->scale.x = max_fuel_scale;
+			}
+			else
+			{
+				player_fuel->scale.x = max_fuel_scale * wings_energy / wings_max_energy;
+			} 
 		}
 
 		if (hit_platform())
@@ -1101,6 +1136,17 @@ void PlayMode::hit_player()
 	}
 }
 
+
+void PlayMode::hit_spike()
+{
+	for (auto &spike: spikes) {
+		if (((std::abs(player->position.z - spike.pos.z)) <= spike.height / 2)
+		   && ((std::abs(player->position.x - spike.pos.x)) <= spike.width / 2)) {
+			hit_player();
+		}
+	}
+}
+
 void PlayMode::hit_boss()
 {
 	if (boss_hp->scale.x > 0.0001f)
@@ -1139,7 +1185,6 @@ void PlayMode::on_platform_step(float elapsed) {
 				platform.stepping_time += elapsed;
 			}
 			if (platform.fragile && platform.stepping_time >= 1.2f) {
-				std::cout << "become invisible";
 				platform.visible = false;
 				platform.transform->scale.x = 0.0f;
 				platform.transform->scale.y = 0.0f;

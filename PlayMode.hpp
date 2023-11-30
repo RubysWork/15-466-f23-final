@@ -23,6 +23,7 @@ struct PlayMode : Mode
 	glm::vec3 check_change_stage(glm::vec3 expected_position);
 	glm::vec3 bullet_current_Pos(glm::vec3 origin_Pos, glm::vec3 final_Pos, float time);
 	void hit_player();
+	void hit_spike();
 	void hit_boss();
 	bool on_platform();
 	void on_platform_step(float elapsed);
@@ -89,7 +90,9 @@ struct PlayMode : Mode
 	// wings
 	Scene::Transform *wings = nullptr;
 	bool hasWings = false;
-
+	bool flying = false;
+	float wings_max_energy = 15.0f;
+	float wings_energy = 15.0f;
 
 	Scene::Transform *player_fuel = nullptr;
 	float max_fuel_scale = 0.0f;
@@ -238,6 +241,14 @@ struct PlayMode : Mode
 	float invincible = false;
 
 	std::list<Scene::Transform *> outerList;
+	typedef struct Spike
+	{
+		glm::vec3 pos = glm::vec3(0, 0, 0);
+		float height = 0;
+		float width = 0;
+	} Spike;
+
+	std::list<Spike> spikes;
 
 	typedef struct Platform
 	{
