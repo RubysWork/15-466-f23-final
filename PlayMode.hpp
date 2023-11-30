@@ -25,13 +25,13 @@ struct PlayMode : Mode
 	void hit_player();
 	void hit_spike();
 	void hit_boss();
-	bool on_platform();
+	bool on_platform(Scene::Transform *obj, Scene::Transform &stepped_platform);
 	void on_platform_step(float elapsed);
 	bool hit_platform();
 	void land_on_platform(glm::vec3 expected_position);
 	void check_dropping();
 	void revive(float elapsed);
-	glm::vec3 boss_land_on_platform(glm::vec3 expected_position);
+	glm::vec3 enemy_land_on_platform(Scene::Transform *enemy, glm::vec3 expected_position);
 	//----- game state -----
 
 	// input tracking:
@@ -235,8 +235,28 @@ struct PlayMode : Mode
 	float teleport_timer = 0.3f; // scale cange timer
 	bool arrive_new_pos = false; // start scale
 
-	// boss_gravity
-	float boss_gravity = -0.5f;
+	// enemy_gravity
+	float enemy_gravity = -0.5f;
+
+	// enemy status
+	enum EnemyStatus
+	{
+		Stay,
+		Damaged,
+		Die
+	};
+
+	typedef struct Enemy
+	{
+		int index = 0;
+		Scene::Transform *transform;
+		float speed = 1.0f;
+		float max_hp = 1.0f;
+		float current_hp = 1.0f;
+		EnemyStatus status = EnemyStatus::Stay;
+	} Enemy;
+
+	std::list<Enemy> enemies;
 
 	/// playerhp
 	Scene::Transform *player_hp = nullptr;

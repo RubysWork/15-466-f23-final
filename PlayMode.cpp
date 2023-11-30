@@ -82,8 +82,8 @@ PlayMode::PlayMode() : scene(*hexapod_scene)
 		if (transform.name == "Player")
 		{
 			player = &transform;
-			// player->position = glm::vec3{12.1081f, 5.86705f, 1.52219f};
-			//   player->scale = glm::vec3{0.15f, 0.15f, 0.15f};
+			// player->position = glm::vec3{47.3101f, 5.86705f, 56.8865f};
+			//    player->scale = glm::vec3{0.15f, 0.15f, 0.15f};
 			start_point = player->position;
 			start_point.z -= 5.0f;
 			player_origin_scale = player->scale;
@@ -93,6 +93,7 @@ PlayMode::PlayMode() : scene(*hexapod_scene)
 		{
 			level1_boss.transform = &transform;
 			current_boss = &level1_boss;
+			boss_status = Idle;
 		}
 
 		else if (transform.name.find("SubUV") != std::string::npos)
@@ -194,8 +195,8 @@ PlayMode::PlayMode() : scene(*hexapod_scene)
 			Platform platform;
 			platform.transform = &transform;
 			platform.name = transform.name;
-			// platform.pos = transform.position;
-			platform.pos = transform.make_local_to_world() * glm::vec4(transform.position, 1.0f);
+			platform.pos = transform.position;
+			// platform.pos = transform.make_local_to_world() * glm::vec4(transform.position, 1.0f);
 			platform.width = (float)abs((transform.make_local_to_world() * glm::vec4(transform.max, 1.0f)).x - (transform.make_local_to_world() * glm::vec4(transform.min, 1.0f)).x);
 			platform.height = (float)abs((transform.make_local_to_world() * glm::vec4(transform.max, 1.0f)).z - (transform.make_local_to_world() * glm::vec4(transform.min, 1.0f)).z);
 			platform.fragile = true;
@@ -232,6 +233,18 @@ PlayMode::PlayMode() : scene(*hexapod_scene)
 		else if (transform.name == "Level01Teleport")
 		{
 			level1_tel = &transform;
+		}
+		else if (transform.name.find("Enemy") != std::string::npos)
+		{
+			Enemy enemy;
+			enemy.index = (int)enemies.size();
+			enemy.transform = &transform;
+			enemies.emplace_back(enemy);
+			std::cout << "emplace!!" << std::endl;
+		}
+		else if (transform.name == "Wing")
+		{
+			wings = &transform;
 		}
 		// add a real component jetpack
 	}
@@ -392,6 +405,13 @@ void PlayMode::update(float elapsed)
 		sound = Sound::play_3D(*voice_01_sample, 1.0f, cages.begin()->transform->position);
 	}
 
+	// get wings
+	if (!hasWings && hit_detect_SAT(player, wings).overlapped)
+	{
+		wings->scale = glm::vec3(0);
+		hasWings = true;
+	}
+
 	if (second_jump && hasBoots)
 	{
 		boots_timer = std::min(1.0f, boots_timer + elapsed * 5);
@@ -509,14 +529,9 @@ void PlayMode::update(float elapsed)
 			// boss move towards to the player
 			glm::vec3 dir = glm::normalize(player->position - current_boss->transform->position);
 			// current_boss->transform->position.x += dir.x * current_boss->speed * elapsed;
-			float vec = boss_gravity * elapsed;
-			std::cout << "meleee!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!1" << std::endl;
-			// glm::vec3 expected_position = glm::vec3(current_boss->transform->position.x + dir.x * current_boss->speed * elapsed, current_boss->transform->position.y, current_boss->transform->position.z + vec);
+			float vec = enemy_gravity * elapsed;
 			glm::vec3 expected_pos = glm::vec3(current_boss->transform->position.x + dir.x * current_boss->speed * elapsed, current_boss->transform->position.y, current_boss->transform->position.z + vec);
-			// std::cout << "z:" << expected_pos.z << std::endl;
-			// current_boss->transform->position = expected_pos;
-			std::cout << "expeted pos before:" << expected_pos.x << "," << expected_pos.z << std::endl;
-			current_boss->transform->position = boss_land_on_platform(expected_pos);
+			current_boss->transform->position = enemy_land_on_platform(current_boss->transform, expected_pos);
 			break;
 		}
 		case Shoot:
@@ -648,6 +663,36 @@ void PlayMode::update(float elapsed)
 			shooting3 = false;
 		}
 	}
+
+	// enemy
+	for (auto enemy : enemies)
+	{
+		Scene::Transform stepped_plat;
+		// std::cout << "enemy pos" << enemy.transform->position.x << "," << enemy.transform->position.z << std::endl;
+		if (on_platform(enemy.transform, stepped_plat))
+		{
+			// std::cout << "stepped:" << stepped_plat.name << std::endl;
+			float expectedX = enemy.transform->position.x - enemy.speed * elapsed;
+			// float vec = enemy.transform->position.z + enemy_gravity * elapsed;
+			if (expectedX >= stepped_plat.max.x)
+			{
+				enemy.speed *= -1;
+				break;
+			}
+			if (expectedX <= stepped_plat.min.x)
+			{
+				enemy.speed *= -1;
+				break;
+			}
+			enemy.transform->position.x = expectedX;
+			// enemy.transform->position.z = vec;
+		}
+		else
+		{
+			// fall off die, scale=0
+			enemy.status = Die;
+		}
+	}
 	// player attack
 	if (get_weapon &&
 		keyatk.pressed &&
@@ -768,7 +813,9 @@ void PlayMode::update(float elapsed)
 		glm::vec3 frame_up = frame[1];
 		// glm::vec3 frame_forward = -frame[2];
 
-		if (on_platform())
+		// useless, just for enemy platform detect
+		Scene::Transform stepped_plat;
+		if (on_platform(player, stepped_plat))
 		{
 			first_jump = false;
 			second_jump = false;
@@ -1176,14 +1223,15 @@ void PlayMode::hit_boss()
 	}
 }
 
-bool PlayMode::on_platform()
+bool PlayMode::on_platform(Scene::Transform *obj, Scene::Transform &stepped_platform)
 {
-	for (auto platform : platforms)
+	for (auto &platform : platforms)
 	{
 		if (platform.visible)
 		{
-			if (player->position.z == platform.pos.z + platform.height / 2)
+			if (obj->position.z == platform.pos.z + platform.height / 2)
 			{
+				stepped_platform = *(platform.transform);
 				if (!platform.fragile)
 				{
 					return true;
@@ -1195,7 +1243,15 @@ bool PlayMode::on_platform()
 			}
 		}
 	}
-	return player->position.z == start_point.z;
+	if (obj->name.find("Enemy") != std::string::npos)
+	{
+		obj->scale = glm::vec3(0);
+		return false;
+	}
+	else
+	{
+		return obj->position.z == start_point.z;
+	}
 }
 
 void PlayMode::on_platform_step(float elapsed)
@@ -1327,7 +1383,7 @@ void PlayMode::land_on_platform(glm::vec3 expected_position)
 	}
 }
 
-glm::vec3 PlayMode::boss_land_on_platform(glm::vec3 exp_position)
+glm::vec3 PlayMode::enemy_land_on_platform(Scene::Transform *enemy, glm::vec3 exp_position)
 {
 	glm::vec3 expected_pos = exp_position;
 	for (auto platform : platforms)
@@ -1340,7 +1396,7 @@ glm::vec3 PlayMode::boss_land_on_platform(glm::vec3 exp_position)
 			{
 
 				// This is real collision detection
-				if (current_boss->transform->position.z >= platform.pos.z + platform.height / 2)
+				if (enemy->position.z >= platform.pos.z + platform.height / 2)
 				{
 					if (exp_position.z < platform.pos.z + platform.height / 2)
 					{
@@ -1348,43 +1404,42 @@ glm::vec3 PlayMode::boss_land_on_platform(glm::vec3 exp_position)
 						expected_pos.z = platform.pos.z + platform.height / 2;
 					}
 				}
-				if (current_boss->transform->position.z <= platform.pos.z - platform.height / 2)
+				if (enemy->position.z <= platform.pos.z - platform.height / 2)
 				{
 					if (exp_position.z > platform.pos.z - platform.height / 2)
 					{
 						// for lower position
 						expected_pos.z = platform.pos.z - platform.height / 2;
 					}
-					if (current_boss->transform->position.x < platform.pos.x - platform.width / 2 &&
+					if (enemy->position.x < platform.pos.x - platform.width / 2 &&
 						exp_position.x > platform.pos.x - platform.width / 2)
 					{
-						std::cout << "4!!!" << std::endl;
+
 						expected_pos.x = platform.pos.x - platform.width / 2;
 					}
-					if (current_boss->transform->position.x > platform.pos.x + platform.width / 2 &&
+					if (enemy->position.x > platform.pos.x + platform.width / 2 &&
 						exp_position.x < platform.pos.x + platform.width / 2)
 					{
-						std::cout << "3!!!" << std::endl;
+
 						expected_pos.x = platform.pos.x + platform.width / 2;
 					}
 				}
 				else
 				{
-					if (current_boss->transform->position.x <= platform.pos.x - platform.width / 2)
+					if (enemy->position.x <= platform.pos.x - platform.width / 2)
 					{
 						if (exp_position.x > platform.pos.x - platform.width / 2)
 						{
-							std::cout << "1!!!" << std::endl;
+
 							expected_pos.x = platform.pos.x - platform.width / 2;
 							ready_to_teleport = true;
 							teleport();
 						}
 					}
-					if (current_boss->transform->position.x >= platform.pos.x + platform.width / 2)
+					if (enemy->position.x >= platform.pos.x + platform.width / 2)
 					{
 						if (exp_position.x < platform.pos.x + platform.width / 2)
 						{
-							std::cout << "2!!!" << std::endl;
 							expected_pos.x = platform.pos.x + platform.width / 2;
 						}
 					}
@@ -1393,7 +1448,6 @@ glm::vec3 PlayMode::boss_land_on_platform(glm::vec3 exp_position)
 		}
 	}
 	expected_pos.y = exp_position.y;
-	std::cout << "expeted pos:" << expected_pos.x << "," << expected_pos.z << std::endl;
 	return expected_pos;
 }
 
@@ -1798,7 +1852,7 @@ void PlayMode::update_boss_status()
 			}
 			else if (boss_status != BattleStatus::Attacked || boss_hp->scale.x <= 0.2f)
 			{
-				boss_status = Idle;
+				boss_status = BattleStatus::Idle;
 			}
 		}
 		else
@@ -1814,7 +1868,7 @@ void PlayMode::update_boss_status()
 			}
 			else if (boss_status != BattleStatus::Attacked || boss_hp->scale.x <= 0.2f)
 			{
-				boss_status = Idle;
+				boss_status = BattleStatus::Idle;
 			}
 		}
 	}
@@ -1865,7 +1919,7 @@ void PlayMode::teleport()
 				if (teleport_timer > 0)
 				{
 					detect_boss_status = false;
-					boss_status = Idle;
+					boss_status = BattleStatus::Idle;
 					teleport_timer -= 0.03f;
 					current_boss->transform->scale = glm::vec3(teleport_timer, current_boss->transform->scale.y, current_boss->transform->scale.z);
 				}
@@ -1888,7 +1942,6 @@ void PlayMode::teleport()
 				}
 				else
 				{
-					std::cout << "finish teleport!!!" << std::endl;
 					teleport_timer = 0.3f;
 					current_boss->transform->scale = glm::vec3(teleport_timer, current_boss->transform->scale.y, current_boss->transform->scale.z);
 					arrive_new_pos = false;
@@ -1910,19 +1963,17 @@ void PlayMode::teleport()
 				if (teleport_timer > 0)
 				{
 					detect_boss_status = false;
-					boss_status = Idle;
+					boss_status = BattleStatus::Idle;
 					teleport_timer -= 0.03f;
 					current_boss->transform->scale = glm::vec3(teleport_timer, current_boss->transform->scale.y, current_boss->transform->scale.z);
 				}
 				else
 				{
-					std::cout << "reach!!" << std::endl;
 					teleport_timer = 0;
 					current_boss->transform->scale = glm::vec3(teleport_timer, current_boss->transform->scale.y, current_boss->transform->scale.z);
 					glm::vec3 nearest_tel = level1_tel->position;
 					current_boss->transform->position = glm::vec3(nearest_tel.x, player->position.y, nearest_tel.z);
 					arrive_new_pos = true;
-					std::cout << "over" << std::endl;
 				}
 			}
 			// expand on new pos
