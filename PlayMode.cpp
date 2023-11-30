@@ -85,7 +85,7 @@ PlayMode::PlayMode() : scene(*hexapod_scene)
 			// player->position = glm::vec3{76.828f, 5.8671f, 1.4484f};
 			//  player->scale = glm::vec3{0.15f, 0.15f, 0.15f};
 			start_point = player->position;
-			start_point.z -= 1.0f;
+			start_point.z -= 5.0f;
 			player_origin_scale = player->scale;
 		}
 
@@ -822,7 +822,7 @@ void PlayMode::update(float elapsed)
 			if (jump_velocity > 0)
 				jump_velocity = 0;
 			stage_change_timer += elapsed;
-			if (stage_change_timer > 2.0f)
+			if (stage_change_timer > 1.0f)
 			{
 				stage_changing = false;
 			}
@@ -840,7 +840,9 @@ void PlayMode::update(float elapsed)
 		}
 		std::cout<<"end<<<<<<<<<" << std::endl; */
 		land_on_platform(expected_position);
-		//std::cout << player->position.x << "," << player->position.y << "," << player->position.z << "\n";
+		std::cout << player->position.x << "," << player->position.z << "\n";
+		check_dropping();
+		revive(elapsed);
 	}
 
 	{ // update listener to camera position:
@@ -1286,15 +1288,94 @@ void PlayMode::land_on_platform(glm::vec3 expected_position)
 	// {
 	//   expected_position.z = start_point.z;
 	// }
-	if (expected_position.z < start_point.z)
-	// hardcode to prevent a jump at start
-	{
-		expected_position.z = start_point.z;
-	}
+	// if (expected_position.z < start_point.z)
+	// // hardcode to prevent a jump at start
+	// {
+	// 	expected_position.z = start_point.z;
+	// }
 	if (!player_die)
 	{
 		camera->transform->position += expected_position - player->position;
 		player->position = expected_position;
+	}
+}
+
+void PlayMode::check_dropping() {
+	if (player_stage == PlayerStage::InitialStage) {
+		if (player->position.z < 0.5f) {
+			player_die = true;
+		}
+	}
+	else if (player_stage == PlayerStage::JumpGame) {
+		if (player->position.z < 0.5f) {
+			player_die = true;
+		}
+	}
+}
+
+void PlayMode::revive(float elapsed) {
+	if (player_stage == PlayerStage::InitialStage) {
+		if (player_die && !waiting_revive) {
+			waiting_revive = true;
+			player->scale = glm::vec3(0, 0, 0);
+			player_hp->scale.x = 0;
+		}
+		if (waiting_revive && revive_time > 0) {
+			revive_time -= elapsed;
+		}
+		if (revive_time <= 0) {
+			player_die = false;
+			waiting_revive = false;
+			player->scale = player_origin_scale;
+			camera->transform->position.x += 2.2f - player->position.x;
+			camera->transform->position.z += 1.2f - player->position.z;
+			player->position.x = 2.2f;
+			player->position.z = 1.2f;
+			player_hp->scale.x = max_player_hp;
+			revive_time = revive_max_time;
+		}
+	}
+	if (player_stage == PlayerStage::JumpGame) {
+		if (player_die && !waiting_revive) {
+			waiting_revive = true;
+			player->scale = glm::vec3(0, 0, 0);
+			player_hp->scale.x = 0;
+		}
+		if (waiting_revive && revive_time > 0) {
+			revive_time -= elapsed;
+		}
+		if (revive_time <= 0) {
+			player_die = false;
+			waiting_revive = false;
+			player->scale = player_origin_scale;
+			camera->transform->position.x += 38.0f - player->position.x;
+			camera->transform->position.z += 5.3f - player->position.z;
+			player->position.x = 38.0f;
+			player->position.z = 5.3f;
+			player_hp->scale.x = max_player_hp;
+			revive_time = revive_max_time;
+		}
+	}
+	if (player_stage == PlayerStage::BossTeleport) {
+		if (player_die && !waiting_revive) {
+			waiting_revive = true;
+			player->scale = glm::vec3(0, 0, 0);
+			player_hp->scale.x = 0;
+		}
+		if (waiting_revive && revive_time > 0) {
+			revive_time -= elapsed;
+		}
+		if (revive_time <= 0) {
+			player_die = false;
+			waiting_revive = false;
+			player->scale = player_origin_scale;
+			camera->transform->position.x += 63.0f - player->position.x;
+			camera->transform->position.z += 5.0f - player->position.z;
+			player->position.x = 63.0f;
+			player->position.z = 5.0f;
+			player_hp->scale.x = max_player_hp;
+			revive_time = revive_max_time;
+		}
 	}
 }
 PlayMode::HitObject PlayMode::hit_detect_SAT(Scene::Transform *obj, Scene::Transform *hit_obj)

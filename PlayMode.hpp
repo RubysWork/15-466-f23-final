@@ -29,6 +29,8 @@ struct PlayMode : Mode
 	void on_platform_step(float elapsed);
 	bool hit_platform();
 	void land_on_platform(glm::vec3 expected_position);
+	void check_dropping();
+	void revive(float elapsed);
 	//----- game state -----
 
 	// input tracking:
@@ -239,6 +241,10 @@ struct PlayMode : Mode
 
 	float invincible_time = 1.0f;
 	float invincible = false;
+
+	float revive_time = 2.0f;
+	float revive_max_time = 2.0f;
+	float waiting_revive = false;
 
 	std::list<Scene::Transform *> outerList;
 	typedef struct Spike
