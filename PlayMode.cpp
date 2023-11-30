@@ -63,8 +63,8 @@ Load<Scene> hexapod_scene(LoadTagDefault, []() -> Scene const *
 
 									drawable.pipeline.vao = meshes_for_lit_color_texture_program; }); });
 
-Load<Sound::Sample> dusty_floor_sample(LoadTagDefault, []() -> Sound::Sample const *
-									   { return new Sound::Sample(data_path("dusty-floor.opus")); });
+Load<Sound::Sample> bgm_sample(LoadTagDefault, []() -> Sound::Sample const *
+							   { return new Sound::Sample(data_path("BGM.wav")); });
 
 Load<Sound::Sample> voice_01_sample(LoadTagDefault, []() -> Sound::Sample const *
 									{ return new Sound::Sample(data_path("Voice01.wav")); });
@@ -72,8 +72,41 @@ Load<Sound::Sample> voice_01_sample(LoadTagDefault, []() -> Sound::Sample const 
 Load<Sound::Sample> voice_02_sample(LoadTagDefault, []() -> Sound::Sample const *
 									{ return new Sound::Sample(data_path("Voice02.wav")); });
 
+Load<Sound::Sample> voice_03_sample(LoadTagDefault, []() -> Sound::Sample const *
+									{ return new Sound::Sample(data_path("Voice03.wav")); });
+
+Load<Sound::Sample> voice_04_sample(LoadTagDefault, []() -> Sound::Sample const *
+									{ return new Sound::Sample(data_path("Voice04.wav")); });
+
+Load<Sound::Sample> voice_05_sample(LoadTagDefault, []() -> Sound::Sample const *
+									{ return new Sound::Sample(data_path("Voice05.wav")); });
+
+Load<Sound::Sample> voice_06_sample(LoadTagDefault, []() -> Sound::Sample const *
+									{ return new Sound::Sample(data_path("Voice06.wav")); });
+
+Load<Sound::Sample> voice_07_sample(LoadTagDefault, []() -> Sound::Sample const *
+									{ return new Sound::Sample(data_path("Voice07.wav")); });
+
 Load<Sound::Sample> sound_01_sample(LoadTagDefault, []() -> Sound::Sample const *
 									{ return new Sound::Sample(data_path("Sound01.wav")); });
+
+Load<Sound::Sample> sound_02_sample(LoadTagDefault, []() -> Sound::Sample const *
+									{ return new Sound::Sample(data_path("Sound02.wav")); });
+
+Load<Sound::Sample> sound_03_sample(LoadTagDefault, []() -> Sound::Sample const *
+									{ return new Sound::Sample(data_path("Sound03.wav")); });
+
+Load<Sound::Sample> sound_04_sample(LoadTagDefault, []() -> Sound::Sample const *
+									{ return new Sound::Sample(data_path("Sound04.wav")); });
+
+Load<Sound::Sample> sound_05_sample(LoadTagDefault, []() -> Sound::Sample const *
+									{ return new Sound::Sample(data_path("Sound05.wav")); });
+
+Load<Sound::Sample> sound_06_sample(LoadTagDefault, []() -> Sound::Sample const *
+									{ return new Sound::Sample(data_path("Sound06.wav")); });
+
+Load<Sound::Sample> sound_07_sample(LoadTagDefault, []() -> Sound::Sample const *
+									{ return new Sound::Sample(data_path("Sound07.wav")); });
 
 PlayMode::PlayMode() : scene(*hexapod_scene)
 {
@@ -269,7 +302,8 @@ PlayMode::PlayMode() : scene(*hexapod_scene)
 
 	// start music loop playing:
 	//  (note: position will be over-ridden in update())
-	// leg_tip_loop = Sound::loop_3D(*dusty_floor_sample, 1.0f, get_leg_tip_position(), 10.0f);
+	music = Sound::loop(*bgm_sample, 0.3f);
+	boss1_loop_sound = Sound::loop_3D(*voice_06_sample, 2.0f, level1_boss.transform->position, 0.25f);
 }
 
 PlayMode::~PlayMode()
@@ -319,6 +353,8 @@ bool PlayMode::handle_event(SDL_Event const &evt, glm::uvec2 const &window_size)
 			keyatk.downs += 1;
 			keyatk.pressed = true;
 			weapon_status = WeaponStatus::NormalAttack;
+			// if (get_weapon)
+			// Sound::play_3D(*sound_05_sample, 1.0f, player->position);
 			return true;
 		}
 		else if (evt.key.keysym.sym == SDLK_SPACE)
@@ -327,6 +363,10 @@ bool PlayMode::handle_event(SDL_Event const &evt, glm::uvec2 const &window_size)
 			space.pressed = true;
 			if (first_jump == false)
 				player_status = PlayerStatus::JumpStart;
+			if (!first_jump && !hasJetPack)
+				Sound::play_3D(*sound_02_sample, 0.75f, player->position);
+			else if (!first_jump && hasJetPack)
+				Sound::play_3D(*sound_03_sample, 1.0f, player->position);
 			return true;
 		}
 	}
@@ -384,6 +424,7 @@ void PlayMode::update(float elapsed)
 		get_weapon = true;
 		component->scale = component_scale;
 		player_atk_cpnt->scale = glm::vec4(0);
+		sound = Sound::play_3D(*sound_04_sample, 1.0f, player_atk_cpnt->position);
 	}
 
 	// hit cage
@@ -406,7 +447,8 @@ void PlayMode::update(float elapsed)
 		hasBoots = true;
 		boots->scale = glm::vec4(0);
 		// component_boots->scale = boots_scale;
-		sound = Sound::play_3D(*voice_01_sample, 1.0f, cages.begin()->transform->position);
+		Sound::play_3D(*voice_02_sample, 1.0f, cages.begin()->transform->position);
+		sound = Sound::play_3D(*voice_01_sample, 1.5f, player->position);
 	}
 
 	// get wings
@@ -414,6 +456,8 @@ void PlayMode::update(float elapsed)
 	{
 		wings->scale = glm::vec3(0);
 		hasWings = true;
+		Sound::play_3D(*sound_07_sample, 1.0f, player->position);
+		Sound::play_3D(*voice_04_sample, 2.0f, player->position);
 	}
 
 	if (second_jump && hasBoots)
@@ -437,6 +481,8 @@ void PlayMode::update(float elapsed)
 	{
 		player->scale = glm::vec3(0);
 		player_die = true;
+		if (revive_time >= 3.23f)
+			Sound::play_3D(*voice_05_sample, 1.25f, player->position);
 	}
 
 	// boss die
@@ -452,6 +498,10 @@ void PlayMode::update(float elapsed)
 		{
 			hasJetPack = true;
 			hasBoots = false;
+			// boss1 death roar
+			Sound::play_3D(*voice_07_sample, 2.0f, level1_boss.transform->position);
+			// has jet pack
+			Sound::play_3D(*voice_03_sample, 2.0f, player->position);
 		}
 
 		if (!current_boss->die)
@@ -459,6 +509,7 @@ void PlayMode::update(float elapsed)
 			current_boss->die = level1_boss_dead();
 			boss_status = Dead;
 			boss_hp_bg->scale = glm::vec3(0);
+			(*boss1_loop_sound).stop();
 		}
 
 		current_boss_weapon->transform->scale = glm::vec3(0);
@@ -539,6 +590,7 @@ void PlayMode::update(float elapsed)
 			}
 			// boss move towards to the player
 			glm::vec3 dir = glm::normalize(player->position - current_boss->transform->position);
+			(*boss1_loop_sound).position = current_boss->transform->position;
 			// current_boss->transform->position.x += dir.x * current_boss->speed * elapsed;
 			float vec = enemy_gravity * elapsed;
 			glm::vec3 expected_pos = glm::vec3(current_boss->transform->position.x + dir.x * current_boss->speed * elapsed, current_boss->transform->position.y, current_boss->transform->position.z + vec);
@@ -928,7 +980,8 @@ void PlayMode::update(float elapsed)
 	}
 
 	{ // update listener to camera position:
-		glm::mat4x3 frame = camera->transform->make_local_to_parent();
+		// glm::mat4x3 frame = camera->transform->make_local_to_parent();
+		glm::mat4x3 frame = player->make_local_to_parent();
 		glm::vec3 frame_right = frame[0];
 		glm::vec3 frame_at = frame[3];
 		Sound::listener.set_position_right(frame_at, frame_right, 1.0f / 60.0f);
@@ -1119,6 +1172,13 @@ void PlayMode::update_player_status()
 		subuv.range = 7;
 	}
 
+	if (invincible)
+	{
+		subuv.start_index = 36;
+		subuv.range = 3;
+		subuv.speed = 1.2f;
+	}
+
 	if (subuv.anim_timer > 1)
 	{
 		subuv.subtransforms[bit - 1]->scale = glm::vec3(0.0f);
@@ -1163,6 +1223,9 @@ void PlayMode::update_weapon_status()
 			break;
 		bit++;
 	}
+
+	if (bit == 2 && weapon_subuv.anim_timer < 0.4f)
+		Sound::play_3D(*sound_05_sample, 1.0f, player->position);
 
 	switch (weapon_status)
 	{
@@ -1218,6 +1281,9 @@ void PlayMode::hit_player()
 {
 	if (!invincible)
 	{
+		if (!player_die)
+			Sound::play_3D(*sound_06_sample, 1.0f, player->position);
+
 		if (player_hp->scale.x > 0.0001f)
 		{
 			player_hp->scale.x -= max_player_hp * 0.05f;
@@ -1287,11 +1353,11 @@ void PlayMode::on_platform_step(float elapsed)
 		{
 			if (player->position.z == platform.pos.z + platform.height / 2)
 			{
-				if (platform.fragile && platform.stepping_time < 1.2f)
+				if (platform.fragile && platform.stepping_time < 0.5f)
 				{
 					platform.stepping_time += elapsed;
 				}
-				if (platform.fragile && platform.stepping_time >= 1.2f)
+				if (platform.fragile && platform.stepping_time >= 0.5f)
 				{
 					platform.visible = false;
 					platform.transform->scale.x = 0.0f;

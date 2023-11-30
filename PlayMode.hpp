@@ -265,11 +265,11 @@ struct PlayMode : Mode
 	float max_player_hp = 1.0f;
 	float current_player_hp = 1.0f;
 
-	float invincible_time = 1.0f;
-	float invincible = false;
+	float invincible_time = 0.3f;
+	bool invincible = false;
 
-	float revive_time = 2.0f;
-	float revive_max_time = 2.0f;
+	float revive_time = 3.25f;
+	float revive_max_time = 3.25f;
 	float waiting_revive = false;
 
 	std::list<Scene::Transform *> outerList;
@@ -307,8 +307,10 @@ struct PlayMode : Mode
 	HitObject hit_detect_obj;
 
 	// music coming from the tip of the leg (as a demonstration):
+	Sound::Listener listener;
 	std::shared_ptr<Sound::PlayingSample> music;
 	std::shared_ptr<Sound::PlayingSample> sound;
+	std::shared_ptr<Sound::PlayingSample> boss1_loop_sound;
 
 	// camera:
 	Scene::Camera *camera = nullptr;
