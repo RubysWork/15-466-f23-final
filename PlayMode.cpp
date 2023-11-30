@@ -207,6 +207,14 @@ PlayMode::PlayMode() : scene(*hexapod_scene)
 			// 	fragile5 = &transform;
 			// }
 		}
+		else if (transform.name.find("Spike") != std::string::npos)
+		{
+			Spike spike;
+			spike.pos = transform.make_local_to_world() * glm::vec4(transform.position, 1.0f);
+			spike.width = (float)abs((transform.make_local_to_world() * glm::vec4(transform.max, 1.0f)).x - (transform.make_local_to_world() * glm::vec4(transform.min, 1.0f)).x);
+			spike.height = (float)abs((transform.make_local_to_world() * glm::vec4(transform.max, 1.0f)).z - (transform.make_local_to_world() * glm::vec4(transform.min, 1.0f)).z);
+			spikes.emplace_back(spike);
+		}
 		else if (transform.name == "Final_Boss")
 		{
 			final_boss.transform = &transform;
@@ -754,6 +762,7 @@ void PlayMode::update(float elapsed)
 		}
 
 		on_platform_step(elapsed);
+		hit_spike();
 
 		if (!hasJetPack)
 		{
@@ -1101,6 +1110,17 @@ void PlayMode::hit_player()
 	}
 }
 
+
+void PlayMode::hit_spike()
+{
+	for (auto &spike: spikes) {
+		if (((std::abs(player->position.z - spike.pos.z)) <= spike.height / 2)
+		   && ((std::abs(player->position.x - spike.pos.x)) <= spike.width / 2)) {
+			hit_player();
+		}
+	}
+}
+
 void PlayMode::hit_boss()
 {
 	if (boss_hp->scale.x > 0.0001f)
@@ -1139,7 +1159,6 @@ void PlayMode::on_platform_step(float elapsed) {
 				platform.stepping_time += elapsed;
 			}
 			if (platform.fragile && platform.stepping_time >= 1.2f) {
-				std::cout << "become invisible";
 				platform.visible = false;
 				platform.transform->scale.x = 0.0f;
 				platform.transform->scale.y = 0.0f;
