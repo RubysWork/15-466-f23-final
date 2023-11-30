@@ -82,8 +82,8 @@ PlayMode::PlayMode() : scene(*hexapod_scene)
 		if (transform.name == "Player")
 		{
 			player = &transform;
-			// player->position = glm::vec3{76.828f, 5.8671f, 1.4484f};
-			//  player->scale = glm::vec3{0.15f, 0.15f, 0.15f};
+			// player->position = glm::vec3{12.1081f, 5.86705f, 1.52219f};
+			//   player->scale = glm::vec3{0.15f, 0.15f, 0.15f};
 			start_point = player->position;
 			start_point.z -= 5.0f;
 			player_origin_scale = player->scale;
@@ -225,9 +225,13 @@ PlayMode::PlayMode() : scene(*hexapod_scene)
 			final_boss_weapon.transform = &transform;
 			// current_boss_weapon = &final_boss_weapon;
 		}
-		else if (transform.name.find("Teleport") != std::string::npos)
+		else if (transform.name.find("FinalTeleport") != std::string::npos)
 		{
-			teleportPos.emplace_back(&transform);
+			final_teleportPos.emplace_back(&transform);
+		}
+		else if (transform.name == "Level01Teleport")
+		{
+			level1_tel = &transform;
 		}
 		// add a real component jetpack
 	}
@@ -394,10 +398,12 @@ void PlayMode::update(float elapsed)
 		component_boots->scale = boots_scale * boots_timer;
 	}
 
-	if (invincible) {
+	if (invincible)
+	{
 		invincible_time += elapsed;
 	}
-	if (invincible_time > 1.0f) {
+	if (invincible_time > 1.0f)
+	{
 		invincible = false;
 		invincible_time = 0.0f;
 	}
@@ -502,7 +508,15 @@ void PlayMode::update(float elapsed)
 			}
 			// boss move towards to the player
 			glm::vec3 dir = glm::normalize(player->position - current_boss->transform->position);
-			current_boss->transform->position.x += dir.x * current_boss->speed * elapsed;
+			// current_boss->transform->position.x += dir.x * current_boss->speed * elapsed;
+			float vec = boss_gravity * elapsed;
+			std::cout << "meleee!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!1" << std::endl;
+			// glm::vec3 expected_position = glm::vec3(current_boss->transform->position.x + dir.x * current_boss->speed * elapsed, current_boss->transform->position.y, current_boss->transform->position.z + vec);
+			glm::vec3 expected_pos = glm::vec3(current_boss->transform->position.x + dir.x * current_boss->speed * elapsed, current_boss->transform->position.y, current_boss->transform->position.z + vec);
+			// std::cout << "z:" << expected_pos.z << std::endl;
+			// current_boss->transform->position = expected_pos;
+			std::cout << "expeted pos before:" << expected_pos.x << "," << expected_pos.z << std::endl;
+			current_boss->transform->position = boss_land_on_platform(expected_pos);
 			break;
 		}
 		case Shoot:
@@ -692,7 +706,8 @@ void PlayMode::update(float elapsed)
 			}
 			else if (hasWings)
 			{
-				if (wings_energy >= 0) {
+				if (wings_energy >= 0)
+				{
 					jump_velocity = 2.2f;
 					flying = true;
 				}
@@ -786,7 +801,8 @@ void PlayMode::update(float elapsed)
 			{
 				player_fuel->scale.x = 0.001f;
 			}
-			else if (jetpack_fuel >= jetpack_max_fuel) {
+			else if (jetpack_fuel >= jetpack_max_fuel)
+			{
 				player_fuel->scale.x = max_fuel_scale;
 			}
 			else
@@ -800,13 +816,14 @@ void PlayMode::update(float elapsed)
 			{
 				player_fuel->scale.x = 0.001f;
 			}
-			else if (wings_energy >= wings_max_energy) {
+			else if (wings_energy >= wings_max_energy)
+			{
 				player_fuel->scale.x = max_fuel_scale;
 			}
 			else
 			{
 				player_fuel->scale.x = max_fuel_scale * wings_energy / wings_max_energy;
-			} 
+			}
 		}
 
 		if (hit_platform())
@@ -984,7 +1001,6 @@ void PlayMode::put_away_bullet(Bullet bullet)
 	}
 }
 
-
 void PlayMode::update_player_status()
 {
 	subuv.anim_timer += 0.1f * subuv.speed;
@@ -1130,20 +1146,22 @@ void PlayMode::update_weapon_status()
 
 void PlayMode::hit_player()
 {
-	if (!invincible) {
-		if (player_hp->scale.x > 0.0001f) {
+	if (!invincible)
+	{
+		if (player_hp->scale.x > 0.0001f)
+		{
 			player_hp->scale.x -= max_player_hp * 0.05f;
 		}
 		invincible = true;
 	}
 }
 
-
 void PlayMode::hit_spike()
 {
-	for (auto &spike: spikes) {
-		if (((std::abs(player->position.z - spike.pos.z)) <= spike.height / 2)
-		   && ((std::abs(player->position.x - spike.pos.x)) <= spike.width / 2)) {
+	for (auto &spike : spikes)
+	{
+		if (((std::abs(player->position.z - spike.pos.z)) <= spike.height / 2) && ((std::abs(player->position.x - spike.pos.x)) <= spike.width / 2))
+		{
 			hit_player();
 		}
 	}
@@ -1162,37 +1180,44 @@ bool PlayMode::on_platform()
 {
 	for (auto platform : platforms)
 	{
-		if (platform.visible) {
-		if (player->position.z == platform.pos.z + platform.height / 2)
+		if (platform.visible)
 		{
-			if (!platform.fragile) {
-				return true;
+			if (player->position.z == platform.pos.z + platform.height / 2)
+			{
+				if (!platform.fragile)
+				{
+					return true;
+				}
+				if (platform.fragile && platform.visible)
+				{
+					return true;
+				}
 			}
-			if (platform.fragile && platform.visible) {
-				return true;
-		}
-		}
 		}
 	}
 	return player->position.z == start_point.z;
 }
 
-void PlayMode::on_platform_step(float elapsed) {
+void PlayMode::on_platform_step(float elapsed)
+{
 	for (auto &platform : platforms)
 	{
-		if (platform.visible) {
-		if (player->position.z == platform.pos.z + platform.height / 2)
+		if (platform.visible)
 		{
-			if (platform.fragile && platform.stepping_time < 1.2f) {
-				platform.stepping_time += elapsed;
+			if (player->position.z == platform.pos.z + platform.height / 2)
+			{
+				if (platform.fragile && platform.stepping_time < 1.2f)
+				{
+					platform.stepping_time += elapsed;
+				}
+				if (platform.fragile && platform.stepping_time >= 1.2f)
+				{
+					platform.visible = false;
+					platform.transform->scale.x = 0.0f;
+					platform.transform->scale.y = 0.0f;
+					platform.transform->scale.z = 0.0f;
+				}
 			}
-			if (platform.fragile && platform.stepping_time >= 1.2f) {
-				platform.visible = false;
-				platform.transform->scale.x = 0.0f;
-				platform.transform->scale.y = 0.0f;
-				platform.transform->scale.z = 0.0f;
-			}
-		}
 		}
 	}
 }
@@ -1201,11 +1226,12 @@ bool PlayMode::hit_platform()
 {
 	for (auto platform : platforms)
 	{
-		if (platform.visible) {
-		if (player->position.z == platform.pos.z - platform.height / 2)
+		if (platform.visible)
 		{
-			return true;
-		}
+			if (player->position.z == platform.pos.z - platform.height / 2)
+			{
+				return true;
+			}
 		}
 	}
 	return false;
@@ -1215,69 +1241,70 @@ void PlayMode::land_on_platform(glm::vec3 expected_position)
 {
 	for (auto platform : platforms)
 	{
-		if (platform.visible) {
-		// std::cout << "name:" << platform.name << ",expected pos:" << expected_position.z << ",plat pos:" << platform.pos.z << ",3:" << std::abs(expected_position.z - platform.pos.z) << "4:" << platform.height / 2 << std::endl;
-		if (std::abs(expected_position.x - platform.pos.x) < platform.width / 2 &&
-			std::abs(expected_position.z - platform.pos.z) < platform.height / 2)
+		if (platform.visible)
 		{
-			// This is just for JumpEnd Animation
-			if (player->position.z > platform.pos.z + platform.height / 2)
+			// std::cout << "name:" << platform.name << ",expected pos:" << expected_position.z << ",plat pos:" << platform.pos.z << ",3:" << std::abs(expected_position.z - platform.pos.z) << "4:" << platform.height / 2 << std::endl;
+			if (std::abs(expected_position.x - platform.pos.x) < platform.width / 2 &&
+				std::abs(expected_position.z - platform.pos.z) < platform.height / 2)
 			{
-				if (expected_position.z < platform.pos.z + platform.height / 2)
+				// This is just for JumpEnd Animation
+				if (player->position.z > platform.pos.z + platform.height / 2)
 				{
-					// from higher position
-					player_status = PlayerStatus::JumpEnd;
-					// shrink the dog
-					second_jump = false;
-					component_boots->scale = glm::vec3(0);
-					boots_timer = 0.0f;
+					if (expected_position.z < platform.pos.z + platform.height / 2)
+					{
+						// from higher position
+						player_status = PlayerStatus::JumpEnd;
+						// shrink the dog
+						second_jump = false;
+						component_boots->scale = glm::vec3(0);
+						boots_timer = 0.0f;
+					}
 				}
-			}
-			// This is real collision detection
-			if (player->position.z >= platform.pos.z + platform.height / 2)
-			{
-				if (expected_position.z < platform.pos.z + platform.height / 2)
+				// This is real collision detection
+				if (player->position.z >= platform.pos.z + platform.height / 2)
 				{
-					// from higher position
-					expected_position.z = platform.pos.z + platform.height / 2;
+					if (expected_position.z < platform.pos.z + platform.height / 2)
+					{
+						// from higher position
+						expected_position.z = platform.pos.z + platform.height / 2;
+					}
 				}
-			}
-			if (player->position.z <= platform.pos.z - platform.height / 2)
-			{
-				if (expected_position.z > platform.pos.z - platform.height / 2)
+				if (player->position.z <= platform.pos.z - platform.height / 2)
 				{
-					// for lower position
-					expected_position.z = platform.pos.z - platform.height / 2;
-				}
-				if (player->position.x < platform.pos.x - platform.width / 2 &&
-					expected_position.x > platform.pos.x - platform.width / 2)
-				{
-					expected_position.x = platform.pos.x - platform.width / 2;
-				}
-				if (player->position.x > platform.pos.x + platform.width / 2 &&
-					expected_position.x < platform.pos.x + platform.width / 2)
-				{
-					expected_position.x = platform.pos.x + platform.width / 2;
-				}
-			}
-			else
-			{
-				if (player->position.x <= platform.pos.x - platform.width / 2)
-				{
-					if (expected_position.x > platform.pos.x - platform.width / 2)
+					if (expected_position.z > platform.pos.z - platform.height / 2)
+					{
+						// for lower position
+						expected_position.z = platform.pos.z - platform.height / 2;
+					}
+					if (player->position.x < platform.pos.x - platform.width / 2 &&
+						expected_position.x > platform.pos.x - platform.width / 2)
 					{
 						expected_position.x = platform.pos.x - platform.width / 2;
 					}
-				}
-				if (player->position.x >= platform.pos.x + platform.width / 2)
-				{
-					if (expected_position.x < platform.pos.x + platform.width / 2)
+					if (player->position.x > platform.pos.x + platform.width / 2 &&
+						expected_position.x < platform.pos.x + platform.width / 2)
 					{
 						expected_position.x = platform.pos.x + platform.width / 2;
 					}
 				}
+				else
+				{
+					if (player->position.x <= platform.pos.x - platform.width / 2)
+					{
+						if (expected_position.x > platform.pos.x - platform.width / 2)
+						{
+							expected_position.x = platform.pos.x - platform.width / 2;
+						}
+					}
+					if (player->position.x >= platform.pos.x + platform.width / 2)
+					{
+						if (expected_position.x < platform.pos.x + platform.width / 2)
+						{
+							expected_position.x = platform.pos.x + platform.width / 2;
+						}
+					}
+				}
 			}
-		}
 		}
 	}
 	// camera->transform->position += move.x * frame_right + move.y * frame_forward;
@@ -1300,30 +1327,110 @@ void PlayMode::land_on_platform(glm::vec3 expected_position)
 	}
 }
 
-void PlayMode::check_dropping() {
-	if (player_stage == PlayerStage::InitialStage) {
-		if (player->position.z < 0.5f) {
+glm::vec3 PlayMode::boss_land_on_platform(glm::vec3 exp_position)
+{
+	glm::vec3 expected_pos = exp_position;
+	for (auto platform : platforms)
+	{
+		if (platform.visible)
+		{
+			// std::cout << "name:" << platform.name << ",expected pos:" << expected_position.z << ",plat pos:" << platform.pos.z << ",3:" << std::abs(expected_position.z - platform.pos.z) << "4:" << platform.height / 2 << std::endl;
+			if (std::abs(exp_position.x - platform.pos.x) < platform.width / 2 &&
+				std::abs(exp_position.z - platform.pos.z) < platform.height / 2)
+			{
+
+				// This is real collision detection
+				if (current_boss->transform->position.z >= platform.pos.z + platform.height / 2)
+				{
+					if (exp_position.z < platform.pos.z + platform.height / 2)
+					{
+						// from higher position
+						expected_pos.z = platform.pos.z + platform.height / 2;
+					}
+				}
+				if (current_boss->transform->position.z <= platform.pos.z - platform.height / 2)
+				{
+					if (exp_position.z > platform.pos.z - platform.height / 2)
+					{
+						// for lower position
+						expected_pos.z = platform.pos.z - platform.height / 2;
+					}
+					if (current_boss->transform->position.x < platform.pos.x - platform.width / 2 &&
+						exp_position.x > platform.pos.x - platform.width / 2)
+					{
+						std::cout << "4!!!" << std::endl;
+						expected_pos.x = platform.pos.x - platform.width / 2;
+					}
+					if (current_boss->transform->position.x > platform.pos.x + platform.width / 2 &&
+						exp_position.x < platform.pos.x + platform.width / 2)
+					{
+						std::cout << "3!!!" << std::endl;
+						expected_pos.x = platform.pos.x + platform.width / 2;
+					}
+				}
+				else
+				{
+					if (current_boss->transform->position.x <= platform.pos.x - platform.width / 2)
+					{
+						if (exp_position.x > platform.pos.x - platform.width / 2)
+						{
+							std::cout << "1!!!" << std::endl;
+							expected_pos.x = platform.pos.x - platform.width / 2;
+							ready_to_teleport = true;
+							teleport();
+						}
+					}
+					if (current_boss->transform->position.x >= platform.pos.x + platform.width / 2)
+					{
+						if (exp_position.x < platform.pos.x + platform.width / 2)
+						{
+							std::cout << "2!!!" << std::endl;
+							expected_pos.x = platform.pos.x + platform.width / 2;
+						}
+					}
+				}
+			}
+		}
+	}
+	expected_pos.y = exp_position.y;
+	std::cout << "expeted pos:" << expected_pos.x << "," << expected_pos.z << std::endl;
+	return expected_pos;
+}
+
+void PlayMode::check_dropping()
+{
+	if (player_stage == PlayerStage::InitialStage)
+	{
+		if (player->position.z < 0.5f)
+		{
 			player_die = true;
 		}
 	}
-	else if (player_stage == PlayerStage::JumpGame) {
-		if (player->position.z < 0.5f) {
+	else if (player_stage == PlayerStage::JumpGame)
+	{
+		if (player->position.z < 0.5f)
+		{
 			player_die = true;
 		}
 	}
 }
 
-void PlayMode::revive(float elapsed) {
-	if (player_stage == PlayerStage::InitialStage) {
-		if (player_die && !waiting_revive) {
+void PlayMode::revive(float elapsed)
+{
+	if (player_stage == PlayerStage::InitialStage)
+	{
+		if (player_die && !waiting_revive)
+		{
 			waiting_revive = true;
 			player->scale = glm::vec3(0, 0, 0);
 			player_hp->scale.x = 0;
 		}
-		if (waiting_revive && revive_time > 0) {
+		if (waiting_revive && revive_time > 0)
+		{
 			revive_time -= elapsed;
 		}
-		if (revive_time <= 0) {
+		if (revive_time <= 0)
+		{
 			player_die = false;
 			waiting_revive = false;
 			player->scale = player_origin_scale;
@@ -1335,16 +1442,20 @@ void PlayMode::revive(float elapsed) {
 			revive_time = revive_max_time;
 		}
 	}
-	if (player_stage == PlayerStage::JumpGame) {
-		if (player_die && !waiting_revive) {
+	if (player_stage == PlayerStage::JumpGame)
+	{
+		if (player_die && !waiting_revive)
+		{
 			waiting_revive = true;
 			player->scale = glm::vec3(0, 0, 0);
 			player_hp->scale.x = 0;
 		}
-		if (waiting_revive && revive_time > 0) {
+		if (waiting_revive && revive_time > 0)
+		{
 			revive_time -= elapsed;
 		}
-		if (revive_time <= 0) {
+		if (revive_time <= 0)
+		{
 			player_die = false;
 			waiting_revive = false;
 			player->scale = player_origin_scale;
@@ -1356,16 +1467,20 @@ void PlayMode::revive(float elapsed) {
 			revive_time = revive_max_time;
 		}
 	}
-	if (player_stage == PlayerStage::BossTeleport) {
-		if (player_die && !waiting_revive) {
+	if (player_stage == PlayerStage::BossTeleport)
+	{
+		if (player_die && !waiting_revive)
+		{
 			waiting_revive = true;
 			player->scale = glm::vec3(0, 0, 0);
 			player_hp->scale.x = 0;
 		}
-		if (waiting_revive && revive_time > 0) {
+		if (waiting_revive && revive_time > 0)
+		{
 			revive_time -= elapsed;
 		}
-		if (revive_time <= 0) {
+		if (revive_time <= 0)
+		{
 			player_die = false;
 			waiting_revive = false;
 			player->scale = player_origin_scale;
@@ -1586,7 +1701,7 @@ glm::vec3 PlayMode::nearest_teleport()
 
 	glm::vec3 minpos;
 
-	for (auto &telepos : teleportPos)
+	for (auto &telepos : final_teleportPos)
 	{
 
 		float dis = glm::distance(player->position, telepos->position);
@@ -1693,7 +1808,7 @@ void PlayMode::update_boss_status()
 
 				boss_status = Melee;
 			}
-			else if (glm::distance(player->position, current_boss->transform->position) < 6.0f && boss_status != BattleStatus::Attacked)
+			else if (glm::distance(player->position, current_boss->transform->position) < 5.0f && boss_status != BattleStatus::Attacked)
 			{
 				boss_status = Shoot;
 			}
@@ -1744,6 +1859,7 @@ void PlayMode::teleport()
 	{
 		if (ready_to_teleport)
 		{
+			// shrink on old pos
 			if (!arrive_new_pos)
 			{
 				if (teleport_timer > 0)
@@ -1762,6 +1878,54 @@ void PlayMode::teleport()
 					arrive_new_pos = true;
 				}
 			}
+			// expand on new pos
+			else
+			{
+				if (teleport_timer < 0.3f)
+				{
+					teleport_timer += 0.03f;
+					current_boss->transform->scale = glm::vec3(teleport_timer, current_boss->transform->scale.y, current_boss->transform->scale.z);
+				}
+				else
+				{
+					std::cout << "finish teleport!!!" << std::endl;
+					teleport_timer = 0.3f;
+					current_boss->transform->scale = glm::vec3(teleport_timer, current_boss->transform->scale.y, current_boss->transform->scale.z);
+					arrive_new_pos = false;
+					detect_boss_status = true;
+					ready_to_teleport = false;
+				}
+			}
+
+			// }
+		}
+	}
+	else
+	{
+		if (ready_to_teleport)
+		{
+			// shrink on old pos
+			if (!arrive_new_pos)
+			{
+				if (teleport_timer > 0)
+				{
+					detect_boss_status = false;
+					boss_status = Idle;
+					teleport_timer -= 0.03f;
+					current_boss->transform->scale = glm::vec3(teleport_timer, current_boss->transform->scale.y, current_boss->transform->scale.z);
+				}
+				else
+				{
+					std::cout << "reach!!" << std::endl;
+					teleport_timer = 0;
+					current_boss->transform->scale = glm::vec3(teleport_timer, current_boss->transform->scale.y, current_boss->transform->scale.z);
+					glm::vec3 nearest_tel = level1_tel->position;
+					current_boss->transform->position = glm::vec3(nearest_tel.x, player->position.y, nearest_tel.z);
+					arrive_new_pos = true;
+					std::cout << "over" << std::endl;
+				}
+			}
+			// expand on new pos
 			else
 			{
 				if (teleport_timer < 0.3f)

@@ -31,6 +31,7 @@ struct PlayMode : Mode
 	void land_on_platform(glm::vec3 expected_position);
 	void check_dropping();
 	void revive(float elapsed);
+	glm::vec3 boss_land_on_platform(glm::vec3 expected_position);
 	//----- game state -----
 
 	// input tracking:
@@ -144,7 +145,6 @@ struct PlayMode : Mode
 	float stage_changing = false;
 	float stage_change_timer = 0.0f;
 
-
 	SubUV subuv;
 	SubUV weapon_subuv;
 	SubUV boss_subuv;
@@ -228,11 +228,15 @@ struct PlayMode : Mode
 	Scene::Transform *boss_hp = nullptr;
 
 	// boss teleport
-	std::list<Scene::Transform *> teleportPos;
+	std::list<Scene::Transform *> final_teleportPos;
+	Scene::Transform *level1_tel;
 	int count_for_teleport = 0; // if this count reaches 2, start teleport
 	bool ready_to_teleport = false;
 	float teleport_timer = 0.3f; // scale cange timer
 	bool arrive_new_pos = false; // start scale
+
+	// boss_gravity
+	float boss_gravity = -0.5f;
 
 	/// playerhp
 	Scene::Transform *player_hp = nullptr;
