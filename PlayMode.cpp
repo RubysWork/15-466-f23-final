@@ -692,8 +692,10 @@ void PlayMode::update(float elapsed)
 			}
 			else if (hasWings)
 			{
-				jump_velocity = 2.2f;
-
+				if (wings_energy >= 0) {
+					jump_velocity = 2.2f;
+					flying = true;
+				}
 			}
 		}
 
@@ -706,6 +708,11 @@ void PlayMode::update(float elapsed)
 		if (hasJetPack && jetpack_fuel > 0 && jetpack_on)
 		{
 			jetpack_fuel -= elapsed;
+		}
+
+		if (hasWings && jetpack_fuel > 0 && flying)
+		{
+			wings_energy -= elapsed;
 		}
 
 		if (jetpack_fuel <= 0)
@@ -755,20 +762,25 @@ void PlayMode::update(float elapsed)
 			jump_signal = false;
 
 			jetpack_on = false;
-			if (jetpack_fuel < jetpack_max_fuel)
+			flying = false;
+			if (hasJetPack && jetpack_fuel < jetpack_max_fuel)
 			{
 				jetpack_fuel += 2 * elapsed;
+			}
+			if (hasWings && wings_energy < wings_max_energy)
+			{
+				wings_energy += 2 * elapsed;
 			}
 		}
 
 		on_platform_step(elapsed);
 		hit_spike();
 
-		if (!hasJetPack)
+		if (!hasJetPack && !hasWings)
 		{
 			player_fuel->scale.x = 0.001f;
 		}
-		else
+		else if (hasJetPack)
 		{
 			if (jetpack_fuel <= 0)
 			{
@@ -781,6 +793,20 @@ void PlayMode::update(float elapsed)
 			{
 				player_fuel->scale.x = max_fuel_scale * jetpack_fuel / jetpack_max_fuel;
 			}
+		}
+		else if (hasWings)
+		{
+			if (wings_energy <= 0)
+			{
+				player_fuel->scale.x = 0.001f;
+			}
+			else if (wings_energy >= wings_max_energy) {
+				player_fuel->scale.x = max_fuel_scale;
+			}
+			else
+			{
+				player_fuel->scale.x = max_fuel_scale * wings_energy / wings_max_energy;
+			} 
 		}
 
 		if (hit_platform())

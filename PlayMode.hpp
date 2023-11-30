@@ -90,7 +90,9 @@ struct PlayMode : Mode
 	// wings
 	Scene::Transform *wings = nullptr;
 	bool hasWings = false;
-
+	bool flying = false;
+	float wings_max_energy = 15.0f;
+	float wings_energy = 15.0f;
 
 	Scene::Transform *player_fuel = nullptr;
 	float max_fuel_scale = 0.0f;
@@ -245,7 +247,7 @@ struct PlayMode : Mode
 		float height = 0;
 		float width = 0;
 	} Spike;
-	
+
 	std::list<Spike> spikes;
 
 	typedef struct Platform
