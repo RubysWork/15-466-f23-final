@@ -1130,18 +1130,20 @@ bool PlayMode::on_platform()
 }
 
 void PlayMode::on_platform_step(float elapsed) {
-	for (auto platform : platforms)
+	for (auto &platform : platforms)
 	{
 		if (platform.visible) {
 		if (player->position.z == platform.pos.z + platform.height / 2)
 		{
-			if (platform.fragile && platform.stepping_time < 2.0f) {
+			if (platform.fragile && platform.stepping_time < 1.2f) {
 				platform.stepping_time += elapsed;
 			}
-			if (platform.fragile && platform.stepping_time >= 2.0f) {
+			if (platform.fragile && platform.stepping_time >= 1.2f) {
 				std::cout << "become invisible";
 				platform.visible = false;
-				platform.transform->scale.x = 0.01f;
+				platform.transform->scale.x = 0.0f;
+				platform.transform->scale.y = 0.0f;
+				platform.transform->scale.z = 0.0f;
 			}
 		}
 		}
