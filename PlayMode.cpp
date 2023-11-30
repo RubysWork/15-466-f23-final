@@ -705,12 +705,12 @@ void PlayMode::update(float elapsed)
 			jetpack_on = false;
 		}
 
-		if (hasJetPack && jetpack_fuel > 0 && jetpack_on)
+		if (hasJetPack && jetpack_fuel > 0 && jetpack_on && !player_die)
 		{
 			jetpack_fuel -= elapsed;
 		}
 
-		if (hasWings && jetpack_fuel > 0 && flying)
+		if (hasWings && jetpack_fuel > 0 && flying && !player_die)
 		{
 			wings_energy -= elapsed;
 		}
