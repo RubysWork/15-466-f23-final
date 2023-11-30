@@ -226,6 +226,8 @@ struct PlayMode : Mode
 
 	/// bosshp
 	Scene::Transform *boss_hp = nullptr;
+	glm::vec3 ori_bosshp_scale = glm::vec3(1);
+	Scene::Transform *boss_hp_bg = nullptr; // hide hp
 
 	// boss teleport
 	std::list<Scene::Transform *> final_teleportPos;

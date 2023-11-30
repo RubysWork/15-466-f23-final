@@ -131,7 +131,12 @@ PlayMode::PlayMode() : scene(*hexapod_scene)
 		else if (transform.name == "BossHp")
 		{
 			boss_hp = &transform;
+			ori_bosshp_scale = boss_hp->scale;
 			// boss_hp->position.z += 5;
+		}
+		else if (transform.name == "Boss1HpBG")
+		{
+			boss_hp_bg = &transform;
 		}
 		else if (transform.name == "PlayerHp")
 		{
@@ -240,7 +245,6 @@ PlayMode::PlayMode() : scene(*hexapod_scene)
 			enemy.index = (int)enemies.size();
 			enemy.transform = &transform;
 			enemies.emplace_back(enemy);
-			std::cout << "emplace!!" << std::endl;
 		}
 		else if (transform.name == "Wing")
 		{
@@ -436,7 +440,7 @@ void PlayMode::update(float elapsed)
 	}
 
 	// boss die
-	if (boss_hp->scale.x <= 0.0001f)
+	if (current_boss->current_hp <= 0.0001f)
 	{
 		// current_boss->transform->scale = glm::vec3(0);
 		for (auto &bullet : current_bullets)
@@ -451,7 +455,11 @@ void PlayMode::update(float elapsed)
 		}
 
 		if (!current_boss->die)
+		{
 			current_boss->die = level1_boss_dead();
+			boss_status = Dead;
+			boss_hp_bg->scale = glm::vec3(0);
+		}
 
 		current_boss_weapon->transform->scale = glm::vec3(0);
 	}
@@ -498,6 +506,7 @@ void PlayMode::update(float elapsed)
 		{
 		case Idle:
 		{
+			boss_hp_bg->scale = glm::vec3(0);
 			// deal with bullet
 			if (!finish_bullet)
 			{
@@ -514,6 +523,8 @@ void PlayMode::update(float elapsed)
 		}
 		case Melee:
 		{
+			boss_hp_bg->scale = glm::vec3(1.66f, 0.10048f, 0.3f);
+			boss_hp->scale.x = current_boss->current_hp / current_boss->max_hp * ori_bosshp_scale.x;
 			// deal with bullet
 			if (!finish_bullet)
 			{
@@ -536,6 +547,8 @@ void PlayMode::update(float elapsed)
 		}
 		case Shoot:
 		{
+			boss_hp_bg->scale = glm::vec3(1.66f, 0.10048f, 0.3f);
+			boss_hp->scale.x = current_boss->current_hp / current_boss->max_hp * ori_bosshp_scale.x;
 			// timer
 			if (finish_bullet)
 			{
@@ -576,6 +589,11 @@ void PlayMode::update(float elapsed)
 				}
 			}
 
+			break;
+		}
+		case Dead: // won't go this case
+		{
+			boss_hp_bg->scale = glm::vec3(0);
 			break;
 		}
 		default:
@@ -970,6 +988,7 @@ glm::vec3 PlayMode::check_change_stage(glm::vec3 expected_position)
 			expected_position.z = 5.3f;
 			stage_changing = true;
 			stage_change_timer = 0.0f;
+			boss_hp_bg->scale = glm::vec3(0);
 		}
 	}
 
@@ -984,9 +1003,13 @@ glm::vec3 PlayMode::check_change_stage(glm::vec3 expected_position)
 			player->position.z = 5.0f;
 			expected_position.x = 63.0f;
 			expected_position.z = 5.0f;
-			boss_hp->scale.x = 1;
+
+			// boss_hp->scale.x = 1;
 			current_boss = &final_boss;
 			current_boss_weapon = &final_boss_weapon;
+			boss_status = Idle;
+			current_boss->current_hp = 1.0f;
+
 			stage_changing = true;
 			stage_change_timer = 0.0f;
 			hasWings = true;
@@ -1216,9 +1239,11 @@ void PlayMode::hit_spike()
 
 void PlayMode::hit_boss()
 {
-	if (boss_hp->scale.x > 0.0001f)
+	if (current_boss->current_hp > 0.0001f)
 	{
-		boss_hp->scale.x -= current_boss->max_hp * 0.1f;
+		current_boss->current_hp -= 0.1f;
+		boss_hp->scale.x = current_boss->current_hp / current_boss->max_hp * ori_bosshp_scale.x;
+
 		boss_status = BattleStatus::Attacked;
 	}
 }
@@ -1842,31 +1867,31 @@ void PlayMode::update_boss_status()
 	{
 		if (current_boss->transform->name == final_boss.transform->name)
 		{
-			if (glm::distance(player->position, current_boss->transform->position) < 2.5f && boss_status != BattleStatus::Attacked)
+			if (glm::distance(player->position, current_boss->transform->position) < 2.5f && boss_status != BattleStatus::Attacked && boss_status != Dead)
 			{
 				boss_status = Melee;
 			}
-			else if (glm::distance(player->position, current_boss->transform->position) < 8.0f && boss_status != BattleStatus::Attacked)
+			else if (glm::distance(player->position, current_boss->transform->position) < 8.0f && boss_status != BattleStatus::Attacked && boss_status != Dead)
 			{
 				boss_status = Shoot;
 			}
-			else if (boss_status != BattleStatus::Attacked || boss_hp->scale.x <= 0.2f)
+			else if (boss_status != BattleStatus::Attacked || current_boss->current_hp / current_boss->max_hp <= 0.2f)
 			{
 				boss_status = BattleStatus::Idle;
 			}
 		}
 		else
 		{
-			if (glm::distance(player->position, current_boss->transform->position) < 2.5f && boss_status != BattleStatus::Attacked)
+			if (glm::distance(player->position, current_boss->transform->position) < 2.5f && boss_status != BattleStatus::Attacked && boss_status != Dead)
 			{
 
 				boss_status = Melee;
 			}
-			else if (glm::distance(player->position, current_boss->transform->position) < 5.0f && boss_status != BattleStatus::Attacked)
+			else if (glm::distance(player->position, current_boss->transform->position) < 5.0f && boss_status != BattleStatus::Attacked && boss_status != Dead)
 			{
 				boss_status = Shoot;
 			}
-			else if (boss_status != BattleStatus::Attacked || boss_hp->scale.x <= 0.2f)
+			else if (boss_status != BattleStatus::Attacked || current_boss->current_hp / current_boss->max_hp <= 0.2f)
 			{
 				boss_status = BattleStatus::Idle;
 			}
