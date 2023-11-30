@@ -81,9 +81,14 @@ struct PlayMode : Mode
 	float jetpack_max_fuel = 1.5f;
 	float jetpack_fuel = 0.0f;
 	float jetpack_max_speed = 1.625f;
-	float hover_full_fuel_time = 0.1f;
-	float hover_max_time = 0.4f;
-	float hover_time = 0.0f;
+	// float hover_full_fuel_time = 0.1f;
+	// float hover_max_time = 0.4f;
+	// float hover_time = 0.0f;
+
+	// wings
+	Scene::Transform *wings = nullptr;
+	bool hasWings = false;
+
 
 	Scene::Transform *player_fuel = nullptr;
 	float max_fuel_scale = 0.0f;

@@ -394,7 +394,7 @@ void PlayMode::update(float elapsed)
 			put_away_bullet(bullet);
 		}
 		// get jet pack and replace boots
-		if (!hasJetPack)
+		if (!hasJetPack && player_stage == PlayerStage::InitialStage)
 		{
 			hasJetPack = true;
 			hasBoots = false;
@@ -664,11 +664,12 @@ void PlayMode::update(float elapsed)
 			{
 				jetpack_on = true;
 				// jump_velocity = jetpack_max_speed;
-				hover_max_time = hover_full_fuel_time / jetpack_max_fuel * jetpack_fuel;
+				// hover_max_time = hover_full_fuel_time / jetpack_max_fuel * jetpack_fuel;
 			}
-			else
+			else if (hasWings)
 			{
-				// do nothing, later replace with other possibilities
+				jump_velocity = 2.2f;
+
 			}
 		}
 
@@ -726,7 +727,7 @@ void PlayMode::update(float elapsed)
 			first_jump = false;
 			second_jump = false;
 			jump_velocity = 0;
-			hover_time = 0;
+			// hover_time = 0;
 			jump_signal = false;
 
 			jetpack_on = false;
@@ -869,6 +870,8 @@ glm::vec3 PlayMode::check_change_stage(glm::vec3 expected_position)
 			current_boss_weapon = &final_boss_weapon;
 			stage_changing = true;
 			stage_change_timer = 0.0f;
+			hasWings = true;
+			hasJetPack = false;
 		}
 	}
 	return expected_position;
