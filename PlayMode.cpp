@@ -2046,7 +2046,7 @@ void PlayMode::update_boss_status()
 	if (start_weak_timer)
 	{
 		weak_timer++;
-		std::cout << "time:" << weak_timer << std::endl;
+		// std::cout << "time:" << weak_timer << std::endl;
 		if (weak_timer > 500 && detect_boss_status)
 		{
 			current_boss->status = Weak;
