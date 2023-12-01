@@ -22,9 +22,9 @@ struct PlayMode : Mode
 	virtual void draw(glm::uvec2 const &drawable_size) override;
 	glm::vec3 check_change_stage(glm::vec3 expected_position);
 	glm::vec3 bullet_current_Pos(glm::vec3 origin_Pos, glm::vec3 final_Pos, float time);
-	void hit_player();
+	void hit_player(float damage); // damage max=1
 	void hit_spike();
-	void hit_boss();
+	void hit_boss(float damage); // damage max=1
 	bool on_platform(Scene::Transform *obj, Scene::Transform &stepped_platform);
 	void on_platform_step(float elapsed);
 	bool hit_platform();
@@ -241,11 +241,12 @@ struct PlayMode : Mode
 	float enemy_gravity = -0.5f;
 
 	// enemy status
-	enum EnemyStatus
+	enum class EnemyStatus
 	{
-		Stay,
+		Idle,
+		Move,
 		Damaged,
-		Die
+		Dead
 	};
 
 	typedef struct Enemy
@@ -255,10 +256,13 @@ struct PlayMode : Mode
 		float speed = 1.0f;
 		float max_hp = 1.0f;
 		float current_hp = 1.0f;
-		EnemyStatus status = EnemyStatus::Stay;
+		EnemyStatus status = EnemyStatus::Idle;
+		Scene::Transform *stepped_plat;
+		bool canmove = true; // static enemy or moving enemy
 	} Enemy;
 
 	std::list<Enemy> enemies;
+	Enemy *current_enemy;
 
 	/// playerhp
 	Scene::Transform *player_hp = nullptr;
@@ -331,6 +335,6 @@ struct PlayMode : Mode
 	HitObject hit_detect_SAT(Scene::Transform *obj, Scene::Transform *hit_obj);
 	std::pair<float, float> ProjectAlongVector(Scene::Transform *obj, const glm::vec3 &projectionVector);
 
-	// test_platform
-	// Scene::Transform *fragile5 = nullptr;
+	// test_platform, now used for enemy default platform
+	Scene::Transform *fragile5 = nullptr;
 };
