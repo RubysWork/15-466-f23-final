@@ -417,7 +417,7 @@ bool PlayMode::handle_event(SDL_Event const &evt, glm::uvec2 const &window_size)
 		weapon_status = WeaponStatus::NormalAttack;
 		return true;
 	}
-	else if (evt.type == SDL_MOUSEMOTION)
+	else if (evt.type == SDL_MOUSEBUTTONUP)
 	{
 		keyatk.pressed = false;
 		attack = false;
