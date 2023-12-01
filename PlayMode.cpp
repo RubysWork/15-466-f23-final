@@ -350,15 +350,15 @@ bool PlayMode::handle_event(SDL_Event const &evt, glm::uvec2 const &window_size)
 			keys.pressed = true;
 			return true;
 		}
-		else if (evt.key.keysym.sym == SDLK_e)
-		{
-			keyatk.downs += 1;
-			keyatk.pressed = true;
-			weapon_status = WeaponStatus::NormalAttack;
-			// if (get_weapon)
-			// Sound::play_3D(*sound_05_sample, 1.0f, player->position);
-			return true;
-		}
+		// else if (evt.key.keysym.sym == SDLK_e)
+		// {
+		// 	keyatk.downs += 1;
+		// 	keyatk.pressed = true;
+		// 	weapon_status = WeaponStatus::NormalAttack;
+		// 	// if (get_weapon)
+		// 	// Sound::play_3D(*sound_05_sample, 1.0f, player->position);
+		// 	return true;
+		// }
 		else if (evt.key.keysym.sym == SDLK_SPACE)
 		{
 			space.downs += 1;
@@ -398,19 +398,31 @@ bool PlayMode::handle_event(SDL_Event const &evt, glm::uvec2 const &window_size)
 			keys.pressed = false;
 			return true;
 		}
-		else if (evt.key.keysym.sym == SDLK_e)
-		{
-			keyatk.pressed = false;
-			attack = false;
-			return true;
-		}
+		// else if (evt.key.keysym.sym == SDLK_e)
+		// {
+		// 	keyatk.pressed = false;
+		// 	attack = false;
+		// 	return true;
+		// }
 		else if (evt.key.keysym.sym == SDLK_SPACE)
 		{
 			space.pressed = false;
 			return true;
 		}
 	}
-
+	else if (evt.type == SDL_MOUSEBUTTONDOWN)
+	{
+		keyatk.downs += 1;
+		keyatk.pressed = true;
+		weapon_status = WeaponStatus::NormalAttack;
+		return true;
+	}
+	else if (evt.type == SDL_MOUSEMOTION)
+	{
+		keyatk.pressed = false;
+		attack = false;
+		return true;
+	}
 	return false;
 }
 
