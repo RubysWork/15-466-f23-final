@@ -116,7 +116,7 @@ PlayMode::PlayMode() : scene(*hexapod_scene)
 		{
 			player = &transform;
 			// player->position = glm::vec3{47.3101f, 5.86705f, 56.8865f};
-			//     player->scale = glm::vec3{0.15f, 0.15f, 0.15f};
+			//    player->scale = glm::vec3{0.15f, 0.15f, 0.15f};
 			start_point = player->position;
 			start_point.z -= 5.0f;
 			player_origin_scale = player->scale;
@@ -241,10 +241,10 @@ PlayMode::PlayMode() : scene(*hexapod_scene)
 			platform.visible = true;
 			platform.stepping_time = 0.0f;
 			platforms.emplace_back(platform);
-			if (transform.name == "Fragile5")
-			{
-				fragile5 = &transform;
-			}
+			// 			if (transform.name == "Fragile5")
+			// {
+			// 	fragile5 = &transform;
+			// }
 		}
 		else if (transform.name.find("Spike") != std::string::npos)
 		{
@@ -277,7 +277,6 @@ PlayMode::PlayMode() : scene(*hexapod_scene)
 			Enemy enemy;
 			enemy.index = (int)enemies.size();
 			enemy.transform = &transform;
-			enemy.stepped_plat = fragile5;
 			enemies.emplace_back(enemy);
 		}
 		else if (transform.name == "Wing")
@@ -509,7 +508,7 @@ void PlayMode::update(float elapsed)
 		{
 			current_boss->die = level1_boss_dead();
 			boss_status = Dead;
-			// boss_hp_bg->scale = glm::vec3(0);
+			boss_hp_bg->scale = glm::vec3(0);
 			(*boss1_loop_sound).stop();
 		}
 
@@ -523,7 +522,7 @@ void PlayMode::update(float elapsed)
 
 			if (!bullet.hit_player && hit_detect(player, bullet.transform).overlapped)
 			{
-				hit_player(0.05f);
+				hit_player();
 				bullet.hit_player = true;
 				put_away_bullet(bullet);
 			}
@@ -533,13 +532,13 @@ void PlayMode::update(float elapsed)
 		{
 			if (current_boss_weapon->timer == 0)
 			{
-				hit_player(0.05f);
+				hit_player();
 				current_boss_weapon->timer++;
 			}
 			if (current_boss_weapon->timer > 50)
 			{
 				current_boss_weapon->timer = 1;
-				hit_player(0.05f);
+				hit_player();
 			}
 			else
 			{
@@ -594,12 +593,8 @@ void PlayMode::update(float elapsed)
 			(*boss1_loop_sound).position = current_boss->transform->position;
 			// current_boss->transform->position.x += dir.x * current_boss->speed * elapsed;
 			float vec = enemy_gravity * elapsed;
-			if (!hit_detect_SAT(player, current_boss_weapon->transform).overlapped)
-			{
-				glm::vec3 expected_pos = glm::vec3(current_boss->transform->position.x + dir.x * current_boss->speed * elapsed, current_boss->transform->position.y, current_boss->transform->position.z + vec);
-				current_boss->transform->position = enemy_land_on_platform(current_boss->transform, expected_pos);
-			}
-
+			glm::vec3 expected_pos = glm::vec3(current_boss->transform->position.x + dir.x * current_boss->speed * elapsed, current_boss->transform->position.y, current_boss->transform->position.z + vec);
+			current_boss->transform->position = enemy_land_on_platform(current_boss->transform, expected_pos);
 			break;
 		}
 		case Shoot:
@@ -740,75 +735,41 @@ void PlayMode::update(float elapsed)
 	}
 
 	// enemy
-	for (auto &enemy : enemies)
+	for (auto enemy : enemies)
 	{
-		// enemy die
-		if (enemy.current_hp <= 0.00001f)
+		Scene::Transform stepped_plat;
+		// std::cout << "enemy pos" << enemy.transform->position.x << "," << enemy.transform->position.z << std::endl;
+		if (on_platform(enemy.transform, stepped_plat))
 		{
-			enemy.status = EnemyStatus::Dead;
-			enemy.transform->scale = glm::vec3(0);
+			// std::cout << "stepped:" << stepped_plat.name << std::endl;
+			float expectedX = enemy.transform->position.x - enemy.speed * elapsed;
+			// float vec = enemy.transform->position.z + enemy_gravity * elapsed;
+			if (expectedX >= stepped_plat.max.x)
+			{
+				enemy.speed *= -1;
+				break;
+			}
+			if (expectedX <= stepped_plat.min.x)
+			{
+				enemy.speed *= -1;
+				break;
+			}
+			enemy.transform->position.x = expectedX;
+			// enemy.transform->position.z = vec;
 		}
 		else
 		{
-			// player attack
-			if (get_weapon &&
-				keyatk.pressed &&
-				!attack && hit_detect_SAT(component, enemy.transform).overlapped)
-			{
-				enemy.status = EnemyStatus::Damaged;
-				attack = true;
-				enemy.current_hp -= 0.4f;
-			}
-
-			// hit player
-			if (hit_detect_SAT(player, current_boss_weapon->transform).overlapped || hit_detect_SAT(player, current_boss->transform).overlapped)
-			{
-				hit_player(0.05f);
-			}
-
-			// move
-			if (enemy.canmove)
-			{
-				enemy.status = EnemyStatus::Move;
-				current_enemy = &enemy;
-				float expectedX = enemy.transform->position.x + enemy.speed * elapsed;
-				float vec = enemy.transform->position.z + enemy_gravity * elapsed;
-				glm::vec3 expected_pos = glm::vec3(expectedX, enemy.transform->position.y, vec);
-
-				enemy_land_on_platform(enemy.transform, expected_pos);
-				if (enemy.stepped_plat)
-				{
-					if (expectedX > (enemy.stepped_plat->make_local_to_world() * glm::vec4(enemy.stepped_plat->max, 1.0f)).x - 0.2f)
-					{
-						enemy.speed *= -1;
-						enemy.transform->scale.x *= -1;
-						expectedX = (enemy.stepped_plat->make_local_to_world() * glm::vec4(enemy.stepped_plat->max, 1.0f)).x - 0.2f;
-					}
-					else if (expectedX < (enemy.stepped_plat->make_local_to_world() * glm::vec4(enemy.stepped_plat->min, 1.0f)).x + 0.2f)
-					{
-						enemy.speed *= -1;
-						enemy.transform->scale.x *= -1;
-						expectedX = (enemy.stepped_plat->make_local_to_world() * glm::vec4(enemy.stepped_plat->min, 1.0f)).x + 0.2f;
-					}
-					expected_pos = glm::vec3(expectedX, enemy.transform->position.y, vec);
-					enemy.transform->position = enemy_land_on_platform(enemy.transform, expected_pos);
-				}
-			}
-			else
-			{
-				// stationary enemy
-				enemy.status = EnemyStatus::Idle;
-			}
+			// fall off die, scale=0
+			enemy.status = Die;
 		}
 	}
-
 	// player attack
 	if (get_weapon &&
 		keyatk.pressed &&
 		!attack && hit_detect_SAT(component, current_boss->transform).overlapped)
 	{
 		attack = true;
-		hit_boss(0.1f);
+		hit_boss();
 	}
 	// move camera:
 	{
@@ -1316,7 +1277,7 @@ void PlayMode::update_weapon_status()
 	// }
 }
 
-void PlayMode::hit_player(float damage)
+void PlayMode::hit_player()
 {
 	if (!invincible)
 	{
@@ -1325,7 +1286,7 @@ void PlayMode::hit_player(float damage)
 
 		if (player_hp->scale.x > 0.0001f)
 		{
-			player_hp->scale.x -= max_player_hp * damage;
+			player_hp->scale.x -= max_player_hp * 0.05f;
 		}
 		invincible = true;
 	}
@@ -1337,16 +1298,16 @@ void PlayMode::hit_spike()
 	{
 		if (((std::abs(player->position.z - spike.pos.z)) <= spike.height / 2) && ((std::abs(player->position.x - spike.pos.x)) <= spike.width / 2))
 		{
-			hit_player(0.05f);
+			hit_player();
 		}
 	}
 }
 
-void PlayMode::hit_boss(float damage)
+void PlayMode::hit_boss()
 {
 	if (current_boss->current_hp > 0.0001f)
 	{
-		current_boss->current_hp -= damage;
+		current_boss->current_hp -= 0.1f;
 		boss_hp->scale.x = current_boss->current_hp / current_boss->max_hp * ori_bosshp_scale.x;
 
 		boss_status = BattleStatus::Attacked;
@@ -1531,9 +1492,6 @@ glm::vec3 PlayMode::enemy_land_on_platform(Scene::Transform *enemy, glm::vec3 ex
 					if (exp_position.z < platform.pos.z + platform.height / 2)
 					{
 						// from higher position
-						Scene::Transform *trans;
-						trans = platform.transform;
-						current_enemy->stepped_plat = trans;
 						expected_pos.z = platform.pos.z + platform.height / 2;
 					}
 				}
