@@ -868,7 +868,7 @@ void PlayMode::update(float elapsed)
 			}
 
 			// move
-			if (enemy.canmove)
+			if (enemy.canmove && enemy.status != EnemyStatus::Damaged)
 			{
 				enemy.status = EnemyStatus::Move;
 				current_enemy = &enemy;
@@ -895,7 +895,7 @@ void PlayMode::update(float elapsed)
 					enemy.transform->position = enemy_land_on_platform(enemy.transform, expected_pos);
 				}
 			}
-			else
+			else if (enemy.status != EnemyStatus::Damaged)
 			{
 				// stationary enemy
 				enemy.status = EnemyStatus::Idle;
@@ -2053,7 +2053,7 @@ void PlayMode::update_boss_status()
 			attacked_timer += 0.1f;
 			if (attacked_timer > 1.25f)
 			{
-				current_boss->status = BattleStatus::Idle;
+				current_boss->status = BattleStatus::Weak;
 				attacked_timer = 0.0f;
 			}
 		}
@@ -2126,6 +2126,10 @@ void PlayMode::update_boss_status()
 			else if (current_boss->status != BattleStatus::Attacked || current_boss->current_hp / current_boss->max_hp <= 0.2f)
 			{
 				current_boss->status = BattleStatus::Idle;
+			}
+			else
+			{
+				current_boss->status = BattleStatus::Weak;
 			}
 		}
 	}
