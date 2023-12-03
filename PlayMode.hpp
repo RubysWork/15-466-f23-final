@@ -39,12 +39,12 @@ struct PlayMode : Mode
 	{
 		uint8_t downs = 0;
 		uint8_t pressed = 0;
-	} keya, keyd, keys, keyw, keyatk, space;
+	} keya, keyd, keys, keyw, keyatk, space, enter;
 
 	// local copy of the game scene (so code can change it during gameplay):
 	Scene scene;
+	Scene::Transform *start_menu = nullptr;
 
-	// glm::vec3 get_leg_tip_position();
 	Scene::Transform *player = nullptr;
 	// player attack once
 	bool attack = false;
@@ -148,6 +148,9 @@ struct PlayMode : Mode
 	SubUV subuv;
 	SubUV weapon_subuv;
 	SubUV boss_subuv;
+	SubUV ene_subuv1, ene_subuv2;
+	std::vector<SubUV> enemy_subuv;
+	int enemy_subuv_count = 0;
 	PlayerStatus player_status = PlayerStatus::Idle;
 	WeaponStatus weapon_status = WeaponStatus::Idle;
 	bool player_die = false;
@@ -336,6 +339,8 @@ struct PlayMode : Mode
 
 	void update_boss_status();
 	bool level1_boss_dead();
+	void update_enemy_status(Enemy enemy);
+	void enemy_dead(Enemy enemy);
 
 	void teleport();
 

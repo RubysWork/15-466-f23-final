@@ -110,6 +110,9 @@ Load<Sound::Sample> sound_07_sample(LoadTagDefault, []() -> Sound::Sample const 
 
 PlayMode::PlayMode() : scene(*hexapod_scene)
 {
+	enemy_subuv.emplace_back(ene_subuv1);
+	enemy_subuv.emplace_back(ene_subuv2);
+
 	for (auto &transform : scene.transforms)
 	{
 		if (transform.name == "Player")
@@ -127,7 +130,12 @@ PlayMode::PlayMode() : scene(*hexapod_scene)
 			level1_boss.transform = &transform;
 			current_boss = &level1_boss;
 			current_boss->hasweapon = true;
-			boss_status = Idle;
+			current_boss->status = Idle;
+		}
+
+		else if (transform.name == "StartMenu")
+		{
+			start_menu = &transform;
 		}
 
 		else if (transform.name.find("SubUV") != std::string::npos)
@@ -287,6 +295,15 @@ PlayMode::PlayMode() : scene(*hexapod_scene)
 			enemies.emplace_back(enemy);
 			current_enemy = &enemy;
 		}
+		else if (transform.name.find("EnemSub") != std::string::npos)
+		{
+			transform.scale = glm::vec3(0.0f);
+			if (enemy_subuv_count < 18)
+				enemy_subuv[0].subtransforms.emplace_back(&transform);
+			else
+				enemy_subuv[1].subtransforms.emplace_back(&transform);
+			enemy_subuv_count++;
+		}
 		else if (transform.name == "Wing")
 		{
 			wings = &transform;
@@ -323,59 +340,68 @@ bool PlayMode::handle_event(SDL_Event const &evt, glm::uvec2 const &window_size)
 
 	if (evt.type == SDL_KEYDOWN)
 	{
-		if (evt.key.keysym.sym == SDLK_ESCAPE)
+		if (enter.pressed)
 		{
-			SDL_SetRelativeMouseMode(SDL_FALSE);
-			return true;
+			if (evt.key.keysym.sym == SDLK_ESCAPE)
+			{
+				SDL_SetRelativeMouseMode(SDL_FALSE);
+				return true;
+			}
+			else if (evt.key.keysym.sym == SDLK_a)
+			{
+				keya.downs += 1;
+				keya.pressed = true;
+				if (player_status != PlayerStatus::JumpLoop && player_status != PlayerStatus::JumpStart)
+					player_status = PlayerStatus::MoveLeft;
+				return true;
+			}
+			else if (evt.key.keysym.sym == SDLK_d)
+			{
+				keyd.downs += 1;
+				keyd.pressed = true;
+				if (player_status != PlayerStatus::JumpLoop && player_status != PlayerStatus::JumpStart)
+					player_status = PlayerStatus::MoveRight;
+				return true;
+			}
+			else if (evt.key.keysym.sym == SDLK_w)
+			{
+				keyw.downs += 1;
+				keyw.pressed = true;
+				return true;
+			}
+			else if (evt.key.keysym.sym == SDLK_s)
+			{
+				keys.downs += 1;
+				keys.pressed = true;
+				return true;
+			}
+			// else if (evt.key.keysym.sym == SDLK_e)
+			// {
+			// 	keyatk.downs += 1;
+			// 	keyatk.pressed = true;
+			// 	weapon_status = WeaponStatus::NormalAttack;
+			// 	// if (get_weapon)
+			// 	// Sound::play_3D(*sound_05_sample, 1.0f, player->position);
+			// 	return true;
+			// }
+			else if (evt.key.keysym.sym == SDLK_SPACE)
+			{
+				space.downs += 1;
+				space.pressed = true;
+				if (first_jump == false)
+					player_status = PlayerStatus::JumpStart;
+				if (!first_jump && !hasJetPack)
+					Sound::play_3D(*sound_02_sample, 0.75f, player->position);
+				else if (!first_jump && hasJetPack)
+					Sound::play_3D(*sound_03_sample, 1.0f, player->position);
+				return true;
+			}
 		}
-		else if (evt.key.keysym.sym == SDLK_a)
+
+		if (evt.key.keysym.sym == SDLK_RETURN)
 		{
-			keya.downs += 1;
-			keya.pressed = true;
-			if (player_status != PlayerStatus::JumpLoop && player_status != PlayerStatus::JumpStart)
-				player_status = PlayerStatus::MoveLeft;
-			return true;
-		}
-		else if (evt.key.keysym.sym == SDLK_d)
-		{
-			keyd.downs += 1;
-			keyd.pressed = true;
-			if (player_status != PlayerStatus::JumpLoop && player_status != PlayerStatus::JumpStart)
-				player_status = PlayerStatus::MoveRight;
-			return true;
-		}
-		else if (evt.key.keysym.sym == SDLK_w)
-		{
-			keyw.downs += 1;
-			keyw.pressed = true;
-			return true;
-		}
-		else if (evt.key.keysym.sym == SDLK_s)
-		{
-			keys.downs += 1;
-			keys.pressed = true;
-			return true;
-		}
-		// else if (evt.key.keysym.sym == SDLK_e)
-		// {
-		// 	keyatk.downs += 1;
-		// 	keyatk.pressed = true;
-		// 	weapon_status = WeaponStatus::NormalAttack;
-		// 	// if (get_weapon)
-		// 	// Sound::play_3D(*sound_05_sample, 1.0f, player->position);
-		// 	return true;
-		// }
-		else if (evt.key.keysym.sym == SDLK_SPACE)
-		{
-			space.downs += 1;
-			space.pressed = true;
-			if (first_jump == false)
-				player_status = PlayerStatus::JumpStart;
-			if (!first_jump && !hasJetPack)
-				Sound::play_3D(*sound_02_sample, 0.75f, player->position);
-			else if (!first_jump && hasJetPack)
-				Sound::play_3D(*sound_03_sample, 1.0f, player->position);
-			return true;
+			enter.pressed = true;
+			start_menu->scale = glm::vec3(0);
 		}
 	}
 	else if (evt.type == SDL_KEYUP)
@@ -415,6 +441,11 @@ bool PlayMode::handle_event(SDL_Event const &evt, glm::uvec2 const &window_size)
 			space.pressed = false;
 			return true;
 		}
+		// else if (evt.key.keysym.sym == SDLK_RETURN)
+		// {
+		// 	enter.pressed = false;
+		// 	return true;
+		// }
 	}
 	else if (evt.type == SDL_MOUSEBUTTONDOWN)
 	{
@@ -437,6 +468,9 @@ void PlayMode::update(float elapsed)
 	update_player_status();
 	if (get_weapon)
 		update_weapon_status();
+
+	for (auto enemy : enemies)
+		update_enemy_status(enemy);
 
 	// get weapon
 	if (!get_weapon && hit_detect_SAT(player, player_atk_cpnt).overlapped)
@@ -527,8 +561,8 @@ void PlayMode::update(float elapsed)
 		if (!current_boss->die)
 		{
 			current_boss->die = level1_boss_dead();
-			boss_status = Dead;
-			// boss_hp_bg->scale = glm::vec3(0);
+			current_boss->status = Dead;
+			boss_hp_bg->scale = glm::vec3(0);
 			(*boss1_loop_sound).stop();
 		}
 
@@ -812,7 +846,8 @@ void PlayMode::update(float elapsed)
 		if (enemy.current_hp <= 0.00001f)
 		{
 			enemy.status = EnemyStatus::Dead;
-			enemy.transform->scale = glm::vec3(0);
+			// enemy.transform->scale = glm::vec3(0);
+			enemy_dead(enemy);
 		}
 		else
 		{
@@ -1167,7 +1202,7 @@ glm::vec3 PlayMode::check_change_stage(glm::vec3 expected_position)
 			current_boss->hasweapon = false;
 			// current_boss->weapon = level1_boss.weapon;
 			//  current_boss_weapon = &final_boss_weapon;
-			boss_status = Idle;
+			current_boss->status = Idle;
 			current_boss->current_hp = 1.0f;
 
 			stage_changing = true;
@@ -1417,7 +1452,7 @@ void PlayMode::hit_boss(float damage)
 		current_boss->current_hp -= damage;
 		boss_hp->scale.x = current_boss->current_hp / current_boss->max_hp * ori_bosshp_scale.x;
 
-		boss_status = BattleStatus::Attacked;
+		current_boss->status = BattleStatus::Attacked;
 	}
 }
 
@@ -1989,7 +2024,7 @@ void PlayMode::update_boss_status()
 			bit++;
 		}
 
-		switch (boss_status)
+		switch (current_boss->status)
 		{
 		case BattleStatus::Attacked:
 			boss_subuv.start_index = 10;
@@ -2007,9 +2042,9 @@ void PlayMode::update_boss_status()
 			boss_subuv.speed = 1.25f;
 		}
 
-		if (boss_status == BattleStatus::Dead)
+		if (current_boss->status == BattleStatus::Dead)
 			return;
-		else if (boss_status == BattleStatus::Attacked)
+		else if (current_boss->status == BattleStatus::Attacked)
 		{
 			boss_subuv.subtransforms[bit - 1]->scale = glm::vec3(0.0f);
 			bit = 11;
@@ -2018,7 +2053,7 @@ void PlayMode::update_boss_status()
 			attacked_timer += 0.1f;
 			if (attacked_timer > 1.25f)
 			{
-				boss_status = BattleStatus::Idle;
+				current_boss->status = BattleStatus::Idle;
 				attacked_timer = 0.0f;
 			}
 		}
@@ -2129,6 +2164,99 @@ bool PlayMode::level1_boss_dead()
 	}
 }
 
+void PlayMode::update_enemy_status(Enemy enemy)
+{
+	enemy_subuv[enemy.index].anim_timer += 0.1f * enemy_subuv[enemy.index].speed;
+
+	uint32_t bit = 1;
+	while (true)
+	{
+		if (enemy_subuv[enemy.index].bitmask >> bit == 0)
+			break;
+		bit++;
+	}
+
+	switch (enemy.status)
+	{
+	case EnemyStatus::Damaged:
+		enemy_subuv[enemy.index].start_index = 4;
+		enemy_subuv[enemy.index].range = 4;
+		enemy_subuv[enemy.index].speed = 1.0f;
+		break;
+	default:
+		enemy_subuv[enemy.index].start_index = 0;
+		enemy_subuv[enemy.index].range = 3;
+		enemy_subuv[enemy.index].speed = 1.25f;
+	}
+
+	if (enemy.status == EnemyStatus::Dead)
+		return;
+	// else if (enemy.status == EnemyStatus::Damaged)
+	// {
+	// 	enemy_subuv[enemy.index].subtransforms[bit - 1]->scale = glm::vec3(0.0f);
+	// 	bit = 11;
+	// 	enemy_subuv[enemy.index].bitmask = 1ULL << (bit - 1);
+	// 	enemy_subuv[enemy.index].subtransforms[bit - 1]->scale = glm::vec3(1.0f);
+	// 	attacked_timer += 0.1f;
+	// 	if (attacked_timer > 1.25f)
+	// 	{
+	// 		enemy.status = BattleStatus::Idle;
+	// 		attacked_timer = 0.0f;
+	// 	}
+	// }
+	else if (enemy_subuv[enemy.index].anim_timer > 1)
+	{
+		enemy_subuv[enemy.index].subtransforms[bit - 1]->scale = glm::vec3(0.0f);
+		bit++;
+		if (bit - 1 >= enemy_subuv[enemy.index].start_index + enemy_subuv[enemy.index].range)
+			bit = enemy_subuv[enemy.index].start_index + 1;
+		enemy_subuv[enemy.index].bitmask = 1ULL << (bit - 1);
+		enemy_subuv[enemy.index].subtransforms[bit - 1]->scale = glm::vec3(1.0f);
+		enemy_subuv[enemy.index].anim_timer = 0.0f;
+	}
+	else if (bit - 1 >= enemy_subuv[enemy.index].start_index + enemy_subuv[enemy.index].range || bit - 1 < enemy_subuv[enemy.index].start_index)
+	{
+		enemy_subuv[enemy.index].subtransforms[bit - 1]->scale = glm::vec3(0.0f);
+		bit = enemy_subuv[enemy.index].start_index + 1;
+		enemy_subuv[enemy.index].bitmask = 1ULL << (bit - 1);
+		enemy_subuv[enemy.index].subtransforms[bit - 1]->scale = glm::vec3(1.0f);
+		enemy_subuv[enemy.index].anim_timer = 0.0f;
+	}
+}
+
+void PlayMode::enemy_dead(Enemy enemy)
+{
+	enemy_subuv[enemy.index].anim_timer += 0.1f * enemy_subuv[enemy.index].speed;
+
+	uint32_t bit = 1;
+	while (true)
+	{
+		if (enemy_subuv[enemy.index].bitmask >> bit == 0)
+			break;
+		bit++;
+	}
+
+	if (bit == 18) // last frame of dead
+		return;
+	else
+	{
+		enemy_subuv[enemy.index].start_index = 9;
+		enemy_subuv[enemy.index].range = 8;
+		enemy_subuv[enemy.index].speed = 1.0f;
+
+		if (enemy_subuv[enemy.index].anim_timer > 1)
+		{
+			enemy_subuv[enemy.index].subtransforms[bit - 1]->scale = glm::vec3(0.0f);
+			bit++;
+			enemy_subuv[enemy.index].bitmask = 1ULL << (bit - 1);
+			enemy_subuv[enemy.index].subtransforms[bit - 1]->scale = glm::vec3(1.0f);
+			enemy_subuv[enemy.index].anim_timer = 0.0f;
+		}
+
+		return;
+	}
+}
+
 void PlayMode::teleport()
 {
 	if (current_boss->transform->name == final_boss.transform->name)
@@ -2141,7 +2269,7 @@ void PlayMode::teleport()
 				if (teleport_timer > 0)
 				{
 					detect_boss_status = false;
-					boss_status = BattleStatus::Idle;
+					current_boss->status = BattleStatus::Idle;
 					teleport_timer -= 0.03f;
 					current_boss->transform->scale = glm::vec3(teleport_timer, current_boss->transform->scale.y, current_boss->transform->scale.z);
 				}
@@ -2185,7 +2313,7 @@ void PlayMode::teleport()
 				if (teleport_timer > 0)
 				{
 					detect_boss_status = false;
-					boss_status = BattleStatus::Idle;
+					current_boss->status = BattleStatus::Idle;
 					teleport_timer -= 0.03f;
 					current_boss->transform->scale = glm::vec3(teleport_timer, current_boss->transform->scale.y, current_boss->transform->scale.z);
 				}
