@@ -292,6 +292,7 @@ PlayMode::PlayMode() : scene(*hexapod_scene)
 			enemy.index = (int)enemies.size();
 			enemy.transform = &transform;
 			enemy.stepped_plat = fragile5;
+			// enemy.canmove = false;
 			enemies.emplace_back(enemy);
 			current_enemy = &enemy;
 		}
@@ -870,7 +871,7 @@ void PlayMode::update(float elapsed)
 				hit_player(0.05f);
 			}
 
-			// move
+			// // move
 			if (enemy.canmove && (enemy.status != EnemyStatus::Damaged || enemy.damage_time > 0.4f))
 			{
 				enemy.status = EnemyStatus::Move;
@@ -881,7 +882,7 @@ void PlayMode::update(float elapsed)
 				enemy.damage_time = 0.0f;
 
 				enemy_land_on_platform(enemy.transform, expected_pos);
-				if (enemy.stepped_plat)
+				if (enemy.stepped_plat && enemy.stepped_plat->name != "Fragile5")
 				{
 					if (expectedX > (enemy.stepped_plat->make_local_to_world() * glm::vec4(enemy.stepped_plat->max, 1.0f)).x - 0.2f)
 					{
@@ -895,9 +896,10 @@ void PlayMode::update(float elapsed)
 						enemy.transform->scale.x *= -1;
 						expectedX = (enemy.stepped_plat->make_local_to_world() * glm::vec4(enemy.stepped_plat->min, 1.0f)).x + 0.2f;
 					}
+
 					expected_pos = glm::vec3(expectedX, enemy.transform->position.y, vec);
-					enemy.transform->position = enemy_land_on_platform(enemy.transform, expected_pos);
 				}
+				enemy.transform->position = enemy_land_on_platform(enemy.transform, expected_pos);
 			}
 			else if (enemy.status != EnemyStatus::Damaged || enemy.damage_time > 0.4f)
 			{
@@ -2112,9 +2114,9 @@ void PlayMode::update_boss_status()
 			{
 				current_boss->status = Shoot;
 			}
-			else if (current_boss->status != BattleStatus::Attacked || current_boss->current_hp / current_boss->max_hp <= 0.2f)
+			else if (current_boss->status != BattleStatus::Attacked && glm::distance(player->position, current_boss->transform->position) > 8.0f)
 			{
-				current_boss->status = BattleStatus::Idle;
+				// current_boss->status = BattleStatus::Idle;
 			}
 		}
 		else
@@ -2128,9 +2130,9 @@ void PlayMode::update_boss_status()
 			{
 				current_boss->status = Shoot;
 			}
-			else if (current_boss->status != BattleStatus::Attacked || current_boss->current_hp / current_boss->max_hp <= 0.2f)
+			else if (current_boss->status != BattleStatus::Attacked && glm::distance(player->position, current_boss->transform->position) > 5.0f)
 			{
-				current_boss->status = BattleStatus::Idle;
+				// current_boss->status = BattleStatus::Idle;
 			}
 		}
 	}
@@ -2158,8 +2160,12 @@ bool PlayMode::level1_boss_dead()
 
 		if (boss_subuv.anim_timer > 1)
 		{
+
 			boss_subuv.subtransforms[bit - 1]->scale = glm::vec3(0.0f);
-			bit++;
+			if (bit == 11)
+				bit = 7;
+			else
+				bit++;
 			boss_subuv.bitmask = 1ULL << (bit - 1);
 			boss_subuv.subtransforms[bit - 1]->scale = glm::vec3(1.0f);
 			boss_subuv.anim_timer = 0.0f;
