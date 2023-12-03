@@ -861,6 +861,9 @@ void PlayMode::update(float elapsed)
 				enemy.current_hp -= 0.4f;
 			}
 
+			if (enemy.status == EnemyStatus::Damaged)
+				enemy.damage_time += elapsed;
+
 			// hit player
 			if (hit_detect_SAT(player, enemy.transform).overlapped)
 			{
@@ -868,13 +871,14 @@ void PlayMode::update(float elapsed)
 			}
 
 			// move
-			if (enemy.canmove && enemy.status != EnemyStatus::Damaged)
+			if (enemy.canmove && (enemy.status != EnemyStatus::Damaged || enemy.damage_time > 0.4f))
 			{
 				enemy.status = EnemyStatus::Move;
 				current_enemy = &enemy;
 				float expectedX = enemy.transform->position.x + enemy.speed * elapsed;
 				float vec = enemy.transform->position.z + enemy_gravity * elapsed;
 				glm::vec3 expected_pos = glm::vec3(expectedX, enemy.transform->position.y, vec);
+				enemy.damage_time = 0.0f;
 
 				enemy_land_on_platform(enemy.transform, expected_pos);
 				if (enemy.stepped_plat)
@@ -895,10 +899,11 @@ void PlayMode::update(float elapsed)
 					enemy.transform->position = enemy_land_on_platform(enemy.transform, expected_pos);
 				}
 			}
-			else if (enemy.status != EnemyStatus::Damaged)
+			else if (enemy.status != EnemyStatus::Damaged || enemy.damage_time > 0.4f)
 			{
 				// stationary enemy
 				enemy.status = EnemyStatus::Idle;
+				enemy.damage_time = 0.0f;
 			}
 		}
 	}

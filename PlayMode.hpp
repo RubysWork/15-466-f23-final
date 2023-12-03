@@ -270,6 +270,7 @@ struct PlayMode : Mode
 		EnemyStatus status = EnemyStatus::Idle;
 		Scene::Transform *stepped_plat;
 		bool canmove = true; // static enemy or moving enemy
+		float damage_time = 0.0f;
 	} Enemy;
 
 	std::list<Enemy> enemies;
