@@ -2,6 +2,7 @@
 
 #include "Scene.hpp"
 #include "Sound.hpp"
+#include "DrawText.hpp"
 
 #include <glm/glm.hpp>
 
@@ -40,6 +41,10 @@ struct PlayMode : Mode
 		uint8_t downs = 0;
 		uint8_t pressed = 0;
 	} keya, keyd, keys, keyw, keyatk, space, enter;
+
+	// text
+	DrawText text;
+	GLuint text_program;
 
 	// local copy of the game scene (so code can change it during gameplay):
 	Scene scene;
@@ -148,7 +153,6 @@ struct PlayMode : Mode
 	SubUV subuv;
 	SubUV weapon_subuv;
 	SubUV boss_subuv;
-	SubUV ene_subuv1, ene_subuv2;
 	std::vector<SubUV> enemy_subuv;
 	int enemy_subuv_count = 0;
 	PlayerStatus player_status = PlayerStatus::Idle;

@@ -110,8 +110,12 @@ Load<Sound::Sample> sound_07_sample(LoadTagDefault, []() -> Sound::Sample const 
 
 PlayMode::PlayMode() : scene(*hexapod_scene)
 {
-	enemy_subuv.emplace_back(ene_subuv1);
-	enemy_subuv.emplace_back(ene_subuv2);
+	// Initialize draw text
+	text.HB_FT_Init(data_path("PressStart2P-Regular.ttf").c_str(), 50);
+	text_program = text.CreateTextShader();
+
+	for (int i = 0; i < 9; ++i)
+		enemy_subuv.emplace_back();
 
 	for (auto &transform : scene.transforms)
 	{
@@ -301,8 +305,22 @@ PlayMode::PlayMode() : scene(*hexapod_scene)
 			transform.scale = glm::vec3(0.0f);
 			if (enemy_subuv_count < 18)
 				enemy_subuv[0].subtransforms.emplace_back(&transform);
-			else
+			else if (enemy_subuv_count >= 18 && enemy_subuv_count < 36)
 				enemy_subuv[1].subtransforms.emplace_back(&transform);
+			else if (enemy_subuv_count >= 36 && enemy_subuv_count < 54)
+				enemy_subuv[2].subtransforms.emplace_back(&transform);
+			else if (enemy_subuv_count >= 54 && enemy_subuv_count < 72)
+				enemy_subuv[3].subtransforms.emplace_back(&transform);
+			else if (enemy_subuv_count >= 72 && enemy_subuv_count < 90)
+				enemy_subuv[4].subtransforms.emplace_back(&transform);
+			else if (enemy_subuv_count >= 90 && enemy_subuv_count < 108)
+				enemy_subuv[5].subtransforms.emplace_back(&transform);
+			else if (enemy_subuv_count >= 108 && enemy_subuv_count < 126)
+				enemy_subuv[6].subtransforms.emplace_back(&transform);
+			else if (enemy_subuv_count >= 126 && enemy_subuv_count < 144)
+				enemy_subuv[7].subtransforms.emplace_back(&transform);
+			else
+				enemy_subuv[8].subtransforms.emplace_back(&transform);
 			enemy_subuv_count++;
 		}
 		else if (transform.name == "Wing")
@@ -452,7 +470,8 @@ bool PlayMode::handle_event(SDL_Event const &evt, glm::uvec2 const &window_size)
 	{
 		keyatk.downs += 1;
 		keyatk.pressed = true;
-		weapon_status = WeaponStatus::NormalAttack;
+		if (get_weapon)
+			weapon_status = WeaponStatus::NormalAttack;
 		return true;
 	}
 	else if (evt.type == SDL_MOUSEBUTTONUP)
@@ -479,7 +498,7 @@ void PlayMode::update(float elapsed)
 		get_weapon = true;
 		component->scale = component_scale;
 		player_atk_cpnt->scale = glm::vec4(0);
-		sound = Sound::play_3D(*sound_04_sample, 1.0f, player_atk_cpnt->position);
+		sound = Sound::play_3D(*sound_04_sample, 1.0f, player->position);
 	}
 
 	// hit cage
@@ -1163,6 +1182,10 @@ void PlayMode::draw(glm::uvec2 const &drawable_size)
 	glDepthFunc(GL_LESS); // this is the default depth comparison function, but FYI you can change it.
 
 	scene.draw(*camera);
+
+	{
+		text.Draw(text_program, "A & D to move, Space to jump, Left Click to attack", -72.0f, 20.0f, drawable_size, glm::vec3(1.0f, 1.0f, 1.0f), 0.25f);
+	}
 
 	GL_ERRORS();
 }
