@@ -1,15 +1,17 @@
 Craftpix: https://craftpix.net/file-licenses/
     - https://craftpix.net/freebies/free-slime-sprite-sheets-pixel-art/
-    - https://craftpix.net/freebies/free-rocks-pixel-art-asset-pack/
     - https://craftpix.net/freebies/free-scrolling-city-backgrounds-pixel-art/
     - https://craftpix.net/freebies/free-sky-with-clouds-background-pixel-art-set/
     - https://craftpix.net/freebies/free-halloween-character-pixel-art-pack/
     
-Itch.io
+Itch.io:
     - https://theflavare.itch.io/forest-nature-fantasy-tileset
     - https://szadiart.itch.io/rocky-world-platformer-set
     - https://darkpixel-kronovi.itch.io/mecha-golem-free
     - https://luizmelo.itch.io/evil-wizard
+
+Fonts:
+    - https://fonts.google.com/specimen/Press+Start+2P
 
 
 wanna use:
