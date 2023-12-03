@@ -859,7 +859,7 @@ void PlayMode::update(float elapsed)
 			{
 				enemy.status = EnemyStatus::Damaged;
 				attack = true;
-				enemy.current_hp -= 0.4f;
+				enemy.current_hp -= 0.2f;
 			}
 
 			if (enemy.status == EnemyStatus::Damaged)
