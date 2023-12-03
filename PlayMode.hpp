@@ -159,7 +159,6 @@ struct PlayMode : Mode
 		Shoot,
 		Idle,
 		Attacked,
-		Weak, // boss will stop attack, hide weapon
 		Dead
 	};
 	bool finish_bullet = false;
@@ -167,18 +166,14 @@ struct PlayMode : Mode
 	bool detect_boss_status = true; // if false, boss status won't change
 	float attacked_timer = 0.0f;
 
-	bool start_weak_timer = false;
-	int weak_timer = 0; // idle(hide boss weapon) every 3s
-
 	// boss weapon
 	typedef struct BossWeapon
 	{
 		Scene::Transform *transform = nullptr;
-		glm::vec3 ori_weap_scale = glm::vec3(0);
 		int timer = 0;
 	} BossWeapon;
 
-	// BossWeapon *current_boss_weapon;
+	BossWeapon *current_boss_weapon;
 	BossWeapon level1_boss_weapon;
 	BossWeapon final_boss_weapon;
 
@@ -223,9 +218,6 @@ struct PlayMode : Mode
 		float max_hp = 1.0f;
 		float current_hp = 1.0f;
 		bool die = false;
-		bool hasweapon = true;
-		BossWeapon *weapon;
-		BattleStatus status = Idle;
 	} Boss;
 
 	Boss *current_boss;
