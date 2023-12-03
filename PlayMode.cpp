@@ -2127,10 +2127,6 @@ void PlayMode::update_boss_status()
 			{
 				current_boss->status = BattleStatus::Idle;
 			}
-			else
-			{
-				current_boss->status = BattleStatus::Weak;
-			}
 		}
 	}
 }
