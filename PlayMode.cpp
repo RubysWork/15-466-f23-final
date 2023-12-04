@@ -214,7 +214,7 @@ PlayMode::PlayMode() : scene(*hexapod_scene)
 		{
 			player_atk_cpnt = &transform;
 		}
-		else if (transform.name == "Cage")
+		else if (transform.name.find("Cage") != std::string::npos)
 		{
 			Cage cage;
 			cage.index = cage_index;
@@ -224,7 +224,8 @@ PlayMode::PlayMode() : scene(*hexapod_scene)
 		}
 		else if (transform.name == "Boots")
 		{
-			boots = &transform;
+			boots.transform = &transform;
+			cages.begin()->item = &boots;
 		}
 		else if (transform.name == "ComponentBoots")
 		{
@@ -329,6 +330,15 @@ PlayMode::PlayMode() : scene(*hexapod_scene)
 		else if (transform.name == "Wing")
 		{
 			wings = &transform;
+		}
+		else if (transform.name.find("Star") != std::string::npos)
+		{
+			Item *star = new Item();
+			star->transform = &transform;
+			auto bi = cages.begin();
+			std::advance(bi, star_idx);
+			bi->item = star;
+			star_idx++;
 		}
 		// add a real component jetpack
 	}
@@ -505,28 +515,47 @@ void PlayMode::update(float elapsed)
 	}
 
 	// hit cage
-	if (get_weapon && !cages.begin()->isDestroied && keyatk.pressed && !attack && hit_detect_SAT(component, cages.begin()->transform).overlapped)
+	for (auto &cage : cages)
 	{
-		attack = true;
-		cages.begin()->isDestroied = true;
-		cages.begin()->transform->scale = glm::vec4(0);
-		sound = Sound::play_3D(*sound_01_sample, 1.0f, cages.begin()->transform->position);
+		// hit cage
+		if (get_weapon && !cage.isDestroied && keyatk.pressed && !attack && hit_detect_SAT(component, cage.transform).overlapped)
+		{
+			attack = true;
+			cage.isDestroied = true;
+			cage.transform->scale = glm::vec4(0);
+			sound = Sound::play_3D(*sound_01_sample, 1.0f, cage.transform->position);
+		}
+		// get item
+		if (!cage.item->has && cage.isDestroied && hit_detect(player, cage.item->transform).overlapped)
+		{
+			cage.item->has = true;
+			cage.item->transform->scale = glm::vec4(0);
+			if (cage.item->transform->name == boots.transform->name)
+			{
+				Sound::play_3D(*voice_02_sample, 1.0f, cages.begin()->transform->position);
+				sound = Sound::play_3D(*voice_01_sample, 1.5f, player->position);
+			}
+			else
+			{
+				// get star
+			}
+		}
 	}
 
 	//  get boots
-	if (get_weapon && !cages.begin()->isDestroied && keyatk.pressed && !attack && hit_detect_SAT(player, cages.begin()->transform).overlapped)
-	{
-		// std::cout << "test collider : overlapped ......................................" << std::endl;
-	}
+	// if (get_weapon && !cages.begin()->isDestroied && keyatk.pressed && !attack && hit_detect_SAT(player, cages.begin()->transform).overlapped)
+	// {
+	// 	// std::cout << "test collider : overlapped ......................................" << std::endl;
+	// }
 
-	if (!hasBoots && cages.begin()->isDestroied && hit_detect(player, boots).overlapped)
-	{
-		hasBoots = true;
-		boots->scale = glm::vec4(0);
-		// component_boots->scale = boots_scale;
-		Sound::play_3D(*voice_02_sample, 1.0f, cages.begin()->transform->position);
-		sound = Sound::play_3D(*voice_01_sample, 1.5f, player->position);
-	}
+	// if (!boots.has && cages.begin()->isDestroied && hit_detect(player, boots.transform).overlapped)
+	// {
+	// 	boots.has = true;
+	// 	boots.transform->scale = glm::vec4(0);
+	// 	// component_boots->scale = boots_scale;
+	// 	Sound::play_3D(*voice_02_sample, 1.0f, cages.begin()->transform->position);
+	// 	sound = Sound::play_3D(*voice_01_sample, 1.5f, player->position);
+	// }
 
 	// get wings
 	if (!hasWings && hit_detect_SAT(player, wings).overlapped)
@@ -537,7 +566,7 @@ void PlayMode::update(float elapsed)
 		Sound::play_3D(*voice_04_sample, 2.0f, player->position);
 	}
 
-	if (second_jump && hasBoots)
+	if (second_jump && boots.has)
 	{
 		boots_timer = std::min(1.0f, boots_timer + elapsed * 5);
 		component_boots->scale = boots_scale * boots_timer;
@@ -574,7 +603,7 @@ void PlayMode::update(float elapsed)
 		if (!hasJetPack && player_stage == PlayerStage::InitialStage)
 		{
 			hasJetPack = true;
-			hasBoots = false;
+			boots.has = false;
 			// boss1 death roar
 			Sound::play_3D(*voice_07_sample, 2.0f, level1_boss.transform->position);
 			// has jet pack
@@ -974,7 +1003,7 @@ void PlayMode::update(float elapsed)
 				first_jump = true;
 				jump_velocity = 3.0f;
 			}
-			else if (first_jump && !second_jump && jump_signal && hasBoots)
+			else if (first_jump && !second_jump && jump_signal && boots.has)
 			{
 				jump_signal = false;
 				second_jump = true;
@@ -1194,7 +1223,10 @@ void PlayMode::draw(glm::uvec2 const &drawable_size)
 		}
 		if (final_boss.die)
 		{
-			text.Draw(text_program, "Congrats! You Win!", drawable_size.x / 2.0f - (540.0f * drawable_size.y / 720.0f), 330.0f * drawable_size.y / 720.0f, drawable_size, glm::vec3(0.25f, 0.95f, 0.75f), 1.0f * drawable_size.y / 720.0f);
+			glDepthFunc(GL_LEQUAL);
+			text.Draw(text_program, "Congrats! You Win!", drawable_size.x / 2.0f - (540.0f * drawable_size.y / 720.0f), 330.0f * drawable_size.y / 720.0f, drawable_size, glm::vec3(0.1f, 0.1f, 0.1f), 1.0f * drawable_size.y / 720.0f);
+			text.Draw(text_program, "Congrats! You Win!", drawable_size.x / 2.0f - (535.0f * drawable_size.y / 720.0f), 335.0f * drawable_size.y / 720.0f, drawable_size, glm::vec3(0.25f, 0.95f, 0.75f), 1.0f * drawable_size.y / 720.0f);
+			glDepthFunc(GL_LESS);
 		}
 	}
 
@@ -1711,8 +1743,6 @@ glm::vec3 PlayMode::enemy_land_on_platform(Scene::Transform *enemy, glm::vec3 ex
 							expected_pos.x = platform.pos.x - platform.width / 2;
 							if (current_boss->status != Dead && current_boss->transform->name == "Boss" && enemy->name == "Boss")
 								ready_to_teleport = true;
-
-							// teleport();
 						}
 					}
 					if (enemy->position.x >= platform.pos.x + platform.width / 2)
@@ -2306,7 +2336,6 @@ void PlayMode::enemy_dead(Enemy enemy)
 
 void PlayMode::teleport()
 {
-	std::cout << "I am running!!!!" << std::endl;
 
 	if (current_boss->transform->name == final_boss.transform->name)
 	{
@@ -2359,18 +2388,16 @@ void PlayMode::teleport()
 			// shrink on old pos
 			if (!arrive_new_pos)
 			{
-				std::cout << "time:" << teleport_timer << std::endl;
 				if (teleport_timer > 0)
 				{
 
 					detect_boss_status = false;
-					current_boss->status = BattleStatus::Idle;
+					// current_boss->status = BattleStatus::Idle;
 					teleport_timer -= 0.03f;
 					current_boss->transform->scale = glm::vec3(teleport_timer, current_boss->transform->scale.y, current_boss->transform->scale.z);
 				}
 				else
 				{
-					std::cout << "shrink2222!!!" << std::endl;
 					teleport_timer = 0;
 					current_boss->transform->scale = glm::vec3(teleport_timer, current_boss->transform->scale.y, current_boss->transform->scale.z);
 					glm::vec3 nearest_tel = level1_tel->position;
@@ -2384,13 +2411,11 @@ void PlayMode::teleport()
 
 				if (teleport_timer < 0.3f)
 				{
-					std::cout << "expand111111" << std::endl;
 					teleport_timer += 0.03f;
 					current_boss->transform->scale = glm::vec3(teleport_timer, current_boss->transform->scale.y, current_boss->transform->scale.z);
 				}
 				else
 				{
-					std::cout << "expand2222222" << std::endl;
 					teleport_timer = 0.3f;
 					current_boss->transform->scale = glm::vec3(teleport_timer, current_boss->transform->scale.y, current_boss->transform->scale.z);
 					arrive_new_pos = false;

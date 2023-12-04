@@ -59,19 +59,30 @@ struct PlayMode : Mode
 	Scene::Transform *component = nullptr;
 	glm::vec3 component_scale;
 
+	// boots+star
+	struct Item
+	{
+		Scene::Transform *transform = nullptr;
+		bool has = false;
+	};
+	Item boots;
+
+	int star_idx = 1;
+
 	// cage
 	struct Cage
 	{
 		int index = 0;
 		Scene::Transform *transform = nullptr;
 		bool isDestroied = false;
+		Item *item = nullptr;
 	};
 	int cage_index = 0;
 	std::vector<Cage> cages;
 
 	// boots
-	Scene::Transform *boots = nullptr;
-	bool hasBoots = false;
+	// Scene::Transform *boots = nullptr;
+	// bool hasBoots = false;
 	Scene::Transform *component_boots = nullptr;
 	glm::vec3 boots_scale;
 	float boots_timer = 0.0f;
