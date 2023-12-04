@@ -68,6 +68,7 @@ struct PlayMode : Mode
 	Item boots;
 
 	int star_idx = 1;
+	int star_count = 0;
 
 	// cage
 	struct Cage

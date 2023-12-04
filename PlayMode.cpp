@@ -538,6 +538,8 @@ void PlayMode::update(float elapsed)
 			else
 			{
 				// get star
+				star_count += 1;
+				Sound::play_3D(*sound_04_sample, 1.0f, player->position);
 			}
 		}
 	}
@@ -1219,7 +1221,8 @@ void PlayMode::draw(glm::uvec2 const &drawable_size)
 		if (enter.pressed)
 		{
 			text.Draw(text_program, "A & D to move, Space to jump, Left Click to attack", -72.0f, 20.0f, drawable_size, glm::vec3(1.0f, 1.0f, 1.0f), 0.25f);
-			text.Draw(text_program, "0 / 7", drawable_size.x / 2.0f - (635.0f * drawable_size.y / 720.0f) + 0.12f * (drawable_size.y - 720.0f), drawable_size.y - (125.0f * drawable_size.y / 720.0f), drawable_size, glm::vec3(1.0f, 1.0f, 1.0f), 0.25f * drawable_size.y / 720.0f);
+			text.Draw(text_program, std::to_string(star_count), drawable_size.x / 2.0f - (635.0f * drawable_size.y / 720.0f) + 0.12f * (drawable_size.y - 720.0f), drawable_size.y - (125.0f * drawable_size.y / 720.0f), drawable_size, glm::vec3(1.0f, 1.0f, 1.0f), 0.25f * drawable_size.y / 720.0f);
+			text.Draw(text_program, "  / 7", drawable_size.x / 2.0f - (635.0f * drawable_size.y / 720.0f) + 0.12f * (drawable_size.y - 720.0f), drawable_size.y - (125.0f * drawable_size.y / 720.0f), drawable_size, glm::vec3(1.0f, 1.0f, 1.0f), 0.25f * drawable_size.y / 720.0f);
 		}
 		if (final_boss.die)
 		{
