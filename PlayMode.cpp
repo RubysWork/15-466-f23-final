@@ -108,6 +108,9 @@ Load<Sound::Sample> sound_06_sample(LoadTagDefault, []() -> Sound::Sample const 
 Load<Sound::Sample> sound_07_sample(LoadTagDefault, []() -> Sound::Sample const *
 									{ return new Sound::Sample(data_path("Sound07.wav")); });
 
+Load<Sound::Sample> sound_08_sample(LoadTagDefault, []() -> Sound::Sample const *
+									{ return new Sound::Sample(data_path("Sound08.wav")); });
+
 Load<Sound::Sample> win_sample(LoadTagDefault, []() -> Sound::Sample const *
 							   { return new Sound::Sample(data_path("win.wav")); });
 
@@ -155,6 +158,12 @@ PlayMode::PlayMode() : scene(*hexapod_scene)
 		{
 			transform.scale = glm::vec3(0.0f);
 			weapon_subuv.subtransforms.emplace_back(&transform);
+		}
+
+		else if (transform.name.find("WingsSub") != std::string::npos)
+		{
+			transform.scale = glm::vec3(0.0f);
+			wings_subuv.subtransforms.emplace_back(&transform);
 		}
 
 		else if (transform.name.find("Boss1Sub") != std::string::npos)
@@ -233,6 +242,12 @@ PlayMode::PlayMode() : scene(*hexapod_scene)
 			boots_scale = component_boots->scale;
 			component_boots->scale = glm::vec4(0);
 		}
+		else if (transform.name == "ComponentWings")
+		{
+			component_wings = &transform;
+			wings_scale = component_wings->scale;
+			component_wings->scale = glm::vec4(0);
+		}
 		else if (transform.name.find("Collider") != std::string::npos)
 		{
 			Platform platform;
@@ -277,14 +292,6 @@ PlayMode::PlayMode() : scene(*hexapod_scene)
 		{
 			final_boss.transform = &transform;
 			final_boss.hasweapon = false;
-		}
-		else if (transform.name == "FinalBossAttack")
-		{
-			final_boss_weapon.transform = &transform;
-			BossWeapon *weapon = new BossWeapon();
-			weapon->transform = &transform;
-			weapon->ori_weap_scale = transform.scale;
-			final_boss.weapon = weapon;
 		}
 		else if (transform.name.find("FinalTeleport") != std::string::npos)
 		{
@@ -426,6 +433,8 @@ bool PlayMode::handle_event(SDL_Event const &evt, glm::uvec2 const &window_size)
 					Sound::play_3D(*sound_02_sample, 0.75f, player->position);
 				else if (!first_jump && hasJetPack)
 					Sound::play_3D(*sound_03_sample, 1.0f, player->position);
+				else if (hasWings)
+					beatWings = true;
 				return true;
 			}
 		}
@@ -471,6 +480,7 @@ bool PlayMode::handle_event(SDL_Event const &evt, glm::uvec2 const &window_size)
 		else if (evt.key.keysym.sym == SDLK_SPACE)
 		{
 			space.pressed = false;
+			beatWings = false;
 			return true;
 		}
 		// else if (evt.key.keysym.sym == SDLK_RETURN)
@@ -501,6 +511,8 @@ void PlayMode::update(float elapsed)
 	update_player_status();
 	if (get_weapon)
 		update_weapon_status();
+	if (hasWings)
+		update_wings_status();
 
 	for (auto enemy : enemies)
 		update_enemy_status(enemy);
@@ -572,6 +584,23 @@ void PlayMode::update(float elapsed)
 	{
 		boots_timer = std::min(1.0f, boots_timer + elapsed * 5);
 		component_boots->scale = boots_scale * boots_timer;
+	}
+
+	if (beatWings)
+	{
+		wings_timer = std::min(1.0f, wings_timer + elapsed * 15.0f);
+		component_wings->scale = wings_scale * wings_timer;
+	}
+
+	if (!beatWings)
+	{
+		if (wings_timer > 0.0f)
+		{
+			wings_timer = std::min(1.0f, wings_timer - elapsed * 1.5f);
+			component_wings->scale = wings_scale * wings_timer;
+		}
+		else
+			wings_timer = 0.0f;
 	}
 
 	if (invincible)
@@ -758,7 +787,8 @@ void PlayMode::update(float elapsed)
 			boss_hp_bg->scale = glm::vec3(1.66f, 0.10048f, 0.3f);
 			boss_hp->scale.x = current_boss->current_hp / current_boss->max_hp * ori_bosshp_scale.x;
 			// show weapon
-			current_boss->weapon->transform->scale = current_boss->weapon->ori_weap_scale;
+			if (current_boss->hasweapon)
+				current_boss->weapon->transform->scale = current_boss->weapon->ori_weap_scale;
 			// timer
 			if (finish_bullet)
 			{
@@ -1493,6 +1523,36 @@ void PlayMode::update_weapon_status()
 	// 	subuv.subtransforms[bit - 1]->scale = glm::vec3(1.0f);
 	// 	subuv.anim_timer = 0.0f;
 	// }
+}
+
+void PlayMode::update_wings_status()
+{
+	wings_subuv.anim_timer += 0.1f * wings_subuv.speed;
+
+	uint32_t bit = 1;
+	while (true)
+	{
+		if (wings_subuv.bitmask >> bit == 0)
+			break;
+		bit++;
+	}
+
+	wings_subuv.start_index = 0;
+	wings_subuv.range = 3;
+	wings_subuv.speed = 2.0f;
+
+	if (wings_subuv.anim_timer > 1)
+	{
+		wings_subuv.subtransforms[bit - 1]->scale = glm::vec3(0.0f);
+		bit++;
+		if (bit - 1 >= wings_subuv.start_index + wings_subuv.range)
+		{
+			bit = wings_subuv.start_index + 1;
+		}
+		wings_subuv.bitmask = 1ULL << (bit - 1);
+		wings_subuv.subtransforms[bit - 1]->scale = glm::vec3(1.0f);
+		wings_subuv.anim_timer = 0.0f;
+	}
 }
 
 void PlayMode::hit_player(float damage)

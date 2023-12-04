@@ -88,6 +88,11 @@ struct PlayMode : Mode
 	glm::vec3 boots_scale;
 	float boots_timer = 0.0f;
 
+	// wings
+	Scene::Transform *component_wings = nullptr;
+	glm::vec3 wings_scale;
+	float wings_timer = 0.0f;
+
 	bool first_jump;
 	bool second_jump;
 
@@ -110,6 +115,7 @@ struct PlayMode : Mode
 	// wings
 	Scene::Transform *wings = nullptr;
 	bool hasWings = false;
+	bool beatWings = false;
 	bool flying = false;
 	float wings_max_energy = 15.0f;
 	float wings_energy = 15.0f;
@@ -164,6 +170,7 @@ struct PlayMode : Mode
 
 	SubUV subuv;
 	SubUV weapon_subuv;
+	SubUV wings_subuv;
 	SubUV boss_subuv;
 	std::vector<SubUV> enemy_subuv;
 	int enemy_subuv_count = 0;
@@ -342,6 +349,7 @@ struct PlayMode : Mode
 	Sound::Listener listener;
 	std::shared_ptr<Sound::PlayingSample> music;
 	std::shared_ptr<Sound::PlayingSample> sound;
+	std::shared_ptr<Sound::PlayingSample> wings_sound;
 	std::shared_ptr<Sound::PlayingSample> boss1_loop_sound;
 
 	// camera:
@@ -351,6 +359,7 @@ struct PlayMode : Mode
 
 	void update_player_status();
 	void update_weapon_status();
+	void update_wings_status();
 
 	glm::vec3 nearest_teleport();
 
