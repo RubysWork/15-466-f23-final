@@ -17,3 +17,7 @@ maek-cache.json
 scenes/Makefile.windows
 scenes/Makefile.windows
 scenes/Makefile.windows
+dist/README-freetype.txt
+dist/README-harfbuzz.txt
+dist/cube.pnct
+dist/cube.scene

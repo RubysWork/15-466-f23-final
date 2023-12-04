@@ -1709,8 +1709,10 @@ glm::vec3 PlayMode::enemy_land_on_platform(Scene::Transform *enemy, glm::vec3 ex
 						{
 
 							expected_pos.x = platform.pos.x - platform.width / 2;
-							ready_to_teleport = true;
-							teleport();
+							if (current_boss->status != Dead && current_boss->transform->name == "Boss" && enemy->name == "Boss")
+								ready_to_teleport = true;
+
+							// teleport();
 						}
 					}
 					if (enemy->position.x >= platform.pos.x + platform.width / 2)
@@ -2304,6 +2306,8 @@ void PlayMode::enemy_dead(Enemy enemy)
 
 void PlayMode::teleport()
 {
+	std::cout << "I am running!!!!" << std::endl;
+
 	if (current_boss->transform->name == final_boss.transform->name)
 	{
 		if (ready_to_teleport)
@@ -2355,8 +2359,10 @@ void PlayMode::teleport()
 			// shrink on old pos
 			if (!arrive_new_pos)
 			{
+				std::cout << "time:" << teleport_timer << std::endl;
 				if (teleport_timer > 0)
 				{
+
 					detect_boss_status = false;
 					current_boss->status = BattleStatus::Idle;
 					teleport_timer -= 0.03f;
@@ -2364,6 +2370,7 @@ void PlayMode::teleport()
 				}
 				else
 				{
+					std::cout << "shrink2222!!!" << std::endl;
 					teleport_timer = 0;
 					current_boss->transform->scale = glm::vec3(teleport_timer, current_boss->transform->scale.y, current_boss->transform->scale.z);
 					glm::vec3 nearest_tel = level1_tel->position;
@@ -2374,13 +2381,16 @@ void PlayMode::teleport()
 			// expand on new pos
 			else
 			{
+
 				if (teleport_timer < 0.3f)
 				{
+					std::cout << "expand111111" << std::endl;
 					teleport_timer += 0.03f;
 					current_boss->transform->scale = glm::vec3(teleport_timer, current_boss->transform->scale.y, current_boss->transform->scale.z);
 				}
 				else
 				{
+					std::cout << "expand2222222" << std::endl;
 					teleport_timer = 0.3f;
 					current_boss->transform->scale = glm::vec3(teleport_timer, current_boss->transform->scale.y, current_boss->transform->scale.z);
 					arrive_new_pos = false;
