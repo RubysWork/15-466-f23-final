@@ -20,6 +20,7 @@ Sound:
     - https://freesound.org/people/Merrick079/sounds/568170/
     - https://freesound.org/people/Breviceps/sounds/444491/
     - https://freesound.org/people/unadamlar/sounds/341984/
+    - https://freesound.org/people/ani_music/sounds/244980/
 
 Music:
     - "BGM" is (c) 2023 Jingyu Xie (CMU ETC' 24)
