@@ -129,8 +129,8 @@ void DrawText::Draw(GLuint shader, std::string text, GLfloat x, GLfloat y, glm::
     {
         Character ch = Characters[*c];
 
-        GLfloat xpos = (GLfloat)((int)(x + ch.Bearing.x * scale) % 1010) + 100.0f;
-        GLfloat ypos = y - (ch.Size.y - ch.Bearing.y) * scale - (GLfloat)((int)(x + ch.Bearing.x * scale) / 1010) * 40;
+        GLfloat xpos = (GLfloat)((int)(x + ch.Bearing.x * scale) % 2560) + 100.0f;
+        GLfloat ypos = y - (ch.Size.y - ch.Bearing.y) * scale - (GLfloat)((int)(x + ch.Bearing.x * scale) / 2560) * 40;
 
         GLfloat w = ch.Size.x * scale;
         GLfloat h = ch.Size.y * scale;

@@ -108,6 +108,9 @@ Load<Sound::Sample> sound_06_sample(LoadTagDefault, []() -> Sound::Sample const 
 Load<Sound::Sample> sound_07_sample(LoadTagDefault, []() -> Sound::Sample const *
 									{ return new Sound::Sample(data_path("Sound07.wav")); });
 
+Load<Sound::Sample> win_sample(LoadTagDefault, []() -> Sound::Sample const *
+							   { return new Sound::Sample(data_path("win.wav")); });
+
 PlayMode::PlayMode() : scene(*hexapod_scene)
 {
 	// Initialize draw text
@@ -1184,7 +1187,15 @@ void PlayMode::draw(glm::uvec2 const &drawable_size)
 	scene.draw(*camera);
 
 	{
-		text.Draw(text_program, "A & D to move, Space to jump, Left Click to attack", -72.0f, 20.0f, drawable_size, glm::vec3(1.0f, 1.0f, 1.0f), 0.25f);
+		if (enter.pressed)
+		{
+			text.Draw(text_program, "A & D to move, Space to jump, Left Click to attack", -72.0f, 20.0f, drawable_size, glm::vec3(1.0f, 1.0f, 1.0f), 0.25f);
+			text.Draw(text_program, "0 / 7", drawable_size.x / 2.0f - (635.0f * drawable_size.y / 720.0f) + 0.12f * (drawable_size.y - 720.0f), drawable_size.y - (125.0f * drawable_size.y / 720.0f), drawable_size, glm::vec3(1.0f, 1.0f, 1.0f), 0.25f * drawable_size.y / 720.0f);
+		}
+		if (final_boss.die)
+		{
+			text.Draw(text_program, "Congrats! You Win!", drawable_size.x / 2.0f - (540.0f * drawable_size.y / 720.0f), 330.0f * drawable_size.y / 720.0f, drawable_size, glm::vec3(0.25f, 0.95f, 0.75f), 1.0f * drawable_size.y / 720.0f);
+		}
 	}
 
 	GL_ERRORS();

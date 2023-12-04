@@ -13,26 +13,13 @@ Itch.io:
 Fonts:
     - https://fonts.google.com/specimen/Press+Start+2P
 
-
-wanna use:
-https://chierit.itch.io/boss-demon-slime
-
-https://pimen.itch.io/fire-spell-effect-02
-https://craftpix.net/freebies/free-water-effects-sprite-pack/
-
-https://craftpix.net/freebies/free-bush-assets-pixel-art-pack/
-https://craftpix.net/freebies/free-crystals-pixel-art-asset-pack/
-https://craftpix.net/freebies/free-swamp-game-tileset-pixel-art/
-https://maaot.itch.io/mossy-cavern
-
-https://xdeviruchi.itch.io/8-bit-fantasy-adventure-music-pack
-
 Sound:
     - https://freesound.org/people/newagesoup/sounds/337865/
     - https://freesound.org/people/filippys/sounds/656905/
     - https://freesound.org/people/GameAudio/sounds/220173/
     - https://freesound.org/people/Merrick079/sounds/568170/
     - https://freesound.org/people/Breviceps/sounds/444491/
+    - https://freesound.org/people/unadamlar/sounds/341984/
 
 Music:
     - "BGM" is (c) 2023 Jingyu Xie (CMU ETC' 24)
