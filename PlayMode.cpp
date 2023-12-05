@@ -429,9 +429,9 @@ bool PlayMode::handle_event(SDL_Event const &evt, glm::uvec2 const &window_size)
 				space.pressed = true;
 				if (first_jump == false)
 					player_status = PlayerStatus::JumpStart;
-				if (!first_jump && !hasJetPack)
+				if (!first_jump && !hasJetPack && !player_die)
 					Sound::play_3D(*sound_02_sample, 0.75f, player->position);
-				else if (!first_jump && hasJetPack)
+				else if (!first_jump && hasJetPack && !player_die)
 					Sound::play_3D(*sound_03_sample, 1.0f, player->position);
 				else if (hasWings)
 					beatWings = true;
@@ -1474,7 +1474,7 @@ void PlayMode::update_weapon_status()
 		bit++;
 	}
 
-	if (bit == 2 && weapon_subuv.anim_timer < 0.4f)
+	if (bit == 2 && weapon_subuv.anim_timer < 0.4f && !player_die)
 		Sound::play_3D(*sound_05_sample, 1.0f, player->position);
 
 	switch (weapon_status)
