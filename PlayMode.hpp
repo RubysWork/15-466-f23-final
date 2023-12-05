@@ -169,6 +169,7 @@ struct PlayMode : Mode
 	PlayerStage player_stage = PlayerStage::InitialStage;
 	float stage_changing = false;
 	float stage_change_timer = 0.0f;
+	int death_time = 0;
 
 	SubUV subuv;
 	SubUV weapon_subuv;

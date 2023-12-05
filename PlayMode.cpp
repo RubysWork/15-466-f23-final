@@ -1274,9 +1274,11 @@ void PlayMode::draw(glm::uvec2 const &drawable_size)
 	{
 		if (enter.pressed)
 		{
-			text.Draw(text_program, "A & D to move, Space to jump, Left Click to attack", -72.0f, 20.0f, drawable_size, glm::vec3(1.0f, 1.0f, 1.0f), 0.25f);
+			text.Draw(text_program, "A & D to move, Space to jump, Left Click to attack", -72.0f, 20.0f, drawable_size, glm::vec3(1.0f, 1.0f, 1.0f), 0.4f);
 			text.Draw(text_program, std::to_string(star_count), drawable_size.x / 2.0f - (635.0f * drawable_size.y / 720.0f) + 0.12f * (drawable_size.y - 720.0f), drawable_size.y - (125.0f * drawable_size.y / 720.0f), drawable_size, glm::vec3(1.0f, 1.0f, 1.0f), 0.25f * drawable_size.y / 720.0f);
 			text.Draw(text_program, "  / 7", drawable_size.x / 2.0f - (635.0f * drawable_size.y / 720.0f) + 0.12f * (drawable_size.y - 720.0f), drawable_size.y - (125.0f * drawable_size.y / 720.0f), drawable_size, glm::vec3(1.0f, 1.0f, 1.0f), 0.25f * drawable_size.y / 720.0f);
+			text.Draw(text_program, "Death: ", drawable_size.x / 2.0f - (675.0f * drawable_size.y / 720.0f) + 0.12f * (drawable_size.y - 720.0f), drawable_size.y - (155.0f * drawable_size.y / 720.0f), drawable_size, glm::vec3(1.0f, 1.0f, 1.0f), 0.25f * drawable_size.y / 720.0f);
+			text.Draw(text_program, std::to_string(death_time), drawable_size.x / 2.0f - (585.0f * drawable_size.y / 720.0f) + 0.12f * (drawable_size.y - 720.0f), drawable_size.y - (155.0f * drawable_size.y / 720.0f), drawable_size, glm::vec3(1.0f, 1.0f, 1.0f), 0.25f * drawable_size.y / 720.0f);
 		}
 		if (final_boss.die)
 		{
@@ -1879,6 +1881,9 @@ void PlayMode::revive(float elapsed)
 		}
 		if (revive_time <= 0)
 		{
+			if (player_die) {
+				death_time += 1;
+			}
 			player_die = false;
 			waiting_revive = false;
 			player->scale = player_origin_scale;
@@ -1906,6 +1911,9 @@ void PlayMode::revive(float elapsed)
 		}
 		if (revive_time <= 0)
 		{
+			if (player_die) {
+				death_time += 1;
+			}
 			player_die = false;
 			waiting_revive = false;
 			player->scale = player_origin_scale;
@@ -1915,6 +1923,8 @@ void PlayMode::revive(float elapsed)
 			player->position.z = 5.3f;
 			player_hp->scale.x = max_player_hp;
 			revive_time = revive_max_time;
+			jump_velocity = 0;
+			max_fall_speed = 0;
 		}
 	}
 	if (player_stage == PlayerStage::BossTeleport)
@@ -1931,6 +1941,9 @@ void PlayMode::revive(float elapsed)
 		}
 		if (revive_time <= 0)
 		{
+			if (player_die) {
+				death_time += 1;
+			}
 			player_die = false;
 			waiting_revive = false;
 			player->scale = player_origin_scale;
@@ -1940,6 +1953,8 @@ void PlayMode::revive(float elapsed)
 			player->position.z = 5.0f;
 			player_hp->scale.x = max_player_hp;
 			revive_time = revive_max_time;
+			jump_velocity = 0;
+			max_fall_speed = 0;
 		}
 	}
 }
