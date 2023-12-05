@@ -98,6 +98,8 @@ struct PlayMode : Mode
 
 	float jump_velocity = 0.0f;
 	bool jump_signal = false;
+	
+	float max_fall_speed = 0;
 
 	// jet pack
 	Scene::Transform *jetPack = nullptr;

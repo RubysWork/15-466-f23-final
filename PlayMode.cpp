@@ -1137,6 +1137,21 @@ void PlayMode::update(float elapsed)
 			{
 				wings_energy += 2 * elapsed;
 			}
+
+			// hurt based on max fall speed
+			if (max_fall_speed < 0) {
+				std::cout << max_fall_speed << "\n";
+			}
+			if (max_fall_speed <= -7.0f) {
+				if (max_fall_speed <= -12.0f) {
+					hit_player(0.2f);
+				}
+				else {
+					float damage = 0.1f + (-7.0f - max_fall_speed) / 5.0f * 0.1f;
+					hit_player(damage);
+				}
+			}
+			max_fall_speed = 0;
 		}
 
 		on_platform_step(elapsed);
@@ -1211,6 +1226,11 @@ void PlayMode::update(float elapsed)
 		// std::cout << player->position.x << "," << player->position.z << "\n";
 		check_dropping();
 		revive(elapsed);
+
+		// update max fall speed
+		if (jump_velocity <= max_fall_speed) {
+			max_fall_speed = jump_velocity;
+		}
 	}
 
 	{ // update listener to camera position:
@@ -1868,6 +1888,8 @@ void PlayMode::revive(float elapsed)
 			player->position.z = 1.2f;
 			player_hp->scale.x = max_player_hp;
 			revive_time = revive_max_time;
+			jump_velocity = 0;
+			max_fall_speed = 0;
 		}
 	}
 	if (player_stage == PlayerStage::JumpGame)
