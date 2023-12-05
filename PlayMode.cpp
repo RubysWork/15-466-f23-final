@@ -576,6 +576,7 @@ void PlayMode::update(float elapsed)
 	{
 		wings->scale = glm::vec3(0);
 		hasWings = true;
+		hasJetPack = false;
 		Sound::play_3D(*sound_07_sample, 1.0f, player->position);
 		Sound::play_3D(*voice_04_sample, 2.0f, player->position);
 	}
@@ -1313,8 +1314,6 @@ glm::vec3 PlayMode::check_change_stage(glm::vec3 expected_position)
 
 			stage_changing = true;
 			stage_change_timer = 0.0f;
-			hasWings = true;
-			hasJetPack = false;
 		}
 	}
 	return expected_position;
