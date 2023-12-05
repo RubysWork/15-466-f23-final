@@ -1039,7 +1039,7 @@ void PlayMode::update(float elapsed)
 				first_jump = true;
 				jump_velocity = 3.0f;
 			}
-			else if (first_jump && !second_jump && jump_signal && boots.has && !hasJetPack)
+			else if (first_jump && !second_jump && jump_signal && boots.has && !hasJetPack && !player_die)
 			{
 				jump_signal = false;
 				second_jump = true;
