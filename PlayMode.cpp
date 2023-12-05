@@ -544,8 +544,11 @@ void PlayMode::update(float elapsed)
 			cage.item->transform->scale = glm::vec4(0);
 			if (cage.item->transform->name == boots.transform->name)
 			{
-				Sound::play_3D(*voice_02_sample, 1.0f, cages.begin()->transform->position);
-				sound = Sound::play_3D(*voice_01_sample, 1.5f, player->position);
+				if (!hasJetPack)
+				{
+					Sound::play_3D(*voice_02_sample, 1.0f, cages.begin()->transform->position);
+					sound = Sound::play_3D(*voice_01_sample, 1.5f, player->position);
+				}
 			}
 			else
 			{
