@@ -270,7 +270,7 @@ struct PlayMode : Mode
 	// boss teleport
 	std::list<Scene::Transform *> final_teleportPos;
 	Scene::Transform *level1_tel;
-	int count_for_teleport = 0; // if this count reaches 2, start teleport
+	int count_for_teleport = 0; // player hit boss, if this count reaches 3, start teleport
 	bool ready_to_teleport = false;
 	float teleport_timer = 0.3f; // scale cange timer
 	bool arrive_new_pos = false; // start scale

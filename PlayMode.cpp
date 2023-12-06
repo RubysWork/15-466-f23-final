@@ -189,7 +189,8 @@ PlayMode::PlayMode() : scene(*hexapod_scene)
 		{
 			component = &transform;
 			component_scale = component->scale;
-			component->scale = glm::vec4(0);
+			// component->scale = glm::vec4(0);
+			get_weapon = true;
 		}
 		else if (transform.name == "BossAttack")
 		{
@@ -857,25 +858,6 @@ void PlayMode::update(float elapsed)
 				hit1 = false;
 				hit2 = false;
 				hit3 = false;
-
-				// count for teleport
-				if (current_boss->transform->name == final_boss.transform->name)
-				{
-					if (count_for_teleport > 1)
-					{
-
-						// start teleport
-						count_for_teleport = 0;
-						ready_to_teleport = true;
-					}
-					else
-					{
-						if (!ready_to_teleport)
-						{
-							count_for_teleport++;
-						}
-					}
-				}
 			}
 
 			break;
@@ -1048,6 +1030,25 @@ void PlayMode::update(float elapsed)
 	{
 		attack = true;
 		hit_boss(0.1f);
+
+		// count for teleport
+		if (current_boss->transform->name == final_boss.transform->name)
+		{
+			if (count_for_teleport > 2)
+			{
+
+				// start teleport
+				count_for_teleport = 0;
+				ready_to_teleport = true;
+			}
+			else
+			{
+				if (!ready_to_teleport)
+				{
+					count_for_teleport++;
+				}
+			}
+		}
 	}
 	// move camera:
 	{
@@ -2331,13 +2332,11 @@ void PlayMode::update_boss_status()
 		{
 			if (rand_move_timer > 600 && current_boss->status == Melee)
 			{
-				std::cout << "weak!!!" << std::endl;
 				current_boss->status = Weak;
 				rand_move_timer = 0;
 			}
 			else if (rand_move_timer > 200 && current_boss->status != Melee)
 			{
-				std::cout << "melee!!!" << std::endl;
 				current_boss->status = Melee;
 				rand_move_timer = 0;
 			}
@@ -2348,7 +2347,6 @@ void PlayMode::update_boss_status()
 
 			if (current_boss->status != BattleStatus::Attacked && current_boss->status != BattleStatus::Dead && glm::distance(player->position, current_boss->transform->position) > 15.0f)
 			{
-				std::cout << "idle!!!" << std::endl;
 				current_boss->status = Idle;
 			}
 			else
@@ -2531,7 +2529,7 @@ void PlayMode::teleport()
 				if (teleport_timer > 0)
 				{
 					detect_boss_status = false;
-					current_boss->status = BattleStatus::Idle;
+					current_boss->status = BattleStatus::Weak;
 					teleport_timer -= 0.03f;
 					current_boss->transform->scale = glm::vec3(teleport_timer, current_boss->transform->scale.y, current_boss->transform->scale.z);
 				}
