@@ -33,6 +33,7 @@ struct PlayMode : Mode
 	void check_dropping();
 	void revive(float elapsed);
 	glm::vec3 enemy_land_on_platform(Scene::Transform *enemy, glm::vec3 expected_position);
+	void change_rand_pos();
 	//----- game state -----
 
 	// input tracking:
@@ -98,7 +99,7 @@ struct PlayMode : Mode
 
 	float jump_velocity = 0.0f;
 	bool jump_signal = false;
-	
+
 	float max_fall_speed = 0;
 
 	// jet pack
@@ -273,6 +274,16 @@ struct PlayMode : Mode
 	bool ready_to_teleport = false;
 	float teleport_timer = 0.3f; // scale cange timer
 	bool arrive_new_pos = false; // start scale
+
+	// final boss random move
+	std::list<glm::vec3> final_move_pos;
+	glm::vec3 rand_pos;
+	int rand_move_timer = 0; // start rand move
+	float rand_pos_time = 0; // current rand move time
+
+	// place boom
+
+	float place_boom_timer = 0;
 
 	// enemy_gravity
 	float enemy_gravity = -0.5f;
