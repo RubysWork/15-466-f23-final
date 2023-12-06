@@ -868,7 +868,49 @@ void PlayMode::update(float elapsed)
 					hit2 = false;
 					hit3 = false;
 				}
+				// shoot while move
+				if (current_boss->transform->name == final_boss.transform->name)
+				{
+					// random move
+					if (glm::distance(current_boss->transform->position, rand_pos) > 0.1f)
+					{
+						// place boom
+						if (place_boom_timer > 1)
+						{
+							place_boom_timer = 0;
+							// std::cout << "boom_count: " << boom_count << std::endl;
+							if (boom_count < 9)
+							{
+								boom_count++;
+								auto p = booms.begin();
+								std::advance(p, last_boom_idx);
+								p->transform->scale = p->ori_scale;
+								p->transform->position = current_boss->transform->position;
+								p->ready_explode = true;
+								// std::cout << p->transform->name << " ready explode set true!!" << std::endl;
+								if (last_boom_idx < 8)
+									last_boom_idx++;
+								else
+									last_boom_idx = 0;
+							}
+							else
+							{
+								// reach max, stop place
+							}
+						}
+						place_boom_timer += elapsed;
 
+						// random move
+						rand_pos_time += current_boss->speed * elapsed;
+						current_boss->transform->position = bullet_current_Pos(current_boss->transform->position, rand_pos, rand_pos_time);
+					}
+					// change random pos
+					else
+					{
+						rand_pos_time = 0;
+						change_rand_pos();
+					}
+				}
 				break;
 			}
 			case Dead: // won't go this case
@@ -2337,12 +2379,17 @@ void PlayMode::update_boss_status()
 	{
 		if (current_boss->transform->name == final_boss.transform->name)
 		{
-			if (rand_move_timer > 600 && current_boss->status == Melee)
+			if (rand_move_timer > 200 && current_boss->status == Shoot)
 			{
 				current_boss->status = Weak;
 				rand_move_timer = 0;
 			}
-			else if (rand_move_timer > 200 && current_boss->status != Melee)
+			else if (rand_move_timer > 400 && current_boss->status == Melee)
+			{
+				current_boss->status = Shoot;
+				rand_move_timer = 0;
+			}
+			else if (rand_move_timer > 200 && current_boss->status == Weak)
 			{
 				current_boss->status = Melee;
 				rand_move_timer = 0;
@@ -2352,7 +2399,7 @@ void PlayMode::update_boss_status()
 				rand_move_timer++;
 			}
 
-			if (current_boss->status != BattleStatus::Attacked && current_boss->status != BattleStatus::Dead && glm::distance(player->position, current_boss->transform->position) > 15.0f)
+			if (current_boss->status != BattleStatus::Attacked && current_boss->status != BattleStatus::Dead && glm::distance(player->position, current_boss->transform->position) > 20.0f)
 			{
 				current_boss->status = Idle;
 			}
