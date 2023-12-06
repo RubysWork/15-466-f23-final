@@ -2304,7 +2304,7 @@ void PlayMode::update_boss_status()
 		}
 	}
 
-	// idle(hide boss weapon) every 3s
+	// idle(hide boss weapon) every 3s,only for level1 boss
 	if (start_weak_timer)
 	{
 		if (current_boss->transform->name == level1_boss.transform->name)
@@ -2329,19 +2329,37 @@ void PlayMode::update_boss_status()
 	{
 		if (current_boss->transform->name == final_boss.transform->name)
 		{
-			// if (rand_move_timer > 500)
-			// {
-			// 	current_boss->status = Weak;
-			// 	std::cout << "stop rand!!!" << std::endl;
-			// 	rand_move_timer = 0;
-			// }
-			// else
-			// {
-			// 	std::cout << "rand!!!" << std::endl;
-			// 	current_boss->status = Melee;
-			// 	rand_move_timer++;
-			// }
-			current_boss->status = Melee;
+			if (rand_move_timer > 600 && current_boss->status == Melee)
+			{
+				std::cout << "weak!!!" << std::endl;
+				current_boss->status = Weak;
+				rand_move_timer = 0;
+			}
+			else if (rand_move_timer > 200 && current_boss->status != Melee)
+			{
+				std::cout << "melee!!!" << std::endl;
+				current_boss->status = Melee;
+				rand_move_timer = 0;
+			}
+			else
+			{
+				rand_move_timer++;
+			}
+
+			if (current_boss->status != BattleStatus::Attacked && current_boss->status != BattleStatus::Dead && glm::distance(player->position, current_boss->transform->position) > 15.0f)
+			{
+				std::cout << "idle!!!" << std::endl;
+				current_boss->status = Idle;
+			}
+			else
+			{
+				// active first melee
+				if (!first_melee)
+				{
+					current_boss->status = Melee;
+					first_melee = true;
+				}
+			}
 			// if (glm::distance(player->position, current_boss->transform->position) < 2.5f && current_boss->status != BattleStatus::Attacked && current_boss->status != Dead)
 			// {
 			// 	current_boss->status = Melee;
@@ -2349,10 +2367,6 @@ void PlayMode::update_boss_status()
 			// else if (glm::distance(player->position, current_boss->transform->position) < 8.0f && current_boss->status != BattleStatus::Attacked && current_boss->status != Dead)
 			// {
 			// 	current_boss->status = Shoot;
-			// }
-			// else if (current_boss->status != BattleStatus::Attacked && glm::distance(player->position, current_boss->transform->position) > 8.0f)
-			// {
-			// 	// current_boss->status = BattleStatus::Idle;
 			// }
 		}
 		else
@@ -2547,8 +2561,6 @@ void PlayMode::teleport()
 					ready_to_teleport = false;
 				}
 			}
-
-			// }
 		}
 	}
 	else

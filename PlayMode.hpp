@@ -280,6 +280,7 @@ struct PlayMode : Mode
 	glm::vec3 rand_pos;
 	int rand_move_timer = 0; // start rand move
 	float rand_pos_time = 0; // current rand move time
+	bool first_melee = false;
 
 	// place boom
 	struct Boom
