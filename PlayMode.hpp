@@ -268,7 +268,7 @@ struct PlayMode : Mode
 	Scene::Transform *boss_hp_bg = nullptr; // hide hp
 
 	// boss teleport
-	std::list<Scene::Transform *> final_teleportPos;
+	std::list<glm::vec3> final_teleportPos;
 	Scene::Transform *level1_tel;
 	int count_for_teleport = 0; // player hit boss, if this count reaches 3, start teleport
 	bool ready_to_teleport = false;
@@ -381,6 +381,8 @@ struct PlayMode : Mode
 
 	// camera:
 	Scene::Camera *camera = nullptr;
+
+	bool game_end = false;
 
 	void put_away_bullet(Bullet bullet);
 
