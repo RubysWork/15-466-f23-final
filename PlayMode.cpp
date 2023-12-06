@@ -815,13 +815,17 @@ void PlayMode::update(float elapsed)
 								else
 									last_boom_idx = 0;
 							}
-							else
-							{
-								// reach max, stop place
-							}
 						}
 						place_boom_timer += elapsed;
-
+						// boss face to
+						if (current_boss->transform->position.x > rand_pos.x)
+						{
+							current_boss->transform->scale.x = -0.3f;
+						}
+						else
+						{
+							current_boss->transform->scale.x = 0.3f;
+						}
 						// random move
 						rand_pos_time += current_boss->speed * elapsed;
 						current_boss->transform->position = bullet_current_Pos(current_boss->transform->position, rand_pos, rand_pos_time);
@@ -893,13 +897,17 @@ void PlayMode::update(float elapsed)
 								else
 									last_boom_idx = 0;
 							}
-							else
-							{
-								// reach max, stop place
-							}
 						}
 						place_boom_timer += elapsed;
-
+						// boss face to
+						if (current_boss->transform->position.x > rand_pos.x)
+						{
+							current_boss->transform->scale.x = -0.3f;
+						}
+						else
+						{
+							current_boss->transform->scale.x = 0.3f;
+						}
 						// random move
 						rand_pos_time += current_boss->speed * elapsed;
 						current_boss->transform->position = bullet_current_Pos(current_boss->transform->position, rand_pos, rand_pos_time);
@@ -2412,14 +2420,6 @@ void PlayMode::update_boss_status()
 					first_melee = true;
 				}
 			}
-			// if (glm::distance(player->position, current_boss->transform->position) < 2.5f && current_boss->status != BattleStatus::Attacked && current_boss->status != Dead)
-			// {
-			// 	current_boss->status = Melee;
-			// }
-			// else if (glm::distance(player->position, current_boss->transform->position) < 8.0f && current_boss->status != BattleStatus::Attacked && current_boss->status != Dead)
-			// {
-			// 	current_boss->status = Shoot;
-			// }
 		}
 		else
 		{
