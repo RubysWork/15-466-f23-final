@@ -111,7 +111,7 @@ PlayMode::PlayMode() : scene(*hexapod_scene)
 		if (transform.name == "Player")
 		{
 			player = &transform;
-			// player->position = glm::vec3{47.3101f, 5.86705f, 56.8865f};
+			player->position = glm::vec3{47.3101f, 5.86705f, 56.8865f};
 			//      player->scale = glm::vec3{0.15f, 0.15f, 0.15f};
 			start_point = player->position;
 			start_point.z -= 5.0f;
@@ -193,8 +193,8 @@ PlayMode::PlayMode() : scene(*hexapod_scene)
 		{
 			component = &transform;
 			component_scale = component->scale;
-			component->scale = glm::vec4(0);
-			// get_weapon = true;
+			// component->scale = glm::vec4(0);
+			get_weapon = true;
 		}
 		else if (transform.name == "BossAttack")
 		{
