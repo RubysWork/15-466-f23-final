@@ -44,7 +44,8 @@ Load<Scene> hexapod_scene(LoadTagDefault, []() -> Scene const *
 
 Load<Sound::Sample> bgm_sample(LoadTagDefault, []() -> Sound::Sample const *
 							   { return new Sound::Sample(data_path("BGM.wav")); });
-
+Load<Sound::Sample> final_boss_bgm(LoadTagDefault, []() -> Sound::Sample const *
+								   { return new Sound::Sample(data_path("BossFight.wav")); });
 Load<Sound::Sample> voice_01_sample(LoadTagDefault, []() -> Sound::Sample const *
 									{ return new Sound::Sample(data_path("Voice01.wav")); });
 
@@ -92,7 +93,10 @@ Load<Sound::Sample> sound_08_sample(LoadTagDefault, []() -> Sound::Sample const 
 
 Load<Sound::Sample> win_sample(LoadTagDefault, []() -> Sound::Sample const *
 							   { return new Sound::Sample(data_path("win.wav")); });
-
+Load<Sound::Sample> fuse(LoadTagDefault, []() -> Sound::Sample const *
+						 { return new Sound::Sample(data_path("fuse.wav")); });
+Load<Sound::Sample> explode(LoadTagDefault, []() -> Sound::Sample const *
+							{ return new Sound::Sample(data_path("explode.wav")); });
 PlayMode::PlayMode() : scene(*hexapod_scene)
 {
 	// Initialize draw text
@@ -107,8 +111,8 @@ PlayMode::PlayMode() : scene(*hexapod_scene)
 		if (transform.name == "Player")
 		{
 			player = &transform;
-			player->position = glm::vec3{47.3101f, 5.86705f, 56.8865f};
-			//     player->scale = glm::vec3{0.15f, 0.15f, 0.15f};
+			// player->position = glm::vec3{47.3101f, 5.86705f, 56.8865f};
+			//      player->scale = glm::vec3{0.15f, 0.15f, 0.15f};
 			start_point = player->position;
 			start_point.z -= 5.0f;
 			player_origin_scale = player->scale;
@@ -189,8 +193,8 @@ PlayMode::PlayMode() : scene(*hexapod_scene)
 		{
 			component = &transform;
 			component_scale = component->scale;
-			// component->scale = glm::vec4(0);
-			get_weapon = true;
+			component->scale = glm::vec4(0);
+			// get_weapon = true;
 		}
 		else if (transform.name == "BossAttack")
 		{
@@ -630,6 +634,10 @@ void PlayMode::update(float elapsed)
 			// game end
 			if (final_boss.die)
 			{
+				(*music).stop();
+				(*fuse_sound).stop();
+				(*fuse_sound).stop();
+				sound = Sound::play_3D(*win_sample, 1.5f, player->position);
 				game_end = true;
 			}
 		}
@@ -675,6 +683,8 @@ void PlayMode::update(float elapsed)
 						boom.explode_countdown = 0;
 						boom.ready_explode = false;
 						boom.start_explode = true;
+						if (fuse_sound != nullptr)
+							(*fuse_sound).stop();
 					}
 					else
 					{
@@ -809,6 +819,7 @@ void PlayMode::update(float elapsed)
 								p->transform->scale = p->ori_scale;
 								p->transform->position = current_boss->transform->position;
 								p->ready_explode = true;
+								fuse_sound = Sound::play_3D(*fuse, 0.1f, p->transform->position);
 								// std::cout << p->transform->name << " ready explode set true!!" << std::endl;
 								if (last_boom_idx < 8)
 									last_boom_idx++;
@@ -891,6 +902,8 @@ void PlayMode::update(float elapsed)
 								p->transform->scale = p->ori_scale;
 								p->transform->position = current_boss->transform->position;
 								p->ready_explode = true;
+								fuse_sound = Sound::play_3D(*fuse, 0.1f, p->transform->position);
+
 								// std::cout << p->transform->name << " ready explode set true!!" << std::endl;
 								if (last_boom_idx < 8)
 									last_boom_idx++;
@@ -1088,12 +1101,15 @@ void PlayMode::update(float elapsed)
 			!attack && hit_detect_SAT(component, current_boss->transform).overlapped)
 		{
 			attack = true;
-			hit_boss(0.1f);
+			if (current_boss->transform->name != final_boss.transform->name)
+				hit_boss(0.1f);
+			else
+				hit_boss(0.05f);
 
 			// count for teleport
 			if (current_boss->transform->name == final_boss.transform->name)
 			{
-				if (count_for_teleport > 2)
+				if (count_for_teleport > 2 && current_boss->current_hp > 0.0001f)
 				{
 
 					// start teleport
@@ -1446,6 +1462,8 @@ glm::vec3 PlayMode::check_change_stage(glm::vec3 expected_position)
 
 			stage_changing = true;
 			stage_change_timer = 0.0f;
+			(*music).stop();
+			music = Sound::loop(*final_boss_bgm, 0.3f);
 		}
 	}
 	return expected_position;
@@ -2681,4 +2699,5 @@ void PlayMode::play_explode_ani(Boom *boom)
 	boom->start_explode = false;
 	boom->explode->scale = glm::vec3(0);
 	boom_count--;
+	explode_sound = Sound::play_3D(*explode, 0.4f, boom->transform->position);
 }
