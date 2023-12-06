@@ -176,6 +176,7 @@ struct PlayMode : Mode
 	SubUV weapon_subuv;
 	SubUV wings_subuv;
 	SubUV boss_subuv;
+	SubUV explode_subuv;
 	std::vector<SubUV> enemy_subuv;
 	int enemy_subuv_count = 0;
 	PlayerStatus player_status = PlayerStatus::Idle;

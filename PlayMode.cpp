@@ -149,6 +149,12 @@ PlayMode::PlayMode() : scene(*hexapod_scene)
 			wings_subuv.subtransforms.emplace_back(&transform);
 		}
 
+		else if (transform.name.find("ExpSub") != std::string::npos)
+		{
+			transform.scale = glm::vec3(0.0f);
+			explode_subuv.subtransforms.emplace_back(&transform);
+		}
+
 		else if (transform.name.find("Boss1Sub") != std::string::npos)
 		{
 			transform.scale = glm::vec3(0.0f);
@@ -696,7 +702,7 @@ void PlayMode::update(float elapsed)
 					// explode hit
 					if (hit_detect_SAT(player, boom.explode).overlapped)
 					{
-						hit_player(0.05f);
+						hit_player(0.2f);
 					}
 					// play explode ani
 					play_explode_ani(&boom);
@@ -2694,7 +2700,32 @@ void PlayMode::change_rand_pos()
 void PlayMode::play_explode_ani(Boom *boom)
 {
 	// add animation here
+	explode_subuv.anim_timer += 0.1f * explode_subuv.speed;
 
+	uint32_t bit = 1;
+	while (true)
+	{
+		if (explode_subuv.bitmask >> bit == 0)
+			break;
+		bit++;
+	}
+
+	explode_subuv.start_index = 0;
+	explode_subuv.range = 3;
+	explode_subuv.speed = 2.0f;
+
+	if (explode_subuv.anim_timer > 1)
+	{
+		explode_subuv.subtransforms[bit - 1]->scale = glm::vec3(0.0f);
+		bit++;
+		if (bit - 1 >= explode_subuv.start_index + explode_subuv.range)
+		{
+			bit = explode_subuv.start_index + 1;
+		}
+		explode_subuv.bitmask = 1ULL << (bit - 1);
+		explode_subuv.subtransforms[bit - 1]->scale = glm::vec3(1.0f);
+		explode_subuv.anim_timer = 0.0f;
+	}
 	// after animation finished
 	boom->start_explode = false;
 	boom->explode->scale = glm::vec3(0);
