@@ -117,7 +117,7 @@ struct PlayMode : Mode
 
 	// wings
 	Scene::Transform *wings = nullptr;
-	bool hasWings = false;
+	bool hasWings = true;
 	bool beatWings = false;
 	bool flying = false;
 	float wings_max_energy = 15.0f;
@@ -167,7 +167,7 @@ struct PlayMode : Mode
 		BossTeleport
 	};
 
-	PlayerStage player_stage = PlayerStage::InitialStage;
+	PlayerStage player_stage = PlayerStage::JumpGame;
 	float stage_changing = false;
 	float stage_change_timer = 0.0f;
 	int death_time = 0;
@@ -282,7 +282,19 @@ struct PlayMode : Mode
 	float rand_pos_time = 0; // current rand move time
 
 	// place boom
-
+	struct Boom
+	{
+		Scene::Transform *transform = nullptr;
+		Scene::Transform *explode = nullptr;
+		bool ready_explode = false; // replace boom by explode
+		bool start_explode = false; // play explode ani
+		float explode_countdown = 0;
+		glm::vec3 ori_scale = glm::vec3(0);
+	};
+	std::list<Boom> booms;
+	int boom_count = 0;
+	int last_boom_idx = 0;
+	int explode_idx = 0;
 	float place_boom_timer = 0;
 
 	// enemy_gravity
@@ -383,6 +395,7 @@ struct PlayMode : Mode
 	void enemy_dead(Enemy enemy);
 
 	void teleport();
+	void play_explode_ani(Boom *boom);
 
 	HitObject hit_detect(Scene::Transform *obj, Scene::Transform *hit_obj);
 	HitObject hit_detect_SAT(Scene::Transform *obj, Scene::Transform *hit_obj);

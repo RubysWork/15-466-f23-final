@@ -18,27 +18,6 @@ Load<MeshBuffer> meshes(LoadTagDefault, []() -> MeshBuffer const *
 	MeshBuffer const *ret = new MeshBuffer(data_path("cube.pnct"));
 	meshes_for_lit_color_texture_program = ret->make_vao_for_program(lit_color_texture_program->program);
 	return ret; });
-Load<GLuint> scene_texture(LoadTagEarly, []() -> GLuint const *
-						   {
-
-	//make a 1-pixel white texture to bind by default:
-	GLuint *tex = new GLuint;
-	glGenTextures(1, tex);
-
-	glBindTexture(GL_TEXTURE_2D, *tex);
-	//std::vector< glm::u8vec4 > tex_data(1, glm::u8vec4(0xff));
-	//glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 1, 1, 0, GL_RGBA, GL_UNSIGNED_BYTE, tex_data.data());
-	std::vector< glm::u8vec4 > tex_data;
-	glm::uvec2 size;
-	load_png("Tileset_demo.png", &size, &tex_data, OriginLocation::LowerLeftOrigin);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, size.x, size.y, 0, GL_RGBA, GL_UNSIGNED_BYTE, tex_data.data());
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	glBindTexture(GL_TEXTURE_2D, 0);
-
-	return tex; });
 
 Load<Scene> hexapod_scene(LoadTagDefault, []() -> Scene const *
 						  { return new Scene(
@@ -128,8 +107,8 @@ PlayMode::PlayMode() : scene(*hexapod_scene)
 		if (transform.name == "Player")
 		{
 			player = &transform;
-			// player->position = glm::vec3{47.3101f, 5.86705f, 56.8865f};
-			//      player->scale = glm::vec3{0.15f, 0.15f, 0.15f};
+			player->position = glm::vec3{47.3101f, 5.86705f, 56.8865f};
+			//     player->scale = glm::vec3{0.15f, 0.15f, 0.15f};
 			start_point = player->position;
 			start_point.z -= 5.0f;
 			player_origin_scale = player->scale;
@@ -352,6 +331,20 @@ PlayMode::PlayMode() : scene(*hexapod_scene)
 		{
 			final_move_pos.emplace_back(transform.position);
 		}
+		else if (transform.name.find("Boom") != std::string::npos)
+		{
+			Boom *boom = new Boom();
+			boom->transform = &transform;
+			boom->ori_scale = transform.scale;
+			booms.emplace_back(*boom);
+		}
+		else if (transform.name.find("Explode") != std::string::npos)
+		{
+			auto p = booms.begin();
+			std::advance(p, explode_idx);
+			p->explode = &transform;
+			explode_idx++;
+		}
 		// add a real component jetpack
 	}
 
@@ -364,11 +357,6 @@ PlayMode::PlayMode() : scene(*hexapod_scene)
 		bullet.player_pos = player->position;
 	}
 
-	// final boss random pos
-	for (auto pos : final_move_pos)
-	{
-		std::cout << "pos:" << pos.x << "," << pos.z << std::endl;
-	}
 	change_rand_pos();
 
 	// get pointer to camera for convenience:
@@ -663,6 +651,38 @@ void PlayMode::update(float elapsed)
 				hit_player(0.05f);
 			}
 		}
+
+		// boom explode
+		for (auto &boom : booms)
+		{
+			if (boom.ready_explode)
+			{
+				if (boom.explode_countdown > 3)
+				{
+					boom.transform->scale = glm::vec3(0);
+					boom.explode->scale = boom.ori_scale;
+					boom.explode->position = boom.transform->position;
+					boom.explode_countdown = 0;
+					boom.ready_explode = false;
+					boom.start_explode = true;
+				}
+				else
+				{
+					boom.explode_countdown += elapsed;
+				}
+			}
+			if (boom.start_explode)
+			{
+				// explode hit
+				if (hit_detect_SAT(player, boom.explode).overlapped)
+				{
+					hit_player(0.05f);
+				}
+				// play explode ani
+				play_explode_ani(&boom);
+			}
+		}
+
 		// update boss status
 		update_boss_status();
 
@@ -763,17 +783,42 @@ void PlayMode::update(float elapsed)
 			}
 			else if (current_boss->transform->name == final_boss.transform->name)
 			{
+				// random move
 				if (glm::distance(current_boss->transform->position, rand_pos) > 0.1f)
 				{
-					std::cout << "go to pos!!!" << std::endl;
-					std::cout << "boss:" << current_boss->transform->position.x << "," << current_boss->transform->position.z << ";"
-							  << "target:" << rand_pos.x << "," << rand_pos.z << std::endl;
+					// place boom
+					if (place_boom_timer > 1)
+					{
+						place_boom_timer = 0;
+						// std::cout << "boom_count: " << boom_count << std::endl;
+						if (boom_count < 9)
+						{
+							boom_count++;
+							auto p = booms.begin();
+							std::advance(p, last_boom_idx);
+							p->transform->scale = p->ori_scale;
+							p->transform->position = current_boss->transform->position;
+							p->ready_explode = true;
+							// std::cout << p->transform->name << " ready explode set true!!" << std::endl;
+							if (last_boom_idx < 8)
+								last_boom_idx++;
+							else
+								last_boom_idx = 0;
+						}
+						else
+						{
+							// reach max, stop place
+						}
+					}
+					place_boom_timer += elapsed;
+
+					// random move
 					rand_pos_time += current_boss->speed * elapsed;
 					current_boss->transform->position = bullet_current_Pos(current_boss->transform->position, rand_pos, rand_pos_time);
 				}
+				// change random pos
 				else
 				{
-					std::cout << "reach!!!" << std::endl;
 					rand_pos_time = 0;
 					change_rand_pos();
 				}
@@ -2559,4 +2604,14 @@ void PlayMode::change_rand_pos()
 	auto p = final_move_pos.begin();
 	std::advance(p, ra);
 	rand_pos = *p;
+}
+
+void PlayMode::play_explode_ani(Boom *boom)
+{
+	// add animation here
+
+	// after animation finished
+	boom->start_explode = false;
+	boom->explode->scale = glm::vec3(0);
+	boom_count--;
 }
