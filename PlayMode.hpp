@@ -176,7 +176,9 @@ struct PlayMode : Mode
 	SubUV weapon_subuv;
 	SubUV wings_subuv;
 	SubUV boss_subuv;
-	SubUV explode_subuv;
+	SubUV final_subuv;
+	std::vector<SubUV> explode_subuv;
+	int explode_subuv_count = 0;
 	std::vector<SubUV> enemy_subuv;
 	int enemy_subuv_count = 0;
 	PlayerStatus player_status = PlayerStatus::Idle;
@@ -400,6 +402,8 @@ struct PlayMode : Mode
 	bool level1_boss_dead();
 	void update_enemy_status(Enemy enemy);
 	void enemy_dead(Enemy enemy);
+	void update_final_status();
+	void final_boss_dead();
 
 	void teleport();
 	void play_explode_ani(Boom *boom);

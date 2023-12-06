@@ -104,7 +104,10 @@ PlayMode::PlayMode() : scene(*hexapod_scene)
 	text_program = text.CreateTextShader();
 
 	for (int i = 0; i < 9; ++i)
+	{
+		explode_subuv.emplace_back();
 		enemy_subuv.emplace_back();
+	}
 
 	for (auto &transform : scene.transforms)
 	{
@@ -149,16 +152,16 @@ PlayMode::PlayMode() : scene(*hexapod_scene)
 			wings_subuv.subtransforms.emplace_back(&transform);
 		}
 
-		else if (transform.name.find("ExpSub") != std::string::npos)
-		{
-			transform.scale = glm::vec3(0.0f);
-			explode_subuv.subtransforms.emplace_back(&transform);
-		}
-
 		else if (transform.name.find("Boss1Sub") != std::string::npos)
 		{
 			transform.scale = glm::vec3(0.0f);
 			boss_subuv.subtransforms.emplace_back(&transform);
+		}
+
+		else if (transform.name.find("FinalSub") != std::string::npos)
+		{
+			transform.scale = glm::vec3(0.0f);
+			final_subuv.subtransforms.emplace_back(&transform);
 		}
 
 		else if (transform.name.find("Bullet") != std::string::npos)
@@ -325,6 +328,29 @@ PlayMode::PlayMode() : scene(*hexapod_scene)
 				enemy_subuv[8].subtransforms.emplace_back(&transform);
 			enemy_subuv_count++;
 		}
+		else if (transform.name.find("ExpSub") != std::string::npos)
+		{
+			transform.scale = glm::vec3(0.0f);
+			if (explode_subuv_count < 12)
+				explode_subuv[0].subtransforms.emplace_back(&transform);
+			else if (explode_subuv_count >= 12 && explode_subuv_count < 24)
+				explode_subuv[1].subtransforms.emplace_back(&transform);
+			else if (explode_subuv_count >= 24 && explode_subuv_count < 36)
+				explode_subuv[2].subtransforms.emplace_back(&transform);
+			else if (explode_subuv_count >= 36 && explode_subuv_count < 48)
+				explode_subuv[3].subtransforms.emplace_back(&transform);
+			else if (explode_subuv_count >= 48 && explode_subuv_count < 60)
+				explode_subuv[4].subtransforms.emplace_back(&transform);
+			else if (explode_subuv_count >= 60 && explode_subuv_count < 72)
+				explode_subuv[5].subtransforms.emplace_back(&transform);
+			else if (explode_subuv_count >= 72 && explode_subuv_count < 84)
+				explode_subuv[6].subtransforms.emplace_back(&transform);
+			else if (explode_subuv_count >= 84 && explode_subuv_count < 96)
+				explode_subuv[7].subtransforms.emplace_back(&transform);
+			else
+				explode_subuv[8].subtransforms.emplace_back(&transform);
+			explode_subuv_count++;
+		}
 		else if (transform.name == "Wing")
 		{
 			wings = &transform;
@@ -349,7 +375,7 @@ PlayMode::PlayMode() : scene(*hexapod_scene)
 			boom->transform = &transform;
 			boom->ori_scale = transform.scale;
 			booms.emplace_back(*boom);
-				}
+		}
 		else if (transform.name.find("Explode") != std::string::npos)
 		{
 			auto p = booms.begin();
@@ -641,6 +667,7 @@ void PlayMode::update(float elapsed)
 			// game end
 			if (final_boss.die)
 			{
+				final_boss_dead();
 				(*music).stop();
 				(*fuse_sound).stop();
 				(*fuse_sound).stop();
@@ -685,7 +712,7 @@ void PlayMode::update(float elapsed)
 					if (boom.explode_countdown > 3)
 					{
 						boom.transform->scale = glm::vec3(0);
-						boom.explode->scale = boom.ori_scale;
+						boom.explode->scale = boom.ori_scale * 3.0f;
 						boom.explode->position = boom.transform->position;
 						boom.explode_countdown = 0;
 						boom.ready_explode = false;
@@ -712,6 +739,7 @@ void PlayMode::update(float elapsed)
 
 			// update boss status
 			update_boss_status();
+			update_final_status();
 
 			// boss status
 			switch (current_boss->status)
@@ -2595,6 +2623,94 @@ void PlayMode::enemy_dead(Enemy enemy)
 	}
 }
 
+void PlayMode::update_final_status()
+{
+	final_subuv.anim_timer += 0.1f * final_subuv.speed;
+
+	uint32_t bit = 1;
+	while (true)
+	{
+		if (final_subuv.bitmask >> bit == 0)
+			break;
+		bit++;
+	}
+
+	switch (current_boss->status)
+	{
+	case BattleStatus::Attacked:
+		final_subuv.start_index = 21;
+		final_subuv.range = 3;
+		final_subuv.speed = 0.5f;
+		break;
+	case BattleStatus::Weak:
+		final_subuv.start_index = 0;
+		final_subuv.range = 7;
+		final_subuv.speed = 1.5f;
+		break;
+	default:
+		final_subuv.start_index = 8;
+		final_subuv.range = 7;
+		final_subuv.speed = 1.25f;
+	}
+
+	if (current_boss->status == BattleStatus::Dead)
+		return;
+	else if (final_subuv.anim_timer > 1)
+	{
+		final_subuv.subtransforms[bit - 1]->scale = glm::vec3(0.0f);
+		bit++;
+		if (bit - 1 >= final_subuv.start_index + final_subuv.range)
+			bit = final_subuv.start_index + 1;
+		final_subuv.bitmask = 1ULL << (bit - 1);
+		final_subuv.subtransforms[bit - 1]->scale = glm::vec3(1.0f);
+		final_subuv.anim_timer = 0.0f;
+	}
+	else if (bit - 1 >= final_subuv.start_index + final_subuv.range || bit - 1 < final_subuv.start_index)
+	{
+		final_subuv.subtransforms[bit - 1]->scale = glm::vec3(0.0f);
+		bit = final_subuv.start_index + 1;
+		final_subuv.bitmask = 1ULL << (bit - 1);
+		final_subuv.subtransforms[bit - 1]->scale = glm::vec3(1.0f);
+		final_subuv.anim_timer = 0.0f;
+	}
+}
+
+void PlayMode::final_boss_dead()
+{
+	final_subuv.anim_timer += 0.1f * final_subuv.speed;
+
+	uint32_t bit = 1;
+	while (true)
+	{
+		if (final_subuv.bitmask >> bit == 0)
+			break;
+		bit++;
+	}
+
+	if (bit == 21) // last frame of dead
+		return;
+	else
+	{
+		final_subuv.start_index = 16;
+		final_subuv.range = 4;
+		final_subuv.speed = 0.75f;
+
+		if (final_subuv.anim_timer > 1)
+		{
+			final_subuv.subtransforms[bit - 1]->scale = glm::vec3(0.0f);
+			if (bit >= 21)
+				bit = 16;
+			else
+				bit++;
+			final_subuv.bitmask = 1ULL << (bit - 1);
+			final_subuv.subtransforms[bit - 1]->scale = glm::vec3(1.0f);
+			final_subuv.anim_timer = 0.0f;
+		}
+
+		return;
+	}
+}
+
 void PlayMode::teleport()
 {
 
@@ -2701,36 +2817,43 @@ void PlayMode::change_rand_pos()
 void PlayMode::play_explode_ani(Boom *boom)
 {
 	// add animation here
-	explode_subuv.anim_timer += 0.1f * explode_subuv.speed;
+	explode_subuv[boom->index].anim_timer += 0.1f * explode_subuv[boom->index].speed;
 
 	uint32_t bit = 1;
 	while (true)
 	{
-		if (explode_subuv.bitmask >> bit == 0)
+		if (explode_subuv[boom->index].bitmask >> bit == 0)
 			break;
 		bit++;
 	}
 
-	explode_subuv.start_index = 0;
-	explode_subuv.range = 3;
-	explode_subuv.speed = 2.0f;
+	explode_subuv[boom->index].start_index = 0;
+	explode_subuv[boom->index].range = 11;
+	explode_subuv[boom->index].speed = 2.5f;
 
-	if (explode_subuv.anim_timer > 1)
+	if (explode_subuv[boom->index].anim_timer > 1)
 	{
-		explode_subuv.subtransforms[bit - 1]->scale = glm::vec3(0.0f);
+		explode_subuv[boom->index].subtransforms[bit - 1]->scale = glm::vec3(0.0f);
 		bit++;
-		if (bit - 1 >= explode_subuv.start_index + explode_subuv.range)
+		// if (bit - 1 == (explode_subuv[boom->index].start_index + 1))
+		// explode_sound = Sound::play_3D(*explode, 0.4f, boom->transform->position);
+		if (bit - 1 >= explode_subuv[boom->index].start_index + explode_subuv[boom->index].range)
 		{
-			bit = explode_subuv.start_index + 1;
+			bit = explode_subuv[boom->index].start_index + 1;
+			explode_subuv[boom->index].bitmask = 1ULL << (bit - 1);
+			explode_subuv[boom->index].anim_timer = 0.0f;
+
+			// after animation finished
+			boom->start_explode = false;
+			boom->explode->scale = glm::vec3(0);
+			if (boom_count > 0)
+				boom_count--;
 		}
-		explode_subuv.bitmask = 1ULL << (bit - 1);
-		explode_subuv.subtransforms[bit - 1]->scale = glm::vec3(1.0f);
-		explode_subuv.anim_timer = 0.0f;
+		else
+		{
+			explode_subuv[boom->index].bitmask = 1ULL << (bit - 1);
+			explode_subuv[boom->index].subtransforms[bit - 1]->scale = glm::vec3(1.0f);
+			explode_subuv[boom->index].anim_timer = 0.0f;
+		}
 	}
-	std::cout << "explode index:" << boom->index << std::endl;
-	// after animation finished
-	boom->start_explode = false;
-	boom->explode->scale = glm::vec3(0);
-	boom_count--;
-	explode_sound = Sound::play_3D(*explode, 0.4f, boom->transform->position);
 }
