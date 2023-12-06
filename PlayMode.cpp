@@ -345,10 +345,11 @@ PlayMode::PlayMode() : scene(*hexapod_scene)
 		else if (transform.name.find("Boom") != std::string::npos)
 		{
 			Boom *boom = new Boom();
+			boom->index = (int)booms.size();
 			boom->transform = &transform;
 			boom->ori_scale = transform.scale;
 			booms.emplace_back(*boom);
-		}
+				}
 		else if (transform.name.find("Explode") != std::string::npos)
 		{
 			auto p = booms.begin();
@@ -2726,6 +2727,7 @@ void PlayMode::play_explode_ani(Boom *boom)
 		explode_subuv.subtransforms[bit - 1]->scale = glm::vec3(1.0f);
 		explode_subuv.anim_timer = 0.0f;
 	}
+	std::cout << "explode index:" << boom->index << std::endl;
 	// after animation finished
 	boom->start_explode = false;
 	boom->explode->scale = glm::vec3(0);

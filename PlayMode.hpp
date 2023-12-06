@@ -286,6 +286,7 @@ struct PlayMode : Mode
 	// place boom
 	struct Boom
 	{
+		int index = 0;
 		Scene::Transform *transform = nullptr;
 		Scene::Transform *explode = nullptr;
 		bool ready_explode = false; // replace boom by explode
