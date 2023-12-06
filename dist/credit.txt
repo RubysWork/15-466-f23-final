@@ -9,6 +9,7 @@ Itch.io:
     - https://szadiart.itch.io/rocky-world-platformer-set
     - https://darkpixel-kronovi.itch.io/mecha-golem-free
     - https://luizmelo.itch.io/evil-wizard
+    - https://pimen.itch.io/fire-spell-effect-02
 
 Fonts:
     - https://fonts.google.com/specimen/Press+Start+2P
