@@ -34,6 +34,7 @@ struct PlayMode : Mode
 	void revive(float elapsed);
 	glm::vec3 enemy_land_on_platform(Scene::Transform *enemy, glm::vec3 expected_position);
 	void change_rand_pos();
+
 	//----- game state -----
 
 	// input tracking:
@@ -403,7 +404,7 @@ struct PlayMode : Mode
 	void update_enemy_status(Enemy enemy);
 	void enemy_dead(Enemy enemy);
 	void update_final_status();
-	void final_boss_dead();
+	bool final_boss_dead();
 
 	void teleport();
 	void play_explode_ani(Boom *boom);

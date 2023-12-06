@@ -405,7 +405,7 @@ PlayMode::PlayMode() : scene(*hexapod_scene)
 
 	// start music loop playing:
 	//  (note: position will be over-ridden in update())
-	music = Sound::loop(*bgm_sample, 0.3f);
+	music = Sound::loop(*bgm_sample, 0.2f);
 	boss1_loop_sound = Sound::loop_3D(*voice_06_sample, 2.0f, level1_boss.transform->position, 0.25f);
 }
 
@@ -671,8 +671,8 @@ void PlayMode::update(float elapsed)
 				(*music).stop();
 				(*fuse_sound).stop();
 				(*fuse_sound).stop();
-				sound = Sound::play_3D(*win_sample, 1.5f, player->position);
-				game_end = true;
+
+				game_end = final_boss_dead();
 			}
 		}
 		else
@@ -854,7 +854,8 @@ void PlayMode::update(float elapsed)
 								p->transform->scale = p->ori_scale;
 								p->transform->position = current_boss->transform->position;
 								p->ready_explode = true;
-								fuse_sound = Sound::play_3D(*fuse, 0.1f, p->transform->position);
+								std::cout << "mellee fuse!!!!" << std::endl;
+								fuse_sound = Sound::play_3D(*fuse, 0.5f, p->transform->position, 1.0f);
 								// std::cout << p->transform->name << " ready explode set true!!" << std::endl;
 								if (last_boom_idx < 8)
 									last_boom_idx++;
@@ -937,7 +938,9 @@ void PlayMode::update(float elapsed)
 								p->transform->scale = p->ori_scale;
 								p->transform->position = current_boss->transform->position;
 								p->ready_explode = true;
-								fuse_sound = Sound::play_3D(*fuse, 0.1f, p->transform->position);
+								std::cout << "shoot fuse!!!!" << std::endl;
+
+								fuse_sound = Sound::play_3D(*fuse, 0.5f, p->transform->position, 1.0f);
 
 								// std::cout << p->transform->name << " ready explode set true!!" << std::endl;
 								if (last_boom_idx < 8)
@@ -1498,7 +1501,8 @@ glm::vec3 PlayMode::check_change_stage(glm::vec3 expected_position)
 			stage_changing = true;
 			stage_change_timer = 0.0f;
 			(*music).stop();
-			music = Sound::loop(*final_boss_bgm, 0.3f);
+
+			music = Sound::loop(*final_boss_bgm, 0.2f);
 		}
 	}
 	return expected_position;
@@ -2460,15 +2464,15 @@ void PlayMode::update_boss_status()
 				rand_move_timer++;
 			}
 
-			if (current_boss->status != BattleStatus::Attacked && current_boss->status != BattleStatus::Dead && glm::distance(player->position, current_boss->transform->position) > 20.0f)
+			if (!first_melee)
 			{
-				current_boss->status = Idle;
-			}
-			else
-			{
-				// active first melee
-				if (!first_melee)
+				if (current_boss->status != BattleStatus::Attacked && current_boss->status != BattleStatus::Dead && glm::distance(player->position, current_boss->transform->position) > 5.0f)
 				{
+					current_boss->status = Idle;
+				}
+				else
+				{
+					// active first melee
 					current_boss->status = Melee;
 					first_melee = true;
 				}
@@ -2675,7 +2679,7 @@ void PlayMode::update_final_status()
 	}
 }
 
-void PlayMode::final_boss_dead()
+bool PlayMode::final_boss_dead()
 {
 	final_subuv.anim_timer += 0.1f * final_subuv.speed;
 
@@ -2688,7 +2692,11 @@ void PlayMode::final_boss_dead()
 	}
 
 	if (bit == 21) // last frame of dead
-		return;
+	{
+		sound = Sound::play_3D(*win_sample, 1.5f, player->position);
+		return true;
+	}
+
 	else
 	{
 		final_subuv.start_index = 16;
@@ -2707,7 +2715,7 @@ void PlayMode::final_boss_dead()
 			final_subuv.anim_timer = 0.0f;
 		}
 
-		return;
+		return false;
 	}
 }
 
@@ -2835,8 +2843,8 @@ void PlayMode::play_explode_ani(Boom *boom)
 	{
 		explode_subuv[boom->index].subtransforms[bit - 1]->scale = glm::vec3(0.0f);
 		bit++;
-		// if (bit - 1 == (explode_subuv[boom->index].start_index + 1))
-		// explode_sound = Sound::play_3D(*explode, 0.4f, boom->transform->position);
+		if (bit - 1 == (explode_subuv[boom->index].start_index + 1))
+			explode_sound = Sound::play_3D(*explode, 1.0f, boom->transform->position, 1.0f);
 		if (bit - 1 >= explode_subuv[boom->index].start_index + explode_subuv[boom->index].range)
 		{
 			bit = explode_subuv[boom->index].start_index + 1;
