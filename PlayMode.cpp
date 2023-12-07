@@ -628,6 +628,7 @@ void PlayMode::update(float elapsed)
 		// player die
 		if (player_hp->scale.x <= 0.0001f)
 		{
+
 			player->scale = glm::vec3(0);
 			player_die = true;
 			if (revive_time >= 3.23f)
@@ -2123,6 +2124,8 @@ void PlayMode::revive(float elapsed)
 			revive_time = revive_max_time;
 			jump_velocity = 0;
 			max_fall_speed = 0;
+			current_boss->status = Idle;
+			first_melee = false;
 		}
 	}
 }
