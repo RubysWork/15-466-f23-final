@@ -723,6 +723,7 @@ void PlayMode::update(float elapsed)
 					else
 					{
 						boom.explode_countdown += elapsed;
+						boom.transform->scale = glm::vec3(0.3f * boom.explode_countdown / 3, 0.3f * boom.explode_countdown / 3, 0.3f * boom.explode_countdown / 3);
 					}
 				}
 				if (boom.start_explode)
@@ -852,9 +853,10 @@ void PlayMode::update(float elapsed)
 								auto p = booms.begin();
 								std::advance(p, last_boom_idx);
 								p->transform->scale = p->ori_scale;
+								p->transform->scale = glm::vec3(0, 0, 0);
 								p->transform->position = current_boss->transform->position;
 								p->ready_explode = true;
-								std::cout << "mellee fuse!!!!" << std::endl;
+
 								fuse_sound = Sound::play_3D(*fuse, 0.5f, p->transform->position, 1.0f);
 								// std::cout << p->transform->name << " ready explode set true!!" << std::endl;
 								if (last_boom_idx < 8)
@@ -936,11 +938,10 @@ void PlayMode::update(float elapsed)
 								auto p = booms.begin();
 								std::advance(p, last_boom_idx);
 								p->transform->scale = p->ori_scale;
+								p->transform->scale = glm::vec3(0, 0, 0);
 								p->transform->position = current_boss->transform->position;
 								p->ready_explode = true;
-								std::cout << "shoot fuse!!!!" << std::endl;
-
-								fuse_sound = Sound::play_3D(*fuse, 0.5f, p->transform->position, 1.0f);
+								fuse_sound = Sound::play_3D(*fuse, 0.5f, p->transform->position);
 
 								// std::cout << p->transform->name << " ready explode set true!!" << std::endl;
 								if (last_boom_idx < 8)
@@ -2844,7 +2845,11 @@ void PlayMode::play_explode_ani(Boom *boom)
 		explode_subuv[boom->index].subtransforms[bit - 1]->scale = glm::vec3(0.0f);
 		bit++;
 		if (bit - 1 == (explode_subuv[boom->index].start_index + 1))
-			explode_sound = Sound::play_3D(*explode, 1.0f, boom->transform->position, 1.0f);
+		{
+			(*fuse_sound).stop();
+			explode_sound = Sound::play_3D(*explode, 1.0f, boom->transform->position);
+		}
+
 		if (bit - 1 >= explode_subuv[boom->index].start_index + explode_subuv[boom->index].range)
 		{
 			bit = explode_subuv[boom->index].start_index + 1;
