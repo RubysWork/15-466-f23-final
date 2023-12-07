@@ -118,7 +118,7 @@ MeshBuffer::MeshBuffer(std::string const &filename)
 			}
 			
 			for (uint32_t v = entry.vertex_begin; v < entry.vertex_end; v+=3){
-				std::cout<< "v is "<< v <<std::endl;
+				// std::cout<< "v is "<< v <<std::endl;
 				int vxid = v-entry.vertex_begin;
 				Point p0 = Point(data[v].Position);
 				Point p1 = Point(data[v+1].Position);
@@ -156,13 +156,13 @@ MeshBuffer::MeshBuffer(std::string const &filename)
 			}		
 			//std::cout << "++++++++++++++++          +++++++++++++++++++"<<std::endl;	
 
-			std::cout<< "load halfEdges" <<mesh.halfEdges.size()<< std::endl;
+			// std::cout<< "load halfEdges" <<mesh.halfEdges.size()<< std::endl;
 			for(auto &he : mesh.halfEdges){
 				for(auto &he2 : mesh.halfEdges){
 					if((mesh.points[he.p0].position == mesh.points[he2.p1].position) && (mesh.points[he.p1].position == mesh.points[he2.p0].position)){
 						he.twin = he2.id;
 						he2.twin = he.id;
-						std::cout<<"find pair" <<std::endl;
+						// std::cout<<"find pair" <<std::endl;
 					}
 				}
 			}

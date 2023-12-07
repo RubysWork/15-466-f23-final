@@ -1301,7 +1301,7 @@ void PlayMode::update(float elapsed)
 				// hurt based on max fall speed
 				if (max_fall_speed < 0)
 				{
-					std::cout << max_fall_speed << "\n";
+					// std::cout << max_fall_speed << "\n";
 				}
 				if (max_fall_speed <= -7.0f)
 				{

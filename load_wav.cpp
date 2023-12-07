@@ -25,7 +25,7 @@ void load_wav(std::string const &filename, std::vector< float > *data_) {
 	SDL_AudioCVT cvt;
 	SDL_BuildAudioCVT(&cvt, have->format, have->channels, have->freq, AUDIO_F32SYS, 1, AUDIO_RATE);
 	if (cvt.needed) {
-		std::cout << "WAV file '" + filename + "' didn't load as " + std::to_string(AUDIO_RATE) + " Hz, float32, mono; converting." << std::endl;
+		// std::cout << "WAV file '" + filename + "' didn't load as " + std::to_string(AUDIO_RATE) + " Hz, float32, mono; converting." << std::endl;
 		cvt.len = audio_len;
 		cvt.buf = (Uint8 *)SDL_malloc(cvt.len * cvt.len_mult);
 		SDL_memcpy(cvt.buf, audio_buf, audio_len);
@@ -46,5 +46,5 @@ void load_wav(std::string const &filename, std::vector< float > *data_) {
 		min = std::min(min, d);
 		max = std::max(max, d);
 	}
-	std::cout << "Range: " << min << ", " << max << std::endl;
+	// std::cout << "Range: " << min << ", " << max << std::endl;
 }
