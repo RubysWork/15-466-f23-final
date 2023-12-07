@@ -118,7 +118,7 @@ struct PlayMode : Mode
 
 	// wings
 	Scene::Transform *wings = nullptr;
-	bool hasWings = true;
+	bool hasWings = false;
 	bool beatWings = false;
 	bool flying = false;
 	float wings_max_energy = 15.0f;
@@ -168,7 +168,7 @@ struct PlayMode : Mode
 		BossTeleport
 	};
 
-	PlayerStage player_stage = PlayerStage::JumpGame;
+	PlayerStage player_stage = PlayerStage::InitialStage;
 	float stage_changing = false;
 	float stage_change_timer = 0.0f;
 	int death_time = 0;
